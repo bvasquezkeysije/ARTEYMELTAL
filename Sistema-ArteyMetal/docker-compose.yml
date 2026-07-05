@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16
+    container_name: arteymetales_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arte_metales_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d arte_metales_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arteymetales_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: arte_metales_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - app_storage:/var/www/html/storage
+    command: >
+      sh -lc "
+      mkdir -p /var/www/html/storage/app/public/productos &&
+      mkdir -p /var/www/html/storage/framework/cache &&
+      mkdir -p /var/www/html/storage/framework/sessions &&
+      mkdir -p /var/www/html/storage/framework/views &&
+      mkdir -p /var/www/html/storage/framework/testing &&
+      mkdir -p /var/www/html/storage/logs &&
+      mkdir -p /var/www/html/bootstrap/cache &&
+      touch /var/www/html/storage/logs/laravel.log &&
+      chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache &&
+      php artisan storage:link || true &&
+      php artisan migrate --force &&
+      php artisan db:seed --force &&
+      php artisan optimize:clear &&
+      php artisan serve --host=0.0.0.0 --port=8080
+      "
+
+volumes:
+  pgdata:
+  app_storage:

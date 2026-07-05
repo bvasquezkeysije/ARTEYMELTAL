@@ -1,0 +1,270 @@
+{
+  "main": {
+    "id": "d816fe0145fe9f84",
+    "type": "split",
+    "children": [
+      {
+        "id": "1550e269ff5af930",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0548559522ad1c9a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ArteyMetal/1.- Introducción.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1.- Introducción"
+            }
+          },
+          {
+            "id": "f5495112ce5a47ed",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Sistema/1.- Reglas.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1.- Reglas"
+            }
+          },
+          {
+            "id": "ce8e8e705348f057",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Proyecto/Introducción.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Introducción"
+            }
+          },
+          {
+            "id": "d411c9181d8a1ca4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Sistema/3.- UI.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "3.- UI"
+            }
+          },
+          {
+            "id": "b33900fa0ad36ef9",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Sistema/0.- Requerimientos.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "0.- Requerimientos"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0d1c4e26fe85f68a",
+    "type": "split",
+    "children": [
+      {
+        "id": "caf51c0b262c5949",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c234dc83b9f551b5",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "d757da78b9ba967b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "1a1c11a4326a1aed",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "79618bcd40369b94",
+    "type": "split",
+    "children": [
+      {
+        "id": "0c8f0434b44631c9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d77f99158afd077e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "ArteyMetal/2.- Reglas.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes de 2.- Reglas"
+            }
+          },
+          {
+            "id": "ef9f84c4ed867a14",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "ArteyMetal/2.- Reglas.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes de 2.- Reglas"
+            }
+          },
+          {
+            "id": "8552f6d1355ad675",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "49b36fbe44143933",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "ea6d4d73f83ff1bb",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "ArteyMetal/2.- Reglas.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema de 2.- Reglas"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "b33900fa0ad36ef9",
+  "lastOpenFiles": [
+    "flujo-sistema-arte-y-metal.md",
+    "Proyecto/Introducción.md",
+    "05-Requerimientos/README.md",
+    "05-Requerimientos",
+    "04-Reglas/README.md",
+    "04-Reglas",
+    "03-Frontend/README.md",
+    "03-Frontend",
+    "02-Backend/README.md",
+    "02-Backend",
+    "01-Negocio/README.md",
+    "01-Negocio",
+    "README.md",
+    "Sistema/0.- Requerimientos.md",
+    "Sistema/4.- Logica del negocio.md",
+    "requerimientos.md",
+    "Sistema/3.- UI.md",
+    "Sistema/2.- Sql.md",
+    "Sistema/1.- Reglas.md",
+    "Sistema/3.1.- siderbar.md",
+    "Producción.md",
+    "Sistema",
+    "Proyecto",
+    "ArteyMetal"
+  ]
+}

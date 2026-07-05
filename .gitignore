@@ -1,0 +1,18 @@
+﻿# Root repo for full project
+Sistema-ArteyMetal/.env
+Sistema-ArteyMetal/vendor/
+Sistema-ArteyMetal/node_modules/
+Sistema-ArteyMetal/public/storage/
+Sistema-ArteyMetal/storage/*.key
+Sistema-ArteyMetal/.phpunit.cache/
+Sistema-ArteyMetal/.phpunit.result.cache
+Sistema-ArteyMetal/.fleet/
+Sistema-ArteyMetal/.idea/
+Sistema-ArteyMetal/.nova/
+Sistema-ArteyMetal/.vscode/
+Sistema-ArteyMetal/.zed/
+Sistema-ArteyMetal/auth.json
+Sistema-ArteyMetal/.git_repo_backup/
+Documentacion/.git_repo_backup/
+Thumbs.db
+.DS_Store
