@@ -27,6 +27,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
 
     Route::middleware('permiso:pedidos.ver')->group(function () {
         Route::get('pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
+        Route::get('pedidos/seleccionar-caja/{cajaApertura}', [PedidoController::class, 'seleccionarCaja'])->whereNumber('cajaApertura')->name('pedidos.seleccionar_caja');
+        Route::post('pedidos/cambiar-caja', [PedidoController::class, 'cambiarCaja'])->name('pedidos.cambiar_caja');
         Route::get('pedidos/{pedido}', [PedidoController::class, 'show'])->whereNumber('pedido')->name('pedidos.show');
         Route::post('pedidos/{pedido}/transportar', [PedidoController::class, 'marcarEnTransporte'])->whereNumber('pedido')->name('pedidos.transportar');
         Route::post('pedidos/{pedido}/recibir-almacen', [PedidoController::class, 'marcarEnAlmacen'])->whereNumber('pedido')->name('pedidos.recibir_almacen');

@@ -39,13 +39,21 @@
         }
     </style>
 
-    <div x-data="{ modalPedido: false, pedidoVista: null, filtrosAbiertos: false }" class="space-y-5">
+    <div x-data="{ modalPedido: false, pedidoVista: null, filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? collect())->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }}, showSuccess: {{ session()->has('ok') ? 'true' : 'false' }}, showErrors: {{ $errors->any() ? 'true' : 'false' }}, errorMessages: @js($errors->any() ? $errors->all() : []) }" class="space-y-3">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
-                <form id="search-form" method="GET" action="{{ route('pedidos.index') }}" class="flex min-w-0 flex-1">
-                    <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por codigo, cliente, producto o estado" />
-                </form>
-                <button type="submit" form="search-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                    @if(isset($caja) && $caja)
+                    <div class="shrink-0 flex items-center rounded-lg bg-[#f4ebd4] px-3 text-xs text-[#6a5122] h-10">
+                        {{ $caja->nombre ?? 'Caja #'.$caja->id }}
+                        <span class="ml-1 text-emerald-600">Abierta</span>
+                    </div>
+                    @endif
+                    <form id="search-form" method="GET" action="{{ route('pedidos.index') }}" class="flex min-w-0 flex-1">
+                        <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 text-sm text-gray-900 h-10" placeholder="Buscar por codigo, cliente, producto o estado" />
+                    </form>
+                </div>
+                <button type="submit" form="search-form" class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0" title="Buscar">
                     <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
                 <button
@@ -60,6 +68,14 @@
                 @if($filtroEstado || $filtroPersonalizacion || $busqueda)
                     <a href="{{ route('pedidos.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
+                <form method="POST" action="{{ route('pedidos.cambiar_caja') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="btn-icon bg-amber-600 hover:bg-amber-700" title="Cambiar caja">
+                        <svg class="h-5 w-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </form>
                 @if(auth()->user()->tienePermiso('pedidos.gestionar'))
                     <a href="{{ route('pedidos.create') }}" class="btn-icon" style="background-color:#09090f;color:white" title="Nuevo pedido">
                         <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />
@@ -103,16 +119,8 @@
             @endif
             @if($rol === 'almacenero')
                 <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_transporte'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_transporte' ? 'ring-2 ring-amber-400' : '' }}">Por recibir</a>
-                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_almacen'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_almacen' ? 'ring-2 ring-amber-400' : '' }}">En almacen</a>
-            @endif
-            @if(in_array($rol, ['administrador', 'vendedor'], true))
-                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_almacen'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_almacen' ? 'ring-2 ring-amber-400' : '' }}">En almacen (por cobrar)</a>
             @endif
         </div>
-
-        @if (session('ok'))
-            <div class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('ok') }}</div>
-        @endif
 
         <div class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
@@ -136,15 +144,18 @@
                                 $saldoPendiente = (float) ($pedido->monto_saldo ?? 0);
                                 $montoCancelado = max(0, $montoTotal - $saldoPendiente);
                                 $porcentajeCancelado = $montoTotal > 0 ? min(100, round(($montoCancelado / $montoTotal) * 100, 2)) : 0;
+                                $materiales = $pedido->materiales ? json_decode(json_encode($pedido->materiales), true) : [];
                                 $pedidoVistaData = [
                                     'codigo' => $pedido->codigo,
+                                    'nombre_producto' => $pedido->nombre_producto ?: '-',
                                     'nombre_cliente' => $pedido->nombre_cliente,
                                     'cliente_catalogo' => $pedido->cliente?->id ? ('Cliente catalogo #' . $pedido->cliente->id) : null,
                                     'telefono_cliente' => $pedido->telefono_cliente ?: '-',
                                     'documento_cliente' => $pedido->documento_cliente ?: '-',
                                     'correo_cliente' => $pedido->correo_cliente ?: '-',
-                                    'tipo_producto' => $pedido->tipo_producto,
+                                    'categoria' => optional(\App\Models\CategoriaProducto::where('slug', $pedido->tipo_producto)->first())->nombre ?? $pedido->tipo_producto,
                                     'cantidad' => $pedido->cantidad,
+                                    'materiales' => $materiales,
                                     'estado' => str_replace('_', ' ', $pedido->estado),
                                     'estado_pago' => str_replace('_', ' ', $pedido->estado_pago ?? 'pendiente_adelanto'),
                                     'estado_personalizacion' => str_replace('_', ' ', $pedido->estado_personalizacion ?? 'sin_iniciar'),
@@ -172,7 +183,7 @@
                                         <p class="text-xs text-[#6e6e6e]">Cliente catalogo #{{ $pedido->cliente->id }}</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->tipo_producto }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->nombre_producto ?: $pedido->tipo_producto }}</td>
                                 <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->cantidad }}</td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-medium text-[#6a5122]">{{ str_replace('_', ' ', $pedido->estado) }}</span>
@@ -230,7 +241,9 @@
                     </tbody>
                 </table>
             </div>
+            @if(method_exists($pedidos, 'links'))
             <div class="border-t border-[#efe7d2] px-4 py-3">{{ $pedidos->links('pagination.gold') }}</div>
+            @endif
         </div>
 
         <template x-teleport="body">
@@ -272,12 +285,37 @@
                         <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.correo_cliente"></p>
                     </div>
                     <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Producto</p>
-                        <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.tipo_producto"></p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Nombre producto</p>
+                        <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.nombre_producto"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Categoria</p>
+                        <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.categoria"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Cantidad</p>
                         <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.cantidad"></p>
+                    </div>
+                    <div class="md:col-span-2" x-show="pedidoVista?.materiales?.length">
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Materiales</p>
+                        <div class="mt-2 overflow-hidden rounded-xl border border-[#e9dec2]">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-[#faf6ea] text-left text-[#5a4a2a]">
+                                    <tr>
+                                        <th class="px-3 py-2 font-semibold">Material</th>
+                                        <th class="px-3 py-2 font-semibold">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#efeee9]">
+                                    <template x-for="(mat, idx) in (pedidoVista?.materiales || [])" :key="idx">
+                                        <tr>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="mat.nombre"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="mat.cantidad"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Pago</p>
@@ -316,6 +354,104 @@
                 </div>
             </div>
             </div>
+            </div>
+        </template>
+
+        {{-- Modal seleccionar caja --}}
+        <template x-teleport="body">
+            <div x-show="selectorCajaAbierto" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="selectorCajaAbierto = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-gray-800">Selecciona tu caja de trabajo</h3>
+                            <a href="{{ route('cajas.index') }}" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Ir a abrir caja">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </a>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <p class="text-sm text-gray-500">Elige la caja en la que deseas operar.</p>
+                            @if(isset($cajasAbiertas) && $cajasAbiertas->isNotEmpty())
+                            @foreach ($cajasAbiertas as $cajaItem)
+                                <a
+                                    href="{{ route('pedidos.seleccionar_caja', $cajaItem) }}"
+                                    class="flex items-center justify-between rounded-2xl border border-[#d1be8a] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#b8953a] hover:shadow-md"
+                                >
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-semibold text-[#2a2419]">{{ $cajaItem->nombre ?? 'Caja #'.$cajaItem->id }}</p>
+                                        <p class="text-xs text-gray-500">Abierta: {{ $cajaItem->fecha_apertura->format('d/m/Y H:i') }}</p>
+                                        @if ($cajaItem->monto_inicial > 0)
+                                            <p class="text-xs text-gray-500">Monto inicial: S/ {{ number_format($cajaItem->monto_inicial, 2) }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
+                                        <svg class="h-5 w-5 text-[#b8953a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </a>
+                            @endforeach
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal sin caja abierta --}}
+        <template x-teleport="body">
+            <div x-show="sinCajaAbierto" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">No hay ninguna caja abierta</h3>
+                        <p class="mt-2 text-sm text-gray-500">Ve al modulo de caja, abre una caja y vuelve para empezar a registrar pedidos.</p>
+                        <a href="{{ route('cajas.index') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px"><img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none" /> Ir a abrir caja</a>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal pedido registrado correctamente --}}
+        <template x-teleport="body">
+            <div x-show="showSuccess" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ session('ok') }}</h3>
+                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal errores validacion --}}
+        <template x-teleport="body">
+            <div x-show="showErrors" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showErrors = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-8 pt-10 pb-10 shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 text-center">Se encontraron errores</h3>
+                        <ul class="mt-4 space-y-2 text-sm text-red-700">
+                            <template x-for="(msg, idx) in errorMessages" :key="idx">
+                                <li x-text="msg"></li>
+                            </template>
+                        </ul>
+                        <div class="text-center">
+                            <button type="button" @click="showErrors = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </template>
     </div>

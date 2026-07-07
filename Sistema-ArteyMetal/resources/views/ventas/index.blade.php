@@ -39,7 +39,7 @@
         }
     </style>
 
-    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false, selectorCajaAbierto: {{ $cajasAbiertas->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }} }" class="space-y-5">
+    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false, selectorCajaAbierto: {{ $cajasAbiertas->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }}, showSuccess: {{ session()->has('ok') ? 'true' : 'false' }} }" class="space-y-5">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -96,10 +96,6 @@
                 <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
             </form>
         </div>
-
-        @if (session('ok'))
-            <div class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('ok') }}</div>
-        @endif
 
         <div class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
@@ -373,6 +369,22 @@
                         <h3 class="text-lg font-semibold text-gray-900">No hay ninguna caja abierta</h3>
                         <p class="mt-2 text-sm text-gray-500">Ve al módulo de caja, abre una caja y vuelve para empezar a registrar ventas.</p>
                         <a href="{{ route('cajas.index') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px"><img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none" /> Ir a abrir caja</a>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal venta registrada correctamente --}}
+        <template x-teleport="body">
+            <div x-show="showSuccess" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Venta de productos registrada correctamente.</h3>
+                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
                     </div>
                 </div>
             </div>

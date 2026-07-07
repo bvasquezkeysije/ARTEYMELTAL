@@ -92,6 +92,7 @@
         productos: @js($productosFrontend),
         lineas: @js($lineasIniciales),
         modalProductoAbierto: false,
+        showErrors: {{ $errors->any() ? 'true' : 'false' }},
         productoVista: null,
         fotoIndex: 0,
         consultandoDocumentoCliente: false,
@@ -140,14 +141,27 @@
         filtrarProductos(texto) {
             const q = (texto || '').trim().toLowerCase();
             if (!q) return this.productos.slice(0, 8);
+            const partes = q.split(' - ');
+            const termino = partes[0].trim();
             return this.productos
-                .filter(p => p.codigo.toLowerCase().includes(q) || p.nombre.toLowerCase().includes(q))
+                .filter(p => p.codigo.toLowerCase().includes(termino) || p.nombre.toLowerCase().includes(termino))
                 .slice(0, 8);
         },
         seleccionarProducto(i, p) {
-            this.lineas[i].producto_id = String(p.id);
-            this.lineas[i].busqueda = `${p.codigo} - ${p.nombre}`;
-            this.lineas[i].abierto = false;
+            const existente = this.lineas.findIndex(
+                (l, idx) => idx !== i && l.producto_id === String(p.id)
+            );
+            if (existente !== -1) {
+                const nuevaCantidad =
+                    (parseInt(this.lineas[existente].cantidad) || 1) +
+                    (parseInt(this.lineas[i].cantidad) || 1);
+                this.lineas[existente].cantidad = nuevaCantidad;
+                this.lineas.splice(i, 1);
+            } else {
+                this.lineas[i].producto_id = String(p.id);
+                this.lineas[i].busqueda = `${p.codigo} - ${p.nombre}`;
+                this.lineas[i].abierto = false;
+            }
         },
         productoPorId(id) {
             return this.productos.find(p => String(p.id) === String(id)) || null;
@@ -234,15 +248,31 @@
             setTimeout(() => { if (this.lineas[i]) this.lineas[i].abierto = false; }, 120);
         }
     }" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        @if ($errors->any())
-            <div class="mb-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">Revisa los datos ingresados.</div>
-        @endif
+        <div x-show="showErrors" style="display: none;">
+            <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showErrors = false"></div>
+            <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                    <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                        <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900">Revisa los datos ingresados</h3>
+                    <ul class="mt-3 space-y-2 text-left">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm text-rose-600">- {{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" @click="showErrors = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                </div>
+            </div>
+        </div>
 
         <form method="POST" action="{{ route('ventas.store') }}" class="space-y-5">
             @csrf
             <div class="space-y-4">
                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                     <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Productos</h3>
+                    @error('producto_id') <p class="mb-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    @error('cantidad.*') <p class="mb-2 text-sm text-rose-600">{{ $message }}</p> @enderror
                     <div class="space-y-3">
                         <template x-for="(linea, i) in lineas" :key="i">
                             <div class="grid gap-3 md:grid-cols-[1fr_auto_120px_auto]">
@@ -340,6 +370,7 @@
                     <div class="mt-3">
                         <label for="cliente_nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre cliente</label>
                         <input x-ref="nombreClienteVenta" id="cliente_nombre" name="cliente_nombre" type="text" value="{{ old('cliente_nombre') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Nombre del cliente" />
+                        @error('cliente_nombre') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                     </div>
                     <div class="mt-3">
                         <label for="direccion_cliente" class="mb-2 block text-sm font-medium text-gray-700">Direccion cliente</label>

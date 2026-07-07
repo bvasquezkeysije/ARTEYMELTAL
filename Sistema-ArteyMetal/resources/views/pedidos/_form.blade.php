@@ -8,10 +8,11 @@
     ];
 @endphp
 
-<div
-    x-data="{
-        monto: '{{ old('monto_total', $pedido->monto_total ?? '') }}',
-        tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
+    <div
+        x-data="{
+            monto: '{{ old('monto_total', $pedido->monto_total ?? '') }}',
+            adelanto: '{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}',
+            tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
         mensajeDocumento: '',
@@ -94,28 +95,25 @@
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos Cliente</h3>
         <div class="grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">
-                <div class="flex gap-2">
-                    <div class="w-full">
-                        <label for="documento_cliente" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente (DNI/RUC)</label>
-                        <input
-                            x-ref="documentoCliente"
-                            id="documento_cliente"
-                            name="documento_cliente"
-                            type="text"
-                            value="{{ old('documento_cliente', $pedido->documento_cliente ?? '') }}"
-                            @keydown.enter.prevent="buscarPorDocumento()"
-                            class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
-                            placeholder="Ejemplo: 74561230 o 20601030013"
-                        />
-                        <p class="mt-1 text-xs text-gray-500">Primero busca en clientes del sistema. Si no existe: DNI consulta RENIEC y RUC consulta SUNAT automaticamente.</p>
-                        <p x-show="mensajeDocumento" class="mt-1 text-xs" :class="consultaDocumentoOk ? 'text-emerald-700' : 'text-rose-700'" x-text="mensajeDocumento"></p>
-                        @error('documento_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-                    </div>
-                    <button type="button" @click="buscarPorDocumento()" :disabled="consultandoDocumento" class="mt-8 h-fit rounded-xl border border-gray-300 bg-white px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-60">
-                        <span x-show="!consultandoDocumento">Buscar</span>
-                        <span x-show="consultandoDocumento" style="display:none;">Buscando...</span>
+                <label for="documento_cliente" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente (DNI/RUC)</label>
+                <div class="flex gap-2 items-stretch">
+                    <input
+                        x-ref="documentoCliente"
+                        id="documento_cliente"
+                        name="documento_cliente"
+                        type="text"
+                        value="{{ old('documento_cliente', $pedido->documento_cliente ?? '') }}"
+                        @keydown.enter.prevent="buscarPorDocumento()"
+                        class="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
+                        placeholder="Ejemplo: 74561230 o 20601030013"
+                    />
+                    <button type="button" @click="buscarPorDocumento()" :disabled="consultandoDocumento" class="rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0 px-3" title="Buscar" :class="{ 'opacity-50': consultandoDocumento }">
+                        <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
                     </button>
                 </div>
+                <p class="mt-1 text-xs text-gray-500">Primero busca en clientes del sistema. Si no existe: DNI consulta RENIEC y RUC consulta SUNAT automaticamente.</p>
+                <p x-show="mensajeDocumento" class="mt-1 text-xs" :class="consultaDocumentoOk ? 'text-emerald-700' : 'text-rose-700'" x-text="mensajeDocumento"></p>
+                @error('documento_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div class="md:col-span-2">
@@ -139,7 +137,7 @@
     </section>
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos Pedido y Producto</h3>
+        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos del Producto</h3>
         <div class="grid gap-4 md:grid-cols-2">
             <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">Codigo pedido</label>
@@ -151,15 +149,20 @@
             </div>
 
             <div>
-                <label for="tipo_producto" class="mb-2 block text-sm font-medium text-gray-700">Tipo producto</label>
-                <input id="tipo_producto" name="tipo_producto" type="text" value="{{ old('tipo_producto', $pedido->tipo_producto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Placa / Medalla / Distintivo" />
-                @error('tipo_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                <label for="nombre_producto" class="mb-2 block text-sm font-medium text-gray-700">Nombre del producto</label>
+                <input id="nombre_producto" name="nombre_producto" type="text" value="{{ old('nombre_producto', $pedido->nombre_producto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Copa, Anillo, Medalla" />
+                @error('nombre_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label for="cantidad" class="mb-2 block text-sm font-medium text-gray-700">Cantidad</label>
-                <input id="cantidad" name="cantidad" type="number" min="1" value="{{ old('cantidad', $pedido->cantidad ?? 1) }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                @error('cantidad') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                <label for="tipo_producto" class="mb-2 block text-sm font-medium text-gray-700">Categoria</label>
+                <select id="tipo_producto" name="tipo_producto" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                    <option value="">Seleccione una categoria</option>
+                    @foreach($categorias as $cat)
+                        <option value="{{ $cat->slug }}" @selected(old('tipo_producto', $pedido->tipo_producto ?? '') === $cat->slug)>{{ $cat->nombre }}</option>
+                    @endforeach
+                </select>
+                @error('tipo_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -180,11 +183,82 @@
 
             <div>
                 <label for="monto_total" class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
-                <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
-                <p class="mt-2 text-xs text-gray-500">Debe pagar 50% de adelanto: <span class="font-semibold" x-text="'S/ ' + (Number(monto || 0) * 0.5).toFixed(2)"></span></p>
-                <p class="mt-1 text-xs text-gray-500">Saldo pendiente al entregar: <span class="font-semibold" x-text="'S/ ' + (Number(monto || 0) * 0.5).toFixed(2)"></span></p>
+                <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
                 @error('monto_total') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
+            <div>
+                <label for="monto_adelanto" class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
+                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
+                <p class="mt-2 text-xs text-gray-500">El saldo pendiente se calcula automaticamente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
+                @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+        </div>
+    </section>
+
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Materiales</h3>
+        <div x-data="{
+            materiales: @js(old('materiales', $pedido->materiales ?? [['nombre' => '', 'cantidad' => 1]])),
+            agregar() { this.materiales.push({nombre: '', cantidad: 1}); },
+            eliminar(i) { if (this.materiales.length > 1) this.materiales.splice(i, 1); },
+            get totalUnidades() { return this.materiales.reduce((s, m) => s + (Number(m.cantidad) || 0), 0); }
+        }">
+            <template x-for="(mat, i) in materiales" :key="i">
+                <div class="mb-3 flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="mb-1 block text-xs font-medium text-gray-600" x-text="'Material ' + (i + 1)"></label>
+                        <input type="text" x-model="mat.nombre" :name="'materiales['+i+'][nombre]'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Oro, Plata, Bronce" required />
+                    </div>
+                    <div class="w-28">
+                        <label class="mb-1 block text-xs font-medium text-gray-600">Cantidad</label>
+                        <input type="number" x-model="mat.cantidad" :name="'materiales['+i+'][cantidad]'" min="1" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" required />
+                    </div>
+                    <button type="button" @click="eliminar(i)" x-show="materiales.length > 1" class="btn-icon-sm bg-red-600 hover:bg-red-700 mb-0.5" title="Eliminar material">
+                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+            </template>
+            <div class="flex items-center gap-3 mt-2">
+                <button type="button" @click="agregar()" class="rounded-lg border border-[#d1be8a] px-3 py-1.5 text-xs font-medium text-[#5a4314] hover:bg-[#fff5dd]">+ Agregar material</button>
+                <p class="text-xs text-gray-500">Total unidades: <span class="font-semibold" x-text="totalUnidades"></span></p>
+            </div>
+            @error('materiales') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            @error('materiales.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+        </div>
+    </section>
+
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h3>
+        <div>
+            <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno (CDR, PDF, JPG, PNG)</label>
+            <input
+                id="archivos_modelo"
+                name="archivos_modelo[]"
+                type="file"
+                multiple
+                accept=".cdr,.pdf,.jpg,.jpeg,.png"
+                class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
+            />
+            <p class="mt-1 text-xs text-gray-500">Sube el diseno o modelo de referencia del producto.</p>
+            @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+
+            @if(isset($pedido) && $pedido->exists)
+                <div class="mt-4">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos subidos</p>
+                    @if($pedido->archivosDiseno->isNotEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($pedido->archivosDiseno as $archivo)
+                                <a href="{{ asset('storage/' . $archivo->archivo_path) }}" target="_blank" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
+                                    {{ $archivo->nombre_original }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-500">Sin archivos de diseno.</p>
+                    @endif
+                </div>
+            @endif
         </div>
     </section>
 

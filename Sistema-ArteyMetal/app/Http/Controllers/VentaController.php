@@ -227,7 +227,7 @@ class VentaController extends Controller
             $stockTienda = (int) ($producto->stock_tienda ?? 0);
             if ($stockTienda < $cantidad) {
                 return back()->withInput()->withErrors([
-                    "cantidad.$i" => "Stock insuficiente en tienda para {$producto->nombre}. Stock en tienda: {$stockTienda}.",
+                    "cantidad.$i" => "Stock insuficiente para {$producto->nombre}.",
                 ]);
             }
 

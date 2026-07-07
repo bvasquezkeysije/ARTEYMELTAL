@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CajaApertura;
+use App\Models\CategoriaProducto;
 use App\Models\Cliente;
 use App\Models\Pedido;
 use App\Models\PedidoDisenoArchivo;
@@ -20,6 +22,19 @@ class PedidoController extends Controller
 
     public function index()
     {
+        $cajaAperturaId = session('pedido_caja_apertura_id');
+
+        if (! $cajaAperturaId) {
+            return $this->redirectToCajaSelection();
+        }
+
+        $caja = CajaApertura::find($cajaAperturaId);
+
+        if (! $caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
+            session()->forget('pedido_caja_apertura_id');
+            return $this->redirectToCajaSelection();
+        }
+
         $busqueda = request('q');
         $filtroEstado = request('estado');
         $filtroPersonalizacion = request('estado_personalizacion');
@@ -42,29 +57,116 @@ class PedidoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion'));
+        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion', 'caja') + ['cajasAbiertas' => collect(), 'sinCaja' => false]);
     }
 
     public function create()
     {
-        $clientes = Cliente::orderBy('nombre_completo')->get();
+        $cajaAperturaId = session('pedido_caja_apertura_id');
 
-        return view('pedidos.create', compact('clientes'));
+        if (! $cajaAperturaId) {
+            return redirect()->route('pedidos.index');
+        }
+
+        $cajaAbierta = CajaApertura::find($cajaAperturaId);
+
+        if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
+            session()->forget('pedido_caja_apertura_id');
+            return redirect()->route('pedidos.index');
+        }
+
+        $clientes = Cliente::orderBy('nombre_completo')->get();
+        $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
+
+        return view('pedidos.create', compact('clientes', 'categorias'));
     }
 
     public function store(Request $request)
     {
+        $cajaAperturaId = session('pedido_caja_apertura_id');
+
+        if (! $cajaAperturaId) {
+            return redirect()->route('pedidos.index');
+        }
+
+        $cajaAbierta = CajaApertura::find($cajaAperturaId);
+
+        if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
+            session()->forget('pedido_caja_apertura_id');
+            return redirect()->route('pedidos.index');
+        }
+
         $datos = $this->validarPedido($request);
+
+        if ((float) ($datos['monto_adelanto'] ?? 0) > (float) ($datos['monto_total'] ?? 0)) {
+            return back()->withInput()->withErrors(['monto_adelanto' => 'El adelanto no puede ser mayor al monto total.']);
+        }
+
         $datos = $this->completarDatosCliente($datos);
         $datos = $this->sincronizarClientePorDocumento($datos);
         $datos = $this->normalizarDatosEntrega($datos);
         $datos['codigo'] = $this->generarCodigoPedido();
         $datos['usuario_id'] = $request->user()->id;
+        $datos['estado_pago'] = 'adelanto_pagado';
+        $datos['monto_saldo'] = round((float) ($datos['monto_total'] ?? 0) - (float) ($datos['monto_adelanto'] ?? 0), 2);
 
-        $pedido = Pedido::create($datos);
-        $this->guardarArchivosOrden($request, $pedido);
+        DB::transaction(function () use ($datos, $request, $cajaAperturaId) {
+            $pedido = Pedido::create($datos);
+            $this->guardarArchivosOrden($request, $pedido);
+            $this->guardarArchivosModelo($request, $pedido);
+
+            $venta = Venta::create([
+                'codigo' => $this->generarCodigoVenta(),
+                'tipo_venta' => 'pedido',
+                'pedido_id' => $pedido->id,
+                'cliente_nombre' => $datos['nombre_cliente'],
+                'fecha_venta' => now()->toDateString(),
+                'monto_total' => $datos['monto_adelanto'],
+                'monto_cobrado' => $datos['monto_adelanto'],
+                'estado_pago' => 'pagado_completo',
+                'observaciones' => 'Adelanto pedido '.$pedido->codigo,
+                'usuario_id' => $request->user()->id,
+                'caja_apertura_id' => $cajaAperturaId,
+            ]);
+
+            VentaDetalle::create([
+                'venta_id' => $venta->id,
+                'producto_id' => null,
+                'producto_nombre' => 'Adelanto pedido '.$pedido->codigo,
+                'cantidad' => 1,
+                'precio_unitario' => $datos['monto_adelanto'],
+                'subtotal' => $datos['monto_adelanto'],
+            ]);
+
+            $documento = preg_replace('/\D/', '', (string) ($datos['documento_cliente'] ?? ''));
+            $tipoComprobante = strlen($documento) === 11 ? 'factura' : 'boleta';
+
+            $this->comprobanteService->emitir($venta, [
+                'tipo_comprobante' => $tipoComprobante,
+                'documento_cliente' => $documento !== '' ? $documento : null,
+                'nombre_cliente' => $datos['nombre_cliente'] ?: 'Cliente',
+                'direccion_cliente' => $datos['direccion_entrega'] ?? null,
+            ]);
+        });
 
         return redirect()->route('pedidos.index')->with('ok', 'Pedido registrado correctamente.');
+    }
+
+    public function seleccionarCaja(CajaApertura $cajaApertura)
+    {
+        if ($cajaApertura->usuario_id !== auth()->id() || $cajaApertura->estado !== 'abierta') {
+            return redirect()->route('pedidos.index')
+                ->withErrors(['caja' => 'Caja no valida.']);
+        }
+
+        session(['pedido_caja_apertura_id' => $cajaApertura->id]);
+        return redirect()->route('pedidos.index');
+    }
+
+    public function cambiarCaja()
+    {
+        session()->forget('pedido_caja_apertura_id');
+        return redirect()->route('pedidos.index');
     }
 
     public function show(Pedido $pedido)
@@ -77,8 +179,9 @@ class PedidoController extends Controller
     public function edit(Pedido $pedido)
     {
         $clientes = Cliente::orderBy('nombre_completo')->get();
+        $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
 
-        return view('pedidos.edit', compact('pedido', 'clientes'));
+        return view('pedidos.edit', compact('pedido', 'clientes', 'categorias'));
     }
 
     public function update(Request $request, Pedido $pedido)
@@ -89,6 +192,7 @@ class PedidoController extends Controller
         $datos = $this->normalizarDatosEntrega($datos);
         $pedido->update($datos);
         $this->guardarArchivosOrden($request, $pedido);
+        $this->guardarArchivosModelo($request, $pedido);
 
         return redirect()->route('pedidos.index')->with('ok', 'Pedido actualizado correctamente.');
     }
@@ -98,6 +202,37 @@ class PedidoController extends Controller
         $pedido->delete();
 
         return redirect()->route('pedidos.index')->with('ok', 'Pedido eliminado correctamente.');
+    }
+
+    private function redirectToCajaSelection()
+    {
+        session()->forget('pedido_caja_apertura_id');
+
+        $cajasAbiertas = CajaApertura::query()
+            ->where('usuario_id', auth()->id())
+            ->where('estado', 'abierta')
+            ->get();
+
+        if ($cajasAbiertas->isEmpty()) {
+            return view('pedidos.index', [
+                'pedidos' => collect(),
+                'busqueda' => '',
+                'filtroEstado' => '',
+                'filtroPersonalizacion' => '',
+                'caja' => null,
+                'cajasAbiertas' => collect(),
+                'sinCaja' => true,
+            ]);
+        }
+
+        return view('pedidos.index', [
+            'pedidos' => collect(),
+            'busqueda' => '',
+            'filtroEstado' => '',
+            'filtroPersonalizacion' => '',
+            'caja' => null,
+            'cajasAbiertas' => $cajasAbiertas,
+        ]);
     }
 
     public function actualizarPersonalizacion(Request $request, Pedido $pedido)
@@ -225,46 +360,41 @@ class PedidoController extends Controller
         }
 
         DB::transaction(function () use ($pedido, $request) {
+            $cajaAperturaId = session('pedido_caja_apertura_id');
             $saldoPendiente = round((float) ($pedido->monto_saldo ?? 0), 2);
 
-            $ventaExistente = Venta::query()
-                ->where('pedido_id', $pedido->id)
-                ->where('tipo_venta', 'pedido')
-                ->exists();
+            $venta = Venta::create([
+                'codigo' => $this->generarCodigoVenta(),
+                'tipo_venta' => 'pedido',
+                'pedido_id' => $pedido->id,
+                'cliente_nombre' => $pedido->nombre_cliente,
+                'fecha_venta' => now()->toDateString(),
+                'monto_total' => $saldoPendiente,
+                'monto_cobrado' => $saldoPendiente,
+                'estado_pago' => 'pagado_completo',
+                'observaciones' => 'Pago final pedido '.$pedido->codigo,
+                'usuario_id' => $request->user()->id,
+                'caja_apertura_id' => $cajaAperturaId,
+            ]);
 
-            if (! $ventaExistente) {
-                $venta = Venta::create([
-                    'codigo' => $this->generarCodigoVenta(),
-                    'tipo_venta' => 'pedido',
-                    'pedido_id' => $pedido->id,
-                    'cliente_nombre' => $pedido->nombre_cliente,
-                    'fecha_venta' => now()->toDateString(),
-                    'monto_total' => $pedido->monto_total,
-                    'monto_cobrado' => $saldoPendiente,
-                    'estado_pago' => 'pagado_completo',
-                    'observaciones' => 'Cierre automatico por pago final del pedido '.$pedido->codigo,
-                    'usuario_id' => $request->user()->id,
-                ]);
+            VentaDetalle::create([
+                'venta_id' => $venta->id,
+                'producto_id' => null,
+                'producto_nombre' => 'Pago final pedido '.$pedido->codigo,
+                'cantidad' => 1,
+                'precio_unitario' => $saldoPendiente,
+                'subtotal' => $saldoPendiente,
+            ]);
 
-                VentaDetalle::create([
-                    'venta_id' => $venta->id,
-                    'producto_id' => null,
-                    'producto_nombre' => 'Pago final pedido '.$pedido->codigo,
-                    'cantidad' => 1,
-                    'precio_unitario' => $saldoPendiente,
-                    'subtotal' => $saldoPendiente,
-                ]);
+            $documento = preg_replace('/\D/', '', (string) ($pedido->documento_cliente ?? ''));
+            $tipoComprobante = strlen($documento) === 11 ? 'factura' : 'boleta';
 
-                $documento = preg_replace('/\D/', '', (string) ($pedido->documento_cliente ?? ''));
-                $tipoComprobante = strlen($documento) === 11 ? 'factura' : 'boleta';
-
-                $this->comprobanteService->emitir($venta, [
-                    'tipo_comprobante' => $tipoComprobante,
-                    'documento_cliente' => $documento !== '' ? $documento : null,
-                    'nombre_cliente' => $pedido->nombre_cliente ?: 'Cliente',
-                    'direccion_cliente' => $pedido->direccion_entrega,
-                ]);
-            }
+            $this->comprobanteService->emitir($venta, [
+                'tipo_comprobante' => $tipoComprobante,
+                'documento_cliente' => $documento !== '' ? $documento : null,
+                'nombre_cliente' => $pedido->nombre_cliente ?: 'Cliente',
+                'direccion_cliente' => $pedido->direccion_entrega,
+            ]);
 
             $pedido->update([
                 'estado' => 'entregado',
@@ -274,7 +404,7 @@ class PedidoController extends Controller
             ]);
         });
 
-        return redirect()->route('pedidos.show', $pedido)->with('ok', 'Pago final confirmado. Pedido cerrado y registrado en ventas.');
+        return redirect()->route('pedidos.index')->with('ok', 'Pago final confirmado. Pedido cerrado y registrado en ventas.');
     }
 
     private function validarPedido(Request $request, ?int $pedidoId = null): array
@@ -287,7 +417,11 @@ class PedidoController extends Controller
             'telefono_cliente' => ['nullable', 'string', 'max:20'],
             'documento_cliente' => ['nullable', 'string', 'max:25'],
             'correo_cliente' => ['nullable', 'string', 'email', 'max:120'],
-            'tipo_producto' => ['required', 'string', 'max:120'],
+            'nombre_producto' => ['required', 'string', 'max:255'],
+            'tipo_producto' => ['required', 'string', 'exists:categorias_producto,slug'],
+            'materiales' => ['required', 'array', 'min:1'],
+            'materiales.*.nombre' => ['required', 'string', 'max:255'],
+            'materiales.*.cantidad' => ['required', 'integer', 'min:1'],
             'tipo_entrega' => ['required', 'string', 'in:local,delivery,agencia'],
             'direccion_entrega' => ['nullable', 'string', 'max:255', 'required_unless:tipo_entrega,local'],
             'referencia_entrega' => ['nullable', 'string', 'max:255'],
@@ -297,13 +431,15 @@ class PedidoController extends Controller
             'telefono_recibe' => ['nullable', 'string', 'max:20', 'required_unless:tipo_entrega,local'],
             'costo_delivery' => ['nullable', 'numeric', 'min:0', 'required_unless:tipo_entrega,local'],
             'detalle_trabajo' => ['nullable', 'string'],
-            'cantidad' => ['required', 'integer', 'min:1'],
             'estado' => ['required', 'string', 'in:'.$estados],
             'fecha_entrega_compromiso' => ['nullable', 'date'],
-            'monto_total' => ['nullable', 'numeric', 'min:0'],
+            'monto_total' => ['required', 'numeric', 'min:0.01'],
+            'monto_adelanto' => ['required', 'numeric', 'min:0.01'],
             'observaciones' => ['nullable', 'string'],
             'archivos_orden' => ['nullable', 'array'],
             'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
+            'archivos_modelo' => ['nullable', 'array'],
+            'archivos_modelo.*' => ['file', 'max:15360', 'mimes:cdr,pdf,jpg,jpeg,png'],
         ]);
     }
 
@@ -321,6 +457,29 @@ class PedidoController extends Controller
             $path = $archivo->store('ordenes_compra_pedido', 'public');
 
             PedidoOrdenArchivo::create([
+                'pedido_id' => $pedido->id,
+                'archivo_path' => $path,
+                'nombre_original' => $archivo->getClientOriginalName(),
+                'mime_type' => $archivo->getMimeType(),
+                'tamano_bytes' => $archivo->getSize(),
+            ]);
+        }
+    }
+
+    private function guardarArchivosModelo(Request $request, Pedido $pedido): void
+    {
+        if (! $request->hasFile('archivos_modelo')) {
+            return;
+        }
+
+        foreach ($request->file('archivos_modelo') as $archivo) {
+            if (! $archivo->isValid()) {
+                continue;
+            }
+
+            $path = $archivo->store('modelos_pedido', 'public');
+
+            PedidoDisenoArchivo::create([
                 'pedido_id' => $pedido->id,
                 'archivo_path' => $path,
                 'nombre_original' => $archivo->getClientOriginalName(),

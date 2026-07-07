@@ -13,11 +13,13 @@ class Pedido extends Model
     protected $fillable = [
         'cliente_id',
         'codigo',
+        'nombre_producto',
         'nombre_cliente',
         'telefono_cliente',
         'documento_cliente',
         'correo_cliente',
         'tipo_producto',
+        'materiales',
         'tipo_entrega',
         'direccion_entrega',
         'referencia_entrega',
@@ -51,7 +53,17 @@ class Pedido extends Model
         'costo_delivery' => 'decimal:2',
         'monto_adelanto' => 'decimal:2',
         'monto_saldo' => 'decimal:2',
+        'materiales' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Pedido $pedido) {
+            if ($pedido->materiales && is_array($pedido->materiales)) {
+                $pedido->cantidad = collect($pedido->materiales)->sum('cantidad');
+            }
+        });
+    }
 
     public function usuario(): BelongsTo
     {

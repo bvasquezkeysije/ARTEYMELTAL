@@ -68,6 +68,7 @@ class SecuritySeeder extends Seeder
                 'ventas.ver',
                 'ventas.gestionar',
                 'pedidos.ver',
+                'pedidos.gestionar',
                 'reportes.ver',
                 'caja.ver',
                 'caja.gestionar',
