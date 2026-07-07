@@ -159,49 +159,55 @@
         <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div x-data="{
-            get selectedFiles() {
-                return Array.from($refs.fileInput.files || []).map(f => ({ name: f.name, size: f.size }));
+            files: [],
+            init() {
+                this.$watch('files', () => {});
+            },
+            onFileChange(e) {
+                this.files = Array.from(e.target.files || []).map(f => ({ name: f.name, size: f.size }));
             },
             removeFile(i) {
-                const input = $refs.fileInput;
+                const input = this.$refs.fileInput;
                 const dt = new DataTransfer();
-                const files = Array.from(input.files);
-                files.splice(i, 1);
-                files.forEach(f => dt.items.add(f));
+                const arr = Array.from(input.files);
+                arr.splice(i, 1);
+                arr.forEach(f => dt.items.add(f));
                 input.files = dt.files;
-                this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                this.files = Array.from(input.files).map(f => ({ name: f.name, size: f.size }));
             }
-        }" class="grid gap-4 md:grid-cols-2">
-            <label for="archivos_modelo" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-8 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
-                <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-                </svg>
-                <p class="text-sm font-medium">Elegir archivos</p>
-                <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
-            </label>
-            <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
-                <template x-for="(file, i) in selectedFiles" :key="i">
-                    <div class="mb-1 flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
-                        <span class="truncate text-gray-700" x-text="file.name"></span>
-                        <button type="button" @click="removeFile(i)" class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Quitar archivo">
-                            <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-                </template>
-                <p x-show="selectedFiles.length === 0" class="py-4 text-center text-sm text-gray-400">Ningun archivo seleccionado</p>
+        }">
+            <input
+                id="archivos_modelo"
+                x-ref="fileInput"
+                name="archivos_modelo[]"
+                type="file"
+                multiple
+                accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
+                @change="onFileChange($event)"
+                class="hidden"
+            />
+            <div class="grid gap-4 md:grid-cols-2">
+                <label for="archivos_modelo" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-8 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
+                    <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                    </svg>
+                    <p class="text-sm font-medium">Elegir archivos</p>
+                    <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
+                </label>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
+                    <template x-for="(file, i) in files" :key="i">
+                        <div class="mb-1 flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
+                            <span class="truncate text-gray-700" x-text="file.name"></span>
+                            <button type="button" @click="removeFile(i)" class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Quitar archivo">
+                                <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </template>
+                    <p x-show="files.length === 0" class="py-4 text-center text-sm text-gray-400">Ningun archivo seleccionado</p>
+                </div>
             </div>
         </div>
-        <input
-            id="archivos_modelo"
-            x-ref="fileInput"
-            name="archivos_modelo[]"
-            type="file"
-            multiple
-            accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
-            @change="$refresh()"
-            class="hidden"
-        />
         <p class="mt-2 text-xs text-gray-500">Sube hasta 10 archivos.</p>
         @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
