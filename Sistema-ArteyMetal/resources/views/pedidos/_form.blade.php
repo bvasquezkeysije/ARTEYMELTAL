@@ -197,8 +197,8 @@
                                 </td>
                                 <td class="px-3 py-2 font-semibold text-gray-700" x-text="'S/ ' + ((Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0)).toFixed(2)"></td>
                                 <td class="px-3 py-2">
-                                    <button type="button" @click="eliminar(i)" x-show="productos.length > 1" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Eliminar">
-                                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-3 w-3 object-contain pointer-events-none" />
+                                    <button type="button" @click="eliminar(i)" x-show="productos.length > 1" class="btn-icon bg-red-600 hover:bg-red-700" title="Eliminar">
+                                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
                                     </button>
                                 </td>
                             </tr>
