@@ -241,12 +241,6 @@
             </div>
 
             <div>
-                <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
-                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
                 <label for="monto_total" class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
                 <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
                 @error('monto_total') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
@@ -272,6 +266,11 @@
                     <option value="agencia" @selected(old('tipo_entrega', $pedido->tipo_entrega ?? 'local') === 'agencia')>Agencia</option>
                 </select>
                 @error('tipo_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
+                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
+                @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
 
