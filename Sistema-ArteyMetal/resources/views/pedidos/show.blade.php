@@ -103,6 +103,37 @@
             </div>
         </div>
 
+        @if(!empty($pedido->productos_personalizados))
+            <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <th class="px-3 py-2">#</th>
+                            <th class="px-3 py-2">Nombre</th>
+                            <th class="px-3 py-2">Descripcion</th>
+                            <th class="px-3 py-2">Materiales</th>
+                            <th class="px-3 py-2">Precio uni.</th>
+                            <th class="px-3 py-2">Cant.</th>
+                            <th class="px-3 py-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pedido->productos_personalizados as $idx => $pp)
+                            <tr class="border-t border-gray-100">
+                                <td class="px-3 py-2 text-center text-gray-400">{{ $idx + 1 }}</td>
+                                <td class="px-3 py-2 font-medium text-gray-900">{{ $pp['nombre'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $pp['descripcion'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $pp['materiales'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-gray-700">S/ {{ number_format((float) ($pp['precio_unitario'] ?? 0), 2) }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $pp['cantidad'] ?? 0 }}</td>
+                                <td class="px-3 py-2 font-semibold text-gray-900">S/ {{ number_format(((float) ($pp['precio_unitario'] ?? 0)) * ((int) ($pp['cantidad'] ?? 0)), 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
         @if($pedido->tipo_entrega !== 'local')
             <div class="mt-5 grid gap-4 md:grid-cols-2">
                 <div class="md:col-span-2">

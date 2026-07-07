@@ -156,6 +156,7 @@
                                     'correo_cliente' => $pedido->correo_cliente ?: '-',
                                     'cantidad' => $pedido->cantidad,
                                     'materiales' => $materiales,
+                                    'productos_personalizados' => $pedido->productos_personalizados ?? [],
                                     'estado' => str_replace('_', ' ', $pedido->estado),
                                     'estado_pago' => str_replace('_', ' ', $pedido->estado_pago ?? 'pendiente_adelanto'),
                                     'estado_personalizacion' => str_replace('_', ' ', $pedido->estado_personalizacion ?? 'sin_iniciar'),
@@ -311,6 +312,37 @@
                                         <tr>
                                             <td class="px-3 py-2 text-[#4a4026]" x-text="mat.nombre"></td>
                                             <td class="px-3 py-2 text-[#4a4026]" x-text="mat.cantidad"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2" x-show="pedidoVista?.productos_personalizados?.length">
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Productos personalizados</p>
+                        <div class="mt-2 overflow-x-auto rounded-xl border border-[#e9dec2]">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-[#faf6ea] text-left text-[#5a4a2a]">
+                                    <tr>
+                                        <th class="px-3 py-2 font-semibold">#</th>
+                                        <th class="px-3 py-2 font-semibold">Nombre</th>
+                                        <th class="px-3 py-2 font-semibold">Descripcion</th>
+                                        <th class="px-3 py-2 font-semibold">Materiales</th>
+                                        <th class="px-3 py-2 font-semibold">P.Unit</th>
+                                        <th class="px-3 py-2 font-semibold">Cant</th>
+                                        <th class="px-3 py-2 font-semibold">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#efeee9]">
+                                    <template x-for="(pp, idx) in (pedidoVista?.productos_personalizados || [])" :key="idx">
+                                        <tr>
+                                            <td class="px-3 py-2 text-center text-[#8a7a5a]" x-text="idx + 1"></td>
+                                            <td class="px-3 py-2 font-medium text-[#4a4026]" x-text="pp.nombre"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="pp.descripcion || '-'"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="pp.materiales || '-'"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="'S/ ' + (Number(pp.precio_unitario) || 0).toFixed(2)"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]" x-text="pp.cantidad"></td>
+                                            <td class="px-3 py-2 font-semibold text-[#4a4026]" x-text="'S/ ' + ((Number(pp.precio_unitario) || 0) * (Number(pp.cantidad) || 0)).toFixed(2)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
