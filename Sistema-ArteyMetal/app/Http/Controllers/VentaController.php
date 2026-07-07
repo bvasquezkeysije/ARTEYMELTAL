@@ -54,7 +54,7 @@ class VentaController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja'));
+        return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja') + ['cajasAbiertas' => collect(), 'sinCaja' => false]);
     }
 
     private function redirectToCajaSelection()

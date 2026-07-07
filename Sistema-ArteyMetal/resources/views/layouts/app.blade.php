@@ -126,7 +126,7 @@
                             @endif
                             @if(auth()->user()->tienePermiso('caja.ver'))
                                 <a href="{{ route('cajas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Caja" class="{{ request()->routeIs('cajas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4 4h16v16H4V4zM8 12h8M12 8v8"/></svg>
+                                    <img src="{{ asset('icons/Caja-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Caja</span>
                                 </a>
                             @endif
