@@ -292,15 +292,6 @@ Todos los íconos están en `public/icons/` como archivos `.ico` o `.png`:
 - `Alerta-Rojo.png` — Triángulo alerta rojo
 - `Ventas-Blanco.png` — Icono ventas blanco
 
-## Alertas / Modales de Confirmación
-- Tarjeta blanca con `w-full max-w-md`, `rounded-2xl`, `px-16 pt-12 pb-12`
-- Padding superior e inferior iguales (`pt-12` / `pb-12`)
-- Padding lateral generoso (`px-16`) para que el texto no toque los bordes
-- Icono de alerta con círculo `h-16 w-16` e imagen `h-8 w-8` centrada, `mb-1`
-- Título `text-lg font-semibold text-gray-900`
-- Descripción `text-sm text-gray-500` con `mt-2`
-- Botón con `mt-6`, `bg-[#111]`, `rounded-xl`, `py-3`, `px-12`
-
 ### Reglas
 - Los botones **nunca llevan texto**, solo el ícono con `title="..."` para tooltip.
 - Usar `pointer-events-none` en la etiqueta `<img>` del ícono.
