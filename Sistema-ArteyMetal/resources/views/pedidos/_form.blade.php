@@ -223,10 +223,9 @@
                 @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
-    </section>
 
-        <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h3>
+        <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
+            <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div>
             <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno (CDR, PDF, JPG, PNG)</label>
             <input
@@ -258,6 +257,7 @@
                 </div>
             @endif
         </div>
+    </section>
     </section>
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
