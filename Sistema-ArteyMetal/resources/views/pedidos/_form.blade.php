@@ -186,14 +186,16 @@
                 @change="onFileChange($event)"
                 class="hidden"
             />
-            <div class="grid gap-4 md:grid-cols-2">
-                <label for="archivos_modelo" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-8 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
-                    <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-                    </svg>
-                    <p class="text-sm font-medium">Elegir archivos</p>
-                    <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
-                </label>
+            <div class="grid gap-4" style="grid-template-columns: 2fr 3fr;">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    <label for="archivos_modelo" class="flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
+                        <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                        </svg>
+                        <p class="text-sm font-medium">Elegir archivos</p>
+                        <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
+                    </label>
+                </div>
                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
                     <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
                     <template x-for="(file, i) in files" :key="i">
