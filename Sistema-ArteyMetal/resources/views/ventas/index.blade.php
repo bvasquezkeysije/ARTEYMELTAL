@@ -44,7 +44,7 @@
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
                     @if($caja)
-                    <div class="shrink-0 rounded-lg bg-[#f4ebd4] px-3 py-1.5 text-xs text-[#6a5122]">
+                    <div class="shrink-0 flex items-center rounded-lg bg-[#f4ebd4] px-3 text-xs text-[#6a5122] h-10">
                         {{ $caja->nombre ?? 'Caja #'.$caja->id }}
                         <span class="ml-1 text-emerald-600">Abierta</span>
                     </div>
