@@ -284,17 +284,25 @@
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Orden de Compra (Opcional)</h3>
         <div class="space-y-4">
-            <div>
+            <div x-data="{ archivosSeleccionados: null }">
                 <label for="archivos_orden" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar PDF o Word de orden de compra</label>
+                <label for="archivos_orden" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
+                    <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                    </svg>
+                    <p class="text-sm font-medium">Haz clic para seleccionar archivos</p>
+                    <p class="mt-1 text-xs" x-text="archivosSeleccionados ? archivosSeleccionados.length + ' archivo(s) seleccionado(s)' : 'PDF o Word'"></p>
+                </label>
                 <input
                     id="archivos_orden"
                     name="archivos_orden[]"
                     type="file"
                     multiple
                     accept=".pdf,.doc,.docx"
-                    class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
+                    @change="archivosSeleccionados = $event.target.files"
+                    class="sr-only"
                 />
-                <p class="mt-1 text-xs text-gray-500">Solo para pedidos que lo requieran (ejemplo: entidades del gobierno). Puedes subir varios archivos.</p>
+                <p class="mt-2 text-xs text-gray-500">Solo para pedidos que lo requieran (ejemplo: entidades del gobierno). Puedes subir varios archivos.</p>
                 @error('archivos_orden') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 @error('archivos_orden.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
