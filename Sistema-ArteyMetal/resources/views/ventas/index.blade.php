@@ -199,7 +199,9 @@
                     </tbody>
                 </table>
             </div>
+            @if(method_exists($ventas, 'links'))
             <div class="border-t border-[#efe7d2] px-4 py-3">{{ $ventas->links('pagination.gold') }}</div>
+            @endif
         </div>
 
         <template x-teleport="body">
