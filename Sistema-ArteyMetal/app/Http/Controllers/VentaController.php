@@ -76,27 +76,6 @@ class VentaController extends Controller
         return view('ventas.seleccionar_caja', compact('cajasAbiertas'));
     }
 
-    public function abrirCajaYContinuar(Request $request)
-    {
-        abort_unless(auth()->user()->tienePermiso('caja.gestionar'), 403);
-
-        $request->validate([
-            'monto_inicial' => 'required|numeric|min:0',
-            'observaciones' => 'nullable|string|max:255',
-        ]);
-
-        $caja = CajaApertura::create([
-            'usuario_id' => auth()->id(),
-            'monto_inicial' => $request->monto_inicial,
-            'observaciones' => $request->observaciones,
-            'estado' => 'abierta',
-        ]);
-
-        session(['caja_apertura_id' => $caja->id]);
-
-        return redirect()->route('ventas.index')->with('ok', 'Caja abierta correctamente. Ahora puedes registrar ventas.');
-    }
-
     public function seleccionarCaja(CajaApertura $cajaApertura)
     {
         if ($cajaApertura->usuario_id !== auth()->id() || $cajaApertura->estado !== 'abierta') {

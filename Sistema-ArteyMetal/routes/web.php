@@ -93,7 +93,6 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('ventas/crear', [VentaController::class, 'create'])->name('ventas.create');
         Route::post('ventas', [VentaController::class, 'store'])->name('ventas.store');
         Route::post('ventas/{venta}/emitir-comprobante', [VentaController::class, 'emitirComprobante'])->whereNumber('venta')->name('ventas.emitir_comprobante');
-        Route::post('ventas/abrir-caja', [VentaController::class, 'abrirCajaYContinuar'])->name('ventas.abrir_caja');
     });
 
     Route::middleware('permiso:caja.ver')->group(function () {
