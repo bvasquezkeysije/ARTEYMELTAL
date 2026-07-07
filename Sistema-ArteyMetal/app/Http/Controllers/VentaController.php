@@ -65,8 +65,7 @@ class VentaController extends Controller
             ->get();
 
         if ($cajasAbiertas->isEmpty()) {
-            return redirect()->route('cajas.index')
-                ->withErrors(['caja' => 'Debes abrir una caja antes de acceder a ventas.']);
+            return view('ventas.sin_caja');
         }
 
         if ($cajasAbiertas->count() === 1) {
@@ -75,6 +74,27 @@ class VentaController extends Controller
         }
 
         return view('ventas.seleccionar_caja', compact('cajasAbiertas'));
+    }
+
+    public function abrirCajaYContinuar(Request $request)
+    {
+        abort_unless(auth()->user()->tienePermiso('caja.gestionar'), 403);
+
+        $request->validate([
+            'monto_inicial' => 'required|numeric|min:0',
+            'observaciones' => 'nullable|string|max:255',
+        ]);
+
+        $caja = CajaApertura::create([
+            'usuario_id' => auth()->id(),
+            'monto_inicial' => $request->monto_inicial,
+            'observaciones' => $request->observaciones,
+            'estado' => 'abierta',
+        ]);
+
+        session(['caja_apertura_id' => $caja->id]);
+
+        return redirect()->route('ventas.index')->with('ok', 'Caja abierta correctamente. Ahora puedes registrar ventas.');
     }
 
     public function seleccionarCaja(CajaApertura $cajaApertura)
@@ -99,16 +119,14 @@ class VentaController extends Controller
         $cajaAperturaId = session('caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('cajas.index')
-                ->withErrors(['caja' => 'Debes seleccionar una caja antes de crear una venta.']);
+            return redirect()->route('ventas.index');
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('caja_apertura_id');
-            return redirect()->route('cajas.index')
-                ->withErrors(['caja' => 'La caja seleccionada ya no esta disponible.']);
+            return redirect()->route('ventas.index');
         }
 
         $productos = Producto::query()
@@ -126,16 +144,14 @@ class VentaController extends Controller
         $cajaAperturaId = session('caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('cajas.index')
-                ->withErrors(['caja' => 'Debes seleccionar una caja antes de registrar una venta.']);
+            return redirect()->route('ventas.index');
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('caja_apertura_id');
-            return redirect()->route('cajas.index')
-                ->withErrors(['caja' => 'La caja seleccionada ya no esta disponible.']);
+            return redirect()->route('ventas.index');
         }
 
         $datosBase = $request->validate([
