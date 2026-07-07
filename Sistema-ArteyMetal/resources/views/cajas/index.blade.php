@@ -47,7 +47,7 @@
                             <th class="px-4 py-3 font-medium">Final</th>
                             <th class="px-4 py-3 font-medium">Ventas</th>
                             <th class="px-4 py-3 font-medium">Estado</th>
-                            <th class="px-4 py-3 font-medium"></th>
+                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -66,8 +66,8 @@
                                         <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-1">
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-2">
                                         <a href="{{ route('cajas.show', $apertura) }}" class="btn-icon-sm" style="background-color:#0891B2" title="Ver detalle">
                                             <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
                                         </a>
