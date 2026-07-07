@@ -436,8 +436,8 @@ class PedidoController extends Controller
             'observaciones' => ['nullable', 'string'],
             'archivos_orden' => ['nullable', 'array'],
             'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
-            'archivos_modelo' => ['nullable', 'array'],
-            'archivos_modelo.*' => ['file', 'max:15360', 'mimes:cdr,pdf,jpg,jpeg,png'],
+            'archivos_modelo' => ['nullable', 'array', 'max:10'],
+            'archivos_modelo.*' => ['file', 'max:15360', 'mimes:cdr,pdf,jpg,jpeg,png,ai,eps,svg,dxf,dwg,step,stp,3dm,stl,obj,fbx,zip,rar'],
         ]);
     }
 

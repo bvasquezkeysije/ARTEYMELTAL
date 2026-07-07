@@ -159,16 +159,16 @@
         <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div>
-            <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno (CDR, PDF, JPG, PNG)</label>
+            <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno</label>
             <input
                 id="archivos_modelo"
                 name="archivos_modelo[]"
                 type="file"
                 multiple
-                accept=".cdr,.pdf,.jpg,.jpeg,.png"
+                accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
                 class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
             />
-            <p class="mt-1 text-xs text-gray-500">Sube el diseno o modelo de referencia del producto.</p>
+            <p class="mt-1 text-xs text-gray-500">Sube hasta 10 archivos (CDR, PDF, JPG, PNG, AI, EPS, SVG, DXF, DWG, STEP, 3DM, STL, OBJ, FBX, ZIP, RAR).</p>
             @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
 
