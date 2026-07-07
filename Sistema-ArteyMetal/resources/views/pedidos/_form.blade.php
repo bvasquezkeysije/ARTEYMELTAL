@@ -200,7 +200,7 @@
                 @change="onFileChange($event)"
                 class="hidden"
             />
-            <div class="grid gap-4" style="grid-template-columns: 2fr 3fr;">
+            <div class="grid gap-4" style="grid-template-columns: 2fr 3fr; min-height: 200px;">
                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
                     <label for="archivos_modelo" class="flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
                         <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -210,9 +210,9 @@
                         <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
                     </label>
                 </div>
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex flex-col min-h-0">
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
-                    <div class="max-h-64 overflow-y-auto space-y-1">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex flex-col h-full min-h-0">
+                    <p class="mb-2 shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
+                    <div class="flex-1 overflow-y-auto space-y-1 min-h-0">
                         <template x-for="(file, i) in files" :key="i">
                             <div class="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
                                 <span class="cursor-pointer truncate text-gray-700 hover:text-amber-700" x-text="file.name" @click="abrirVistaPrevia(file)"></span>
