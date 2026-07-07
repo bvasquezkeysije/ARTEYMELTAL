@@ -288,6 +288,9 @@ Todos los íconos están en `public/icons/` como archivos `.ico` o `.png`:
 - `roles.ico` / `roles.svg` — Roles
 - `gestionar-categorias.png` — Categorías
 - `Editar-Blanco.ico` / `Eliminar-Blanco.ico` — Versiones blancas para fondos oscuros
+- `Alerta-Blanco.png` — Triángulo alerta blanco
+- `Alerta-Rojo.png` — Triángulo alerta rojo
+- `Ventas-Blanco.png` — Icono ventas blanco
 
 ### Reglas
 - Los botones **nunca llevan texto**, solo el ícono con `title="..."` para tooltip.
