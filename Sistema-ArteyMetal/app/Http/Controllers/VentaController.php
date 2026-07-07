@@ -72,6 +72,7 @@ class VentaController extends Controller
                 'busqueda' => '',
                 'tipo' => '',
                 'caja' => null,
+                'cajasAbiertas' => collect(),
                 'sinCaja' => true,
             ]);
         }

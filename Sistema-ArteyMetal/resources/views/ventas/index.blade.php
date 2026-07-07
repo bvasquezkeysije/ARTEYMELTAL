@@ -39,7 +39,7 @@
         }
     </style>
 
-    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? null) ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }} }" class="space-y-5">
+    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false, selectorCajaAbierto: {{ $cajasAbiertas->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }} }" class="space-y-5">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -331,6 +331,7 @@
                         </div>
                         <div class="p-5 space-y-3">
                             <p class="text-sm text-gray-500">Elige la caja en la que deseas operar.</p>
+                            @if($cajasAbiertas->isNotEmpty())
                             @foreach ($cajasAbiertas as $cajaItem)
                                 <a
                                     href="{{ route('ventas.seleccionar_caja', $cajaItem) }}"
@@ -351,6 +352,7 @@
                                     </div>
                                 </a>
                             @endforeach
+                            @endif
                         </div>
                     </div>
                 </div>
