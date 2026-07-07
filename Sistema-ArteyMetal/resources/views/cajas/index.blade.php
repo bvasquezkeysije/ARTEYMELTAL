@@ -54,7 +54,7 @@
                     <tbody>
                         @forelse ($aperturas as $apertura)
                             <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                <td class="px-4 py-3 text-gray-900">{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</td>
+                                <td class="px-4 py-3"><span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</span></td>
                                 <td class="px-4 py-3 text-gray-900">{{ $apertura->usuario?->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
