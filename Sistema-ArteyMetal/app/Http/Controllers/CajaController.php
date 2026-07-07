@@ -21,7 +21,7 @@ class CajaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'nullable|string|max:100',
+            'nombre' => 'required|string|max:100',
             'monto_inicial' => 'required|numeric|min:0',
             'observaciones' => 'nullable|string|max:255',
         ]);
