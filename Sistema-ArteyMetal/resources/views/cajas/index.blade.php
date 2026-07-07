@@ -154,17 +154,35 @@
                             <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                         </button>
                     </div>
+                    @php
+                        $ventasTotal = $apertura->ventas_sum_monto_total ?? 0;
+                        $esperado = $apertura->monto_inicial + $ventasTotal;
+                    @endphp
                     <form method="POST" action="{{ route('cajas.cerrar', $apertura) }}" class="p-5 space-y-4">
                         @csrf
                         <div>
                             <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? '-' }}</strong></p>
-                            <p class="mt-1 text-sm text-gray-600">Monto inicial: <strong>S/ {{ number_format($apertura->monto_inicial, 2) }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Apertura: <strong>{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</strong></p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Monto inicial</span>
+                                <span class="font-medium text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>+ Ventas registradas</span>
+                                <span class="font-medium text-gray-900">S/ {{ number_format($ventasTotal, 2) }}</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between text-sm font-semibold text-gray-900">
+                                <span>Monto esperado</span>
+                                <span>S/ {{ number_format($esperado, 2) }}</span>
+                            </div>
                         </div>
                         <div>
                             <label for="monto_final_{{ $apertura->id }}" class="mb-2 block text-sm font-medium text-gray-700">Monto final en caja</label>
-                            <input id="monto_final_{{ $apertura->id }}" name="monto_final" type="number" step="0.01" min="0" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
+                            <input id="monto_final_{{ $apertura->id }}" name="monto_final" type="number" step="0.01" min="0" required value="{{ number_format($esperado, 2, '.', '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
                         </div>
                         <div>
                             <label for="obs_cerrar_{{ $apertura->id }}" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>

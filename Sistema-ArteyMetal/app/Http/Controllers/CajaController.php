@@ -12,6 +12,7 @@ class CajaController extends Controller
     {
         $aperturas = CajaApertura::query()
             ->with('usuario')
+            ->withSum('ventas', 'monto_total')
             ->orderBy('id', 'desc')
             ->paginate(20);
 
