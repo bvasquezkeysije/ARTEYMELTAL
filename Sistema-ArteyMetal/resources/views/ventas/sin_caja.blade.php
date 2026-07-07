@@ -5,7 +5,7 @@
 
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-xl">
-            <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                 <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
             </div>
             <h3 class="text-lg font-semibold text-gray-900">No hay ninguna caja abierta</h3>
