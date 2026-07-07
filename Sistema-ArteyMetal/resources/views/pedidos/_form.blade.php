@@ -160,11 +160,10 @@
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div x-data="{
             files: [],
-            init() {
-                this.$watch('files', () => {});
-            },
+            previewFile: null,
+            previewUrl: null,
             onFileChange(e) {
-                this.files = Array.from(e.target.files || []).map(f => ({ name: f.name, size: f.size }));
+                this.files = Array.from(e.target.files || []).map(f => ({ file: f, name: f.name, size: f.size, type: f.type }));
             },
             removeFile(i) {
                 const input = this.$refs.fileInput;
@@ -173,7 +172,22 @@
                 arr.splice(i, 1);
                 arr.forEach(f => dt.items.add(f));
                 input.files = dt.files;
-                this.files = Array.from(input.files).map(f => ({ name: f.name, size: f.size }));
+                this.files = Array.from(input.files).map(f => ({ file: f, name: f.name, size: f.size, type: f.type }));
+            },
+            abrirVistaPrevia(file) {
+                if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
+                this.previewFile = file;
+                this.previewUrl = URL.createObjectURL(file.file);
+            },
+            cerrarVistaPrevia() {
+                if (this.previewUrl) { URL.revokeObjectURL(this.previewUrl); this.previewUrl = null; }
+                this.previewFile = null;
+            },
+            esImagen(file) {
+                return ['image/jpeg','image/png','image/svg+xml','image/gif','image/webp'].includes(file.type);
+            },
+            esPdf(file) {
+                return file.type === 'application/pdf';
             }
         }">
             <input
@@ -196,19 +210,46 @@
                         <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
                     </label>
                 </div>
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex flex-col min-h-0">
                     <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
-                    <template x-for="(file, i) in files" :key="i">
-                        <div class="mb-1 flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
-                            <span class="truncate text-gray-700" x-text="file.name"></span>
-                            <button type="button" @click="removeFile(i)" class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Quitar archivo">
-                                <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                    </template>
+                    <div class="max-h-64 overflow-y-auto space-y-1">
+                        <template x-for="(file, i) in files" :key="i">
+                            <div class="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
+                                <span class="cursor-pointer truncate text-gray-700 hover:text-amber-700" x-text="file.name" @click="abrirVistaPrevia(file)"></span>
+                                <button type="button" @click="removeFile(i)" class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Quitar archivo">
+                                    <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
                     <p x-show="files.length === 0" class="py-4 text-center text-sm text-gray-400">Ningun archivo seleccionado</p>
                 </div>
             </div>
+
+            <template x-teleport="body">
+                <div x-show="previewFile" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="cerrarVistaPrevia()" x-cloak>
+                    <div class="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl">
+                        <button type="button" @click="cerrarVistaPrevia()" class="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-600 shadow hover:bg-white hover:text-gray-900">
+                            <svg class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <template x-if="previewFile && esImagen(previewFile)">
+                            <img :src="previewUrl" class="max-h-[80vh] w-full rounded-xl object-contain" />
+                        </template>
+                        <template x-if="previewFile && esPdf(previewFile)">
+                            <iframe :src="previewUrl" class="h-[80vh] w-full rounded-xl"></iframe>
+                        </template>
+                        <template x-if="previewFile && !esImagen(previewFile) && !esPdf(previewFile)">
+                            <div class="flex flex-col items-center justify-center py-16 text-center">
+                                <svg class="mb-4 h-16 w-16 text-gray-300" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <p class="text-lg font-medium text-gray-700" x-text="previewFile.name"></p>
+                                <p class="mt-1 text-sm text-gray-500">Tipo: <span class="font-medium" x-text="previewFile.type || 'Desconocido'"></span></p>
+                                <p class="text-sm text-gray-500">Tamano: <span class="font-medium" x-text="(previewFile.size / 1024).toFixed(1) + ' KB'"></span></p>
+                                <p class="mt-4 text-xs text-gray-400">Vista previa no disponible para este tipo de archivo</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
         </div>
         <p class="mt-2 text-xs text-gray-500">Sube hasta 10 archivos.</p>
         @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
