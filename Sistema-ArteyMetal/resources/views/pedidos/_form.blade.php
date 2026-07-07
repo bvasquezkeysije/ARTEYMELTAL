@@ -179,16 +179,6 @@
                 <p class="text-sm font-medium">Elegir archivos</p>
                 <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
             </label>
-            <input
-                id="archivos_modelo"
-                x-ref="fileInput"
-                name="archivos_modelo[]"
-                type="file"
-                multiple
-                accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
-                @change="$refresh()"
-                class="sr-only"
-            />
             <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
                 <template x-for="(file, i) in selectedFiles" :key="i">
@@ -202,6 +192,16 @@
                 <p x-show="selectedFiles.length === 0" class="py-4 text-center text-sm text-gray-400">Ningun archivo seleccionado</p>
             </div>
         </div>
+        <input
+            id="archivos_modelo"
+            x-ref="fileInput"
+            name="archivos_modelo[]"
+            type="file"
+            multiple
+            accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
+            @change="$refresh()"
+            class="hidden"
+        />
         <p class="mt-2 text-xs text-gray-500">Sube hasta 10 archivos.</p>
         @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
