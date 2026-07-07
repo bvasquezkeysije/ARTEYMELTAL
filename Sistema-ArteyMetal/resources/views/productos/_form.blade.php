@@ -363,9 +363,14 @@
         </div>
 
         <div>
-            <label for="stock_actual" class="mb-2 block text-sm font-medium text-[#7a6030]">Stock actual</label>
-            <input id="stock_actual" name="stock_actual" type="number" min="0" value="{{ old('stock_actual', $producto->stock_actual ?? 0) }}" required class="block w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-3 text-gray-900" />
-            @error('stock_actual') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            <label for="stock_almacen" class="mb-2 block text-sm font-medium text-[#7a6030]">Stock en almacen</label>
+            <input id="stock_almacen" name="stock_almacen" type="number" min="0" value="{{ old('stock_almacen', $producto->stock_almacen ?? 0) }}" required class="block w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-3 text-gray-900" />
+            @error('stock_almacen') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+        </div>
+        <div>
+            <label for="stock_tienda" class="mb-2 block text-sm font-medium text-[#7a6030]">Stock en tienda</label>
+            <input id="stock_tienda" name="stock_tienda" type="number" min="0" value="{{ old('stock_tienda', $producto->stock_tienda ?? 0) }}" required class="block w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-3 text-gray-900" />
+            @error('stock_tienda') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         </div>
     </div>
 
@@ -539,7 +544,9 @@
                     <div class="space-y-4 p-5">
                         <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                             <input x-model="nuevaCategoria" type="text" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm" placeholder="Nueva categoria" />
-                            <button type="button" @click="crearCategoria()" :disabled="guardandoCategoria" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626] disabled:opacity-60">Crear</button>
+                            <button type="button" @click="crearCategoria()" :disabled="guardandoCategoria" class="btn-icon bg-[#111] hover:bg-[#262626] disabled:opacity-60" title="Crear categoria">
+                                <img src="{{ asset('icons/nuevo.ico') }}" alt="Crear" class="h-5 w-5 object-contain pointer-events-none" />
+                            </button>
                         </div>
 
                         <p x-show="mensajeCategorias" class="text-xs" :class="errorCategorias ? 'text-rose-700' : 'text-emerald-700'" x-text="mensajeCategorias"></p>

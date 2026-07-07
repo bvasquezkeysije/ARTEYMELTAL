@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Venta;
 use App\Models\VentaDetalle;
+use App\Models\CajaApertura;
 use App\Services\ComprobanteVentaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -20,15 +21,31 @@ class VentaController extends Controller
 
     public function index()
     {
+        $cajaAperturaId = session('caja_apertura_id');
+
+        if (! $cajaAperturaId) {
+            return $this->redirectToCajaSelection();
+        }
+
+        $caja = CajaApertura::find($cajaAperturaId);
+
+        if (! $caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
+            session()->forget('caja_apertura_id');
+            return $this->redirectToCajaSelection();
+        }
+
         $busqueda = request('q');
         $tipo = request('tipo');
 
         $ventas = Venta::query()
             ->with(['pedido', 'detalles', 'comprobante'])
-            ->when($busqueda, function ($query) use ($busqueda) {
-                $query->where('codigo', 'like', "%{$busqueda}%")
-                    ->orWhere('cliente_nombre', 'like', "%{$busqueda}%")
-                    ->orWhere('tipo_venta', 'like', "%{$busqueda}%");
+            ->where('caja_apertura_id', $cajaAperturaId)
+            ->where(function ($q) use ($busqueda) {
+                $q->when($busqueda, function ($query) use ($busqueda) {
+                    $query->where('codigo', 'like', "%{$busqueda}%")
+                        ->orWhere('cliente_nombre', 'like', "%{$busqueda}%")
+                        ->orWhere('tipo_venta', 'like', "%{$busqueda}%");
+                });
             })
             ->when($tipo, function ($query) use ($tipo) {
                 $query->where('tipo_venta', $tipo);
@@ -37,11 +54,63 @@ class VentaController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('ventas.index', compact('ventas', 'busqueda', 'tipo'));
+        return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja'));
+    }
+
+    private function redirectToCajaSelection()
+    {
+        $cajasAbiertas = CajaApertura::query()
+            ->where('usuario_id', auth()->id())
+            ->where('estado', 'abierta')
+            ->get();
+
+        if ($cajasAbiertas->isEmpty()) {
+            return redirect()->route('cajas.index')
+                ->withErrors(['caja' => 'Debes abrir una caja antes de acceder a ventas.']);
+        }
+
+        if ($cajasAbiertas->count() === 1) {
+            session(['caja_apertura_id' => $cajasAbiertas->first()->id]);
+            return redirect()->route('ventas.index');
+        }
+
+        return view('ventas.seleccionar_caja', compact('cajasAbiertas'));
+    }
+
+    public function seleccionarCaja(CajaApertura $cajaApertura)
+    {
+        if ($cajaApertura->usuario_id !== auth()->id() || $cajaApertura->estado !== 'abierta') {
+            return redirect()->route('ventas.index')
+                ->withErrors(['caja' => 'Caja no valida.']);
+        }
+
+        session(['caja_apertura_id' => $cajaApertura->id]);
+        return redirect()->route('ventas.index');
+    }
+
+    public function cambiarCaja()
+    {
+        session()->forget('caja_apertura_id');
+        return redirect()->route('ventas.index');
     }
 
     public function create()
     {
+        $cajaAperturaId = session('caja_apertura_id');
+
+        if (! $cajaAperturaId) {
+            return redirect()->route('cajas.index')
+                ->withErrors(['caja' => 'Debes seleccionar una caja antes de crear una venta.']);
+        }
+
+        $cajaAbierta = CajaApertura::find($cajaAperturaId);
+
+        if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
+            session()->forget('caja_apertura_id');
+            return redirect()->route('cajas.index')
+                ->withErrors(['caja' => 'La caja seleccionada ya no esta disponible.']);
+        }
+
         $productos = Producto::query()
             ->with('imagenes')
             ->where('activo', true)
@@ -54,13 +123,33 @@ class VentaController extends Controller
 
     public function store(Request $request)
     {
+        $cajaAperturaId = session('caja_apertura_id');
+
+        if (! $cajaAperturaId) {
+            return redirect()->route('cajas.index')
+                ->withErrors(['caja' => 'Debes seleccionar una caja antes de registrar una venta.']);
+        }
+
+        $cajaAbierta = CajaApertura::find($cajaAperturaId);
+
+        if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
+            session()->forget('caja_apertura_id');
+            return redirect()->route('cajas.index')
+                ->withErrors(['caja' => 'La caja seleccionada ya no esta disponible.']);
+        }
+
         $datosBase = $request->validate([
             'observaciones' => ['nullable', 'string'],
             'tipo_comprobante' => ['required', 'string', 'in:boleta,factura'],
             'documento_cliente' => ['nullable', 'string', 'max:20'],
             'direccion_cliente' => ['nullable', 'string', 'max:255'],
         ]);
-        return $this->registrarVentaStock($request, $datosBase);
+
+        if (empty($datosBase['documento_cliente']) && $datosBase['tipo_comprobante'] === 'boleta') {
+            $datosBase['documento_cliente'] = '99999999';
+        }
+
+        return $this->registrarVentaStock($request, $datosBase, $cajaAbierta->id);
     }
 
     public function show(Venta $venta)
@@ -109,7 +198,7 @@ class VentaController extends Controller
         return redirect()->route('ventas.index')->with('ok', 'Comprobante emitido correctamente para la venta '.$venta->codigo.'.');
     }
 
-    private function registrarVentaStock(Request $request, array $datosBase)
+    private function registrarVentaStock(Request $request, array $datosBase, int $cajaAperturaId)
     {
         $datos = $request->validate([
             'cliente_nombre' => ['nullable', 'string', 'max:120'],
@@ -130,9 +219,10 @@ class VentaController extends Controller
 
             $producto = Producto::findOrFail($productoId);
 
-            if ($producto->stock_actual < $cantidad) {
+            $stockTienda = (int) ($producto->stock_tienda ?? 0);
+            if ($stockTienda < $cantidad) {
                 return back()->withInput()->withErrors([
-                    "cantidad.$i" => "Stock insuficiente para {$producto->nombre}. Stock actual: {$producto->stock_actual}.",
+                    "cantidad.$i" => "Stock insuficiente en tienda para {$producto->nombre}. Stock en tienda: {$stockTienda}.",
                 ]);
             }
 
@@ -157,7 +247,7 @@ class VentaController extends Controller
             return back()->withInput()->withErrors($erroresComprobante);
         }
 
-        DB::transaction(function () use ($lineas, $datos, $datosBase, $total, $request) {
+            DB::transaction(function () use ($lineas, $datos, $datosBase, $total, $request, $cajaAperturaId) {
             $venta = Venta::create([
                 'codigo' => $this->generarCodigoVenta(),
                 'tipo_venta' => 'stock',
@@ -169,6 +259,7 @@ class VentaController extends Controller
                 'estado_pago' => 'pagado_completo',
                 'observaciones' => $datosBase['observaciones'] ?? null,
                 'usuario_id' => $request->user()->id,
+                'caja_apertura_id' => $cajaAperturaId,
             ]);
 
             foreach ($lineas as $linea) {
@@ -181,7 +272,9 @@ class VentaController extends Controller
                     'subtotal' => $linea['subtotal'],
                 ]);
 
-                $linea['producto']->decrement('stock_actual', $linea['cantidad']);
+                $producto = $linea['producto'];
+                $producto->stock_tienda -= $linea['cantidad'];
+                $producto->save();
             }
 
             $this->comprobanteService->emitir($venta, [

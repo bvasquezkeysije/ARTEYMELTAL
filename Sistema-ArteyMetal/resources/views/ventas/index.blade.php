@@ -42,9 +42,15 @@
     <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false }" class="space-y-5">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
-                <form id="search-form" method="GET" action="{{ route('ventas.index') }}" class="flex min-w-0 flex-1">
-                    <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por codigo, cliente o tipo" />
-                </form>
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                    <div class="shrink-0 rounded-lg bg-[#f4ebd4] px-3 py-1.5 text-xs text-[#6a5122]">
+                        Caja #{{ $caja->id }}
+                        <span class="ml-1 text-emerald-600">Abierta</span>
+                    </div>
+                    <form id="search-form" method="GET" action="{{ route('ventas.index') }}" class="flex min-w-0 flex-1">
+                        <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por codigo, cliente o tipo" />
+                    </form>
+                </div>
                 <button type="submit" form="search-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
                     <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
@@ -60,6 +66,14 @@
                 @if($tipo || $busqueda)
                     <a href="{{ route('ventas.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
+                <form method="POST" action="{{ route('ventas.cambiar_caja') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="btn-icon bg-amber-600 hover:bg-amber-700" title="Cambiar caja">
+                        <svg class="h-5 w-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </form>
                 @if(auth()->user()->tienePermiso('ventas.gestionar'))
                     <a href="{{ route('ventas.create') }}" class="btn-icon" style="background-color:#09090f;color:white" title="Nueva venta">
                         <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />

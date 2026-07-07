@@ -28,6 +28,10 @@ class SecuritySeeder extends Seeder
             ['nombre' => 'Ver roles', 'slug' => 'roles.ver'],
             ['nombre' => 'Gestionar roles', 'slug' => 'roles.gestionar'],
             ['nombre' => 'Ver configuracion', 'slug' => 'configuracion.ver'],
+            ['nombre' => 'Ver almacen', 'slug' => 'almacen.ver'],
+            ['nombre' => 'Gestionar almacen', 'slug' => 'almacen.gestionar'],
+            ['nombre' => 'Ver caja', 'slug' => 'caja.ver'],
+            ['nombre' => 'Gestionar caja', 'slug' => 'caja.gestionar'],
         ];
 
         foreach ($permisos as $permiso) {
@@ -40,7 +44,7 @@ class SecuritySeeder extends Seeder
         $permisosPorSlug = Permiso::query()->pluck('id', 'slug');
 
         $rolAdmin = Rol::updateOrCreate(
-            ['nombre' => 'admin'],
+            ['nombre' => 'administrador'],
             [
                 'descripcion' => 'Acceso total al sistema',
                 'activo' => true,
@@ -48,14 +52,14 @@ class SecuritySeeder extends Seeder
         );
         $rolAdmin->permisos()->sync($permisosPorSlug->values()->all());
 
-        $rolVentas = Rol::updateOrCreate(
-            ['nombre' => 'ventas'],
+        $rolVendedor = Rol::updateOrCreate(
+            ['nombre' => 'vendedor'],
             [
                 'descripcion' => 'Gestion comercial de clientes y ventas',
                 'activo' => true,
             ]
         );
-        $rolVentas->permisos()->sync(
+        $rolVendedor->permisos()->sync(
             $this->idsPermisos($permisosPorSlug, [
                 'dashboard.ver',
                 'clientes.ver',
@@ -65,11 +69,31 @@ class SecuritySeeder extends Seeder
                 'ventas.gestionar',
                 'pedidos.ver',
                 'reportes.ver',
+                'caja.ver',
+                'caja.gestionar',
+            ])
+        );
+
+        $rolDisenador = Rol::updateOrCreate(
+            ['nombre' => 'disenador'],
+            [
+                'descripcion' => 'Seguimiento y gestion de pedidos en diseno',
+                'activo' => true,
+            ]
+        );
+        $rolDisenador->permisos()->sync(
+            $this->idsPermisos($permisosPorSlug, [
+                'dashboard.ver',
+                'pedidos.ver',
+                'pedidos.gestionar',
+                'clientes.ver',
+                'productos.ver',
+                'reportes.ver',
             ])
         );
 
         $rolOrfebre = Rol::updateOrCreate(
-            ['nombre' => 'Orfebre'],
+            ['nombre' => 'orfebre'],
             [
                 'descripcion' => 'Seguimiento y gestion de pedidos en produccion',
                 'activo' => true,
@@ -86,16 +110,34 @@ class SecuritySeeder extends Seeder
             ])
         );
 
-        $rolAlmacen = Rol::updateOrCreate(
-            ['nombre' => 'almacen'],
+        $rolRepartidor = Rol::updateOrCreate(
+            ['nombre' => 'repartidor'],
             [
-                'descripcion' => 'Control de catalogo y stock',
+                'descripcion' => 'Gestion de entrega y seguimiento de despacho',
+                'activo' => true,
+            ]
+        );
+        $rolRepartidor->permisos()->sync(
+            $this->idsPermisos($permisosPorSlug, [
+                'dashboard.ver',
+                'pedidos.ver',
+                'clientes.ver',
+            ])
+        );
+
+        $rolAlmacen = Rol::updateOrCreate(
+            ['nombre' => 'almacenero'],
+            [
+                'descripcion' => 'Control de catalogo, stock, entradas y salidas',
                 'activo' => true,
             ]
         );
         $rolAlmacen->permisos()->sync(
             $this->idsPermisos($permisosPorSlug, [
                 'dashboard.ver',
+                'pedidos.ver',
+                'almacen.ver',
+                'almacen.gestionar',
                 'productos.ver',
                 'productos.gestionar',
                 'reportes.ver',
@@ -105,9 +147,11 @@ class SecuritySeeder extends Seeder
         $usuariosSistema = [
             ['username' => 'bvasquezkeysije', 'password' => '76636255', 'rol_id' => $rolAdmin->id],
             ['username' => 'pfernandezadeli', 'password' => '77684878', 'rol_id' => $rolAdmin->id],
-            ['username' => 'ventas', 'password' => 'ventas123', 'rol_id' => $rolVentas->id],
+            ['username' => 'ventas', 'password' => 'ventas123', 'rol_id' => $rolVendedor->id],
             ['username' => 'produccion', 'password' => 'produccion123', 'rol_id' => $rolOrfebre->id],
             ['username' => 'almacen', 'password' => 'almacen123', 'rol_id' => $rolAlmacen->id],
+            ['username' => 'disenador', 'password' => 'disenador123', 'rol_id' => $rolDisenador->id],
+            ['username' => 'repartidor', 'password' => 'repartidor123', 'rol_id' => $rolRepartidor->id],
         ];
 
         foreach ($usuariosSistema as $usuario) {

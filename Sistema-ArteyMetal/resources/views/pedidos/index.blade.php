@@ -57,7 +57,7 @@
                 >
                     <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
-                @if($filtroEstado || $busqueda)
+                @if($filtroEstado || $filtroPersonalizacion || $busqueda)
                     <a href="{{ route('pedidos.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
                 @if(auth()->user()->tienePermiso('pedidos.gestionar'))
@@ -76,12 +76,38 @@
                         <option value="registrado" @selected($filtroEstado === 'registrado')>Registrado</option>
                         <option value="en_produccion" @selected($filtroEstado === 'en_produccion')>En produccion</option>
                         <option value="listo_entrega" @selected($filtroEstado === 'listo_entrega')>Listo para entrega</option>
+                        <option value="en_transporte" @selected($filtroEstado === 'en_transporte')>En transporte</option>
+                        <option value="en_almacen" @selected($filtroEstado === 'en_almacen')>En almacen</option>
                         <option value="entregado" @selected($filtroEstado === 'entregado')>Entregado</option>
                         <option value="cancelado" @selected($filtroEstado === 'cancelado')>Cancelado</option>
                     </select>
                 </div>
                 <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
             </form>
+        </div>
+
+        @php $rol = auth()->user()->rol->nombre; @endphp
+
+        <div class="flex flex-wrap gap-2">
+            @if($rol === 'disenador')
+                <a href="{{ route('pedidos.index', array_filter(['estado_personalizacion' => 'en_diseno'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado_personalizacion') === 'en_diseno' ? 'ring-2 ring-amber-400' : '' }}">En diseno</a>
+                <a href="{{ route('pedidos.index', array_filter(['estado_personalizacion' => 'en_revision'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado_personalizacion') === 'en_revision' ? 'ring-2 ring-amber-400' : '' }}">En revision</a>
+            @endif
+            @if($rol === 'orfebre')
+                <a href="{{ route('pedidos.index', array_filter(['estado_personalizacion' => 'aprobado'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado_personalizacion') === 'aprobado' ? 'ring-2 ring-amber-400' : '' }}">Aprobados</a>
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_produccion'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_produccion' ? 'ring-2 ring-amber-400' : '' }}">En produccion</a>
+            @endif
+            @if($rol === 'repartidor')
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'listo_entrega'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'listo_entrega' ? 'ring-2 ring-amber-400' : '' }}">Listos para recoger</a>
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_transporte'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_transporte' ? 'ring-2 ring-amber-400' : '' }}">En transporte</a>
+            @endif
+            @if($rol === 'almacenero')
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_transporte'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_transporte' ? 'ring-2 ring-amber-400' : '' }}">Por recibir</a>
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_almacen'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_almacen' ? 'ring-2 ring-amber-400' : '' }}">En almacen</a>
+            @endif
+            @if(in_array($rol, ['administrador', 'vendedor'], true))
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_almacen'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_almacen' ? 'ring-2 ring-amber-400' : '' }}">En almacen (por cobrar)</a>
+            @endif
         </div>
 
         @if (session('ok'))
@@ -165,7 +191,7 @@
                                 <td class="px-4 py-3 text-[#4a4026]">{{ optional($pedido->fecha_entrega_compromiso)->format('d/m/Y') ?? '-' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
-                                        @if(auth()->user()->tienePermiso('pedidos.gestionar') && in_array($pedido->estado, ['listo_entrega', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+                                        @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                                             <form method="POST" action="{{ route('pedidos.confirmar_pago_final', $pedido) }}" onsubmit="return confirm('Confirmar pago final y cerrar este pedido? Se registrara automaticamente en ventas.')">
                                                 @csrf
                                                 <button type="submit" class="rounded-lg border border-emerald-300 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50">Cobrar 50% y cerrar</button>

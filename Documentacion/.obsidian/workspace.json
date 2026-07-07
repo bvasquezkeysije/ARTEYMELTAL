@@ -69,12 +69,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Sistema/0.- Requerimientos.md",
+                "file": "flujo-sistema-arte-y-metal.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "0.- Requerimientos"
+              "title": "flujo-sistema-arte-y-metal"
             }
           }
         ],
@@ -242,6 +242,7 @@
   },
   "active": "b33900fa0ad36ef9",
   "lastOpenFiles": [
+    "Sistema/0.- Requerimientos.md",
     "flujo-sistema-arte-y-metal.md",
     "Proyecto/Introducción.md",
     "05-Requerimientos/README.md",
@@ -255,7 +256,6 @@
     "01-Negocio/README.md",
     "01-Negocio",
     "README.md",
-    "Sistema/0.- Requerimientos.md",
     "Sistema/4.- Logica del negocio.md",
     "requerimientos.md",
     "Sistema/3.- UI.md",

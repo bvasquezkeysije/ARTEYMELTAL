@@ -53,7 +53,7 @@ return new class extends Migration
         DB::table('permisos')->insert($permisos);
 
         $rolAdminId = DB::table('roles')->insertGetId([
-            'nombre' => 'admin',
+            'nombre' => 'administrador',
             'descripcion' => 'Acceso total al sistema',
             'activo' => true,
             'created_at' => now(),

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true)->after('rol_id');
         });
 
-        $rolAdminId = DB::table('roles')->where('nombre', 'admin')->value('id');
+        $rolAdminId = DB::table('roles')->where('nombre', 'administrador')->value('id');
         if ($rolAdminId) {
             DB::table('users')
                 ->whereNull('rol_id')

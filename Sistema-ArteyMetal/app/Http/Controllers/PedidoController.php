@@ -22,6 +22,7 @@ class PedidoController extends Controller
     {
         $busqueda = request('q');
         $filtroEstado = request('estado');
+        $filtroPersonalizacion = request('estado_personalizacion');
 
         $pedidos = Pedido::query()
             ->with('cliente')
@@ -34,11 +35,14 @@ class PedidoController extends Controller
             ->when($filtroEstado, function ($query) use ($filtroEstado) {
                 $query->where('estado', $filtroEstado);
             })
+            ->when($filtroPersonalizacion, function ($query) use ($filtroPersonalizacion) {
+                $query->where('estado_personalizacion', $filtroPersonalizacion);
+            })
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado'));
+        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion'));
     }
 
     public function create()
@@ -98,8 +102,9 @@ class PedidoController extends Controller
 
     public function actualizarPersonalizacion(Request $request, Pedido $pedido)
     {
-        $datos = $request->validate([
-            'estado' => ['required', 'string', 'in:registrado,en_produccion,listo_entrega,entregado,cancelado'],
+        $rol = $request->user()->rol->nombre;
+
+        $rules = [
             'estado_personalizacion' => ['required', 'string', 'in:sin_iniciar,en_diseno,en_revision,aprobado,en_produccion,listo_entrega,entregado'],
             'fecha_entrega_compromiso' => ['nullable', 'date'],
             'fecha_inicio_diseno' => ['nullable', 'date'],
@@ -107,13 +112,30 @@ class PedidoController extends Controller
             'archivos_diseno' => ['nullable', 'array'],
             'archivos_diseno.*' => ['file', 'max:10240', 'mimes:cdr,pdf,png,jpg,jpeg,svg,ai,eps,psd,webp'],
             'observaciones_personalizacion' => ['nullable', 'string'],
-            'estado_pago' => ['required', 'string', 'in:pendiente_adelanto,adelanto_pagado,pagado_completo'],
-        ]);
+        ];
 
-        $datosPago = $this->calcularPago($pedido->monto_total, $datos['estado_pago']);
+        if (in_array($rol, ['administrador', 'vendedor'], true)) {
+            $rules['estado'] = ['required', 'string', 'in:registrado,en_produccion,listo_entrega,en_transporte,en_almacen,entregado,cancelado'];
+            $rules['estado_pago'] = ['required', 'string', 'in:pendiente_adelanto,adelanto_pagado,pagado_completo'];
+        }
+
+        if ($rol === 'orfebre') {
+            $rules['estado'] = ['required', 'string', 'in:en_produccion,listo_entrega'];
+        }
+
+        $datos = $request->validate($rules);
+
+        if (isset($datos['estado_pago'])) {
+            $datosPago = $this->calcularPago($pedido->monto_total, $datos['estado_pago']);
+        } else {
+            $datosPago = [];
+        }
+
+        $estadoActual = $datos['estado'] ?? $pedido->estado;
 
         if (
-            in_array($datos['estado'], ['en_produccion', 'listo_entrega', 'entregado'], true)
+            isset($datos['estado_pago'])
+            && in_array($estadoActual, ['en_produccion', 'listo_entrega', 'en_transporte', 'en_almacen', 'entregado'], true)
             && $datos['estado_pago'] === 'pendiente_adelanto'
         ) {
             return back()
@@ -140,9 +162,53 @@ class PedidoController extends Controller
         return redirect()->route('pedidos.show', $pedido)->with('ok', 'Personalizacion actualizada correctamente.');
     }
 
+    public function marcarEnTransporte(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['repartidor', 'administrador'], true)) {
+            abort(403, 'Solo el repartidor puede marcar recogido de produccion.');
+        }
+
+        if ($pedido->estado !== 'listo_entrega') {
+            return back()->with('ok', 'El pedido debe estar en estado listo entrega para recogerlo.');
+        }
+
+        $pedido->update([
+            'estado' => 'en_transporte',
+        ]);
+
+        return redirect()->route('pedidos.show', $pedido)->with('ok', 'Pedido recogido de produccion, en transporte al almacen.');
+    }
+
+    public function marcarEnAlmacen(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['almacenero', 'administrador'], true)) {
+            abort(403, 'Solo el almacenero puede registrar entrada en almacen.');
+        }
+
+        if ($pedido->estado !== 'en_transporte') {
+            return back()->with('ok', 'El pedido debe estar en transporte para registrarlo en almacen.');
+        }
+
+        $pedido->update([
+            'estado' => 'en_almacen',
+        ]);
+
+        return redirect()->route('pedidos.show', $pedido)->with('ok', 'Pedido registrado en almacen correctamente. Se ha notificado al vendedor.');
+    }
+
     public function confirmarPagoFinal(Request $request, Pedido $pedido)
     {
-        if (! in_array($pedido->estado, ['listo_entrega', 'entregado'], true)) {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['administrador', 'vendedor'], true)) {
+            abort(403, 'No tienes permiso para cobrar el saldo final.');
+        }
+
+        if (! in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true)) {
             return back()->with('ok', 'Para cerrar el pedido, primero debe estar en estado listo entrega o entregado.');
         }
 

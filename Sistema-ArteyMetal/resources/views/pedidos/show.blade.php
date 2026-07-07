@@ -186,15 +186,35 @@
             @endif
         </div>
 
+        @php $rol = auth()->user()->rol->nombre; @endphp
+
         <div class="mt-6 flex flex-wrap gap-2">
-            @if(in_array($pedido->estado, ['listo_entrega', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                 <form method="POST" action="{{ route('pedidos.confirmar_pago_final', $pedido) }}" onsubmit="return confirm('Confirmar pago final y cerrar este pedido? Se registrara automaticamente en ventas.')">
                     @csrf
                     <button type="submit" class="rounded-xl border border-emerald-300 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Cobrar saldo y cerrar pedido</button>
                 </form>
             @endif
-            <button type="button" @click="modalPersonalizacion = true" class="rounded-xl bg-gray-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-600">Personalizacion</button>
-            <a href="{{ route('pedidos.edit', $pedido) }}" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Editar pedido</a>
+            @if(auth()->user()->tienePermiso('pedidos.gestionar'))
+                @if(in_array($rol, ['administrador', 'vendedor', 'disenador', 'orfebre'], true))
+                    <button type="button" @click="modalPersonalizacion = true" class="rounded-xl bg-gray-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-600">Personalizacion</button>
+                @endif
+                @if(in_array($rol, ['administrador', 'vendedor'], true))
+                    <a href="{{ route('pedidos.edit', $pedido) }}" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Editar pedido</a>
+                @endif
+            @endif
+            @if($rol === 'repartidor' && $pedido->estado === 'listo_entrega')
+                <form method="POST" action="{{ route('pedidos.transportar', $pedido) }}" onsubmit="return confirm('Recoger este pedido del centro de produccion?')">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-amber-400 px-4 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-50">Recoger de produccion</button>
+                </form>
+            @endif
+            @if($rol === 'almacenero' && $pedido->estado === 'en_transporte')
+                <form method="POST" action="{{ route('pedidos.recibir_almacen', $pedido) }}" onsubmit="return confirm('Registrar entrada de este pedido en el almacen?')">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-sky-400 px-4 py-2.5 text-sm font-medium text-sky-700 hover:bg-sky-50">Registrar entrada en almacen</button>
+                </form>
+            @endif
             <a href="{{ route('pedidos.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Volver</a>
         </div>
 
@@ -213,27 +233,47 @@
                     @method('PUT')
 
                     <div class="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado pedido</label>
-                            <select id="estado" name="estado" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">
-                                <option value="registrado" @selected(old('estado', $pedido->estado) === 'registrado')>Registrado</option>
-                                <option value="en_produccion" @selected(old('estado', $pedido->estado) === 'en_produccion')>En produccion</option>
-                                <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
-                                <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
-                                <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
-                            </select>
-                        </div>
+                        @if(in_array($rol, ['administrador', 'vendedor', 'orfebre'], true))
+                            <div>
+                                <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado pedido</label>
+                                <select id="estado" name="estado" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">
+                                    @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                        <option value="registrado" @selected(old('estado', $pedido->estado) === 'registrado')>Registrado</option>
+                                    @endif
+                                    <option value="en_produccion" @selected(old('estado', $pedido->estado) === 'en_produccion')>En produccion</option>
+                                    <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
+                                    @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                        <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
+                                        <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
+                                    @endif
+                                </select>
+                            </div>
+                        @endif
 
                         <div>
                             <label for="estado_personalizacion" class="mb-2 block text-sm font-medium text-gray-700">Estado personalizacion</label>
                             <select id="estado_personalizacion" name="estado_personalizacion" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">
-                                <option value="sin_iniciar" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'sin_iniciar')>Sin iniciar</option>
-                                <option value="en_diseno" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_diseno')>En diseno</option>
-                                <option value="en_revision" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_revision')>En revision</option>
-                                <option value="aprobado" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'aprobado')>Aprobado</option>
-                                <option value="en_produccion" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_produccion')>En produccion</option>
-                                <option value="listo_entrega" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'listo_entrega')>Listo entrega</option>
-                                <option value="entregado" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'entregado')>Entregado</option>
+                                @if(in_array($rol, ['administrador', 'vendedor', 'disenador'], true))
+                                    <option value="sin_iniciar" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'sin_iniciar')>Sin iniciar</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor', 'disenador'], true))
+                                    <option value="en_diseno" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_diseno')>En diseno</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor', 'disenador'], true))
+                                    <option value="en_revision" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_revision')>En revision</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor', 'orfebre'], true))
+                                    <option value="aprobado" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'aprobado')>Aprobado</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor', 'orfebre'], true))
+                                    <option value="en_produccion" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'en_produccion')>En produccion</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor', 'orfebre'], true))
+                                    <option value="listo_entrega" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'listo_entrega')>Listo entrega</option>
+                                @endif
+                                @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                    <option value="entregado" @selected(old('estado_personalizacion', $pedido->estado_personalizacion) === 'entregado')>Entregado</option>
+                                @endif
                             </select>
                         </div>
 
@@ -252,15 +292,17 @@
                             <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', optional($pedido->fecha_entrega_compromiso)->format('Y-m-d')) }}" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900" />
                         </div>
 
-                        <div>
-                            <label for="estado_pago" class="mb-2 block text-sm font-medium text-gray-700">Pago 50/50</label>
-                            <select id="estado_pago" name="estado_pago" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">
-                                <option value="pendiente_adelanto" @selected(old('estado_pago', $pedido->estado_pago) === 'pendiente_adelanto')>Pendiente adelanto</option>
-                                <option value="adelanto_pagado" @selected(old('estado_pago', $pedido->estado_pago) === 'adelanto_pagado')>Adelanto 50% pagado</option>
-                                <option value="pagado_completo" @selected(old('estado_pago', $pedido->estado_pago) === 'pagado_completo')>Pagado completo (entrega)</option>
-                            </select>
-                            <p class="mt-1 text-xs text-gray-500">Se calcula automaticamente: 50% adelanto y 50% saldo.</p>
-                        </div>
+                        @if(in_array($rol, ['administrador', 'vendedor'], true))
+                            <div>
+                                <label for="estado_pago" class="mb-2 block text-sm font-medium text-gray-700">Pago 50/50</label>
+                                <select id="estado_pago" name="estado_pago" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">
+                                    <option value="pendiente_adelanto" @selected(old('estado_pago', $pedido->estado_pago) === 'pendiente_adelanto')>Pendiente adelanto</option>
+                                    <option value="adelanto_pagado" @selected(old('estado_pago', $pedido->estado_pago) === 'adelanto_pagado')>Adelanto 50% pagado</option>
+                                    <option value="pagado_completo" @selected(old('estado_pago', $pedido->estado_pago) === 'pagado_completo')>Pagado completo (entrega)</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Se calcula automaticamente: 50% adelanto y 50% saldo.</p>
+                            </div>
+                        @endif
                     </div>
 
                     <div>

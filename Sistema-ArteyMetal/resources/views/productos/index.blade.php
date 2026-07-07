@@ -332,7 +332,9 @@
                             <th class="px-4 py-3 font-semibold">Nombre</th>
                             <th class="px-4 py-3 font-semibold">Categoria</th>
                             <th class="px-4 py-3 font-semibold">Precio ref.</th>
-                            <th class="px-4 py-3 font-semibold">Stock</th>
+                            <th class="px-4 py-3 font-semibold">Stock Tienda</th>
+                            <th class="px-4 py-3 font-semibold">Stock Almacen</th>
+                            <th class="px-4 py-3 font-semibold">Total</th>
                             <th class="px-4 py-3 font-semibold">Estado</th>
                             <th class="px-4 py-3 font-semibold text-right">Acciones</th>
                         </tr>
@@ -346,6 +348,8 @@
                                     'categoria' => $categoriasMap[$producto->categoria] ?? $producto->categoria,
                                     'precio_referencia' => $producto->precio_referencia !== null ? 'S/ ' . number_format((float) $producto->precio_referencia, 2) : '-',
                                     'stock_actual' => (int) $producto->stock_actual,
+                                    'stock_tienda' => (int) ($producto->stock_tienda ?? 0),
+                                    'stock_almacen' => (int) ($producto->stock_almacen ?? 0),
                                     'estado' => $producto->activo ? 'Activo' : 'Inactivo',
                                     'descripcion' => $producto->descripcion ?: '-',
                                     'imagenes' => $producto->imagenes->map(function ($img) {
@@ -361,7 +365,9 @@
                                 <td class="px-4 py-3 text-[#4a4026]">{{ $producto->nombre }}</td>
                                 <td class="px-4 py-3 text-[#4a4026]">{{ $categoriasMap[$producto->categoria] ?? $producto->categoria }}</td>
                                 <td class="px-4 py-3 text-[#4a4026]">{{ $producto->precio_referencia !== null ? 'S/ ' . number_format((float) $producto->precio_referencia, 2) : '-' }}</td>
-                                <td class="px-4 py-3 text-[#4a4026]">{{ $producto->stock_actual }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ (int) ($producto->stock_tienda ?? 0) }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ (int) ($producto->stock_almacen ?? 0) }}</td>
+                                <td class="px-4 py-3 font-medium text-[#2d2b24]">{{ $producto->stock_actual }}</td>
                                 <td class="px-4 py-3">
                                     @if($producto->activo)
                                         <span class="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Activo</span>
@@ -473,7 +479,11 @@
                             </div>
                             <div>
                                 <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Stock</p>
-                                <p class="mt-1 text-[#1f1f1f]" x-text="productoVista?.stock_actual"></p>
+                                <div class="mt-1 flex gap-4 text-[#1f1f1f]">
+                                    <span>Tienda: <strong x-text="productoVista?.stock_tienda"></strong></span>
+                                    <span>Almacen: <strong x-text="productoVista?.stock_almacen"></strong></span>
+                                    <span class="text-[#8a6a2e]">| Total: <strong x-text="productoVista?.stock_actual"></strong></span>
+                                </div>
                             </div>
                             <div>
                                 <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Estado</p>
@@ -506,7 +516,9 @@
                         <div class="space-y-4 p-5">
                             <div class="grid gap-2 sm:grid-cols-[1fr_auto]">
                                 <input x-model="nuevaCategoria" type="text" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm" placeholder="Nueva categoria" />
-                                <button type="button" @click="crearCategoria()" :disabled="guardandoCategoria" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626] disabled:opacity-60">Crear</button>
+                                <button type="button" @click="crearCategoria()" :disabled="guardandoCategoria" class="btn-icon bg-[#111] hover:bg-[#262626] disabled:opacity-60" title="Crear categoria">
+                                    <img src="{{ asset('icons/nuevo.ico') }}" alt="Crear" class="h-5 w-5 object-contain pointer-events-none" />
+                                </button>
                             </div>
 
                             <p x-show="mensajeCategorias" class="text-xs" :class="errorCategorias ? 'text-rose-700' : 'text-emerald-700'" x-text="mensajeCategorias"></p>
@@ -539,7 +551,9 @@
                                                 <td class="px-3 py-2">
                                                     <div class="flex justify-end gap-2">
                                                         <template x-if="editandoId !== cat.id">
-                                                            <button type="button" @click="iniciarEdicion(cat)" class="rounded-lg border border-[#d1be8a] px-2.5 py-1 text-xs text-[#5a4314] hover:bg-[#fff5dd]">Editar</button>
+                                                            <button type="button" @click="iniciarEdicion(cat)" class="btn-icon-sm bg-amber-400 hover:bg-amber-500" title="Editar">
+                                                                <img src="{{ asset('icons/editar.ico') }}" alt="Editar" class="h-4 w-4 object-contain pointer-events-none" />
+                                                            </button>
                                                         </template>
                                                         <template x-if="editandoId === cat.id">
                                                             <button type="button" @click="guardarEdicion(cat)" class="rounded-lg border border-emerald-300 px-2.5 py-1 text-xs text-emerald-700 hover:bg-emerald-50">Guardar</button>
@@ -547,8 +561,8 @@
                                                         <template x-if="editandoId === cat.id">
                                                             <button type="button" @click="cancelarEdicion()" class="rounded-lg border border-[#d1be8a] px-2.5 py-1 text-xs text-[#5a4314] hover:bg-[#fff5dd]">Cancelar</button>
                                                         </template>
-                                                        <button type="button" @click="toggleCategoria(cat)" :class="cat.activo ? 'border-rose-300 text-rose-700 hover:bg-rose-50' : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'" class="rounded-lg border px-2.5 py-1 text-xs">
-                                                            <span x-text="cat.activo ? 'Inactivar' : 'Activar'"></span>
+                                                        <button type="button" @click="toggleCategoria(cat)" :class="cat.activo ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-500 hover:bg-emerald-600'" class="btn-icon-sm" :title="cat.activo ? 'Inactivar' : 'Activar'">
+                                                            <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Toggle" class="h-4 w-4 object-contain pointer-events-none" />
                                                         </button>
                                                     </div>
                                                 </td>

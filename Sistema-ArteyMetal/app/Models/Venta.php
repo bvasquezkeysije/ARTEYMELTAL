@@ -22,6 +22,7 @@ class Venta extends Model
         'estado_pago',
         'observaciones',
         'usuario_id',
+        'caja_apertura_id',
     ];
 
     protected $casts = [
@@ -48,5 +49,10 @@ class Venta extends Model
     public function comprobante(): HasOne
     {
         return $this->hasOne(ComprobanteVenta::class, 'venta_id');
+    }
+
+    public function cajaApertura(): BelongsTo
+    {
+        return $this->belongsTo(CajaApertura::class, 'caja_apertura_id');
     }
 }

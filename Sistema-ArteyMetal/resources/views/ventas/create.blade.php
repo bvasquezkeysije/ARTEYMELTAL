@@ -3,6 +3,39 @@
         <span>Nueva venta</span>
     </x-slot>
 
+    <style>
+        .btn-icon:focus-visible,
+        .btn-icon:focus,
+        .btn-icon-sm:focus-visible,
+        .btn-icon-sm:focus {
+            outline: 0 none !important;
+        }
+        .btn-icon:active,
+        .btn-icon-sm:active {
+            filter: brightness(0.85);
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .btn-icon-sm {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            flex-shrink: 0;
+            color: #fff;
+        }
+    </style>
+
     @php
         $categorias = [
             'medallas' => 'Medallas',
@@ -20,6 +53,8 @@
                 'categoria_texto' => $categorias[$producto->categoria] ?? $producto->categoria,
                 'descripcion' => $producto->descripcion,
                 'stock' => (int) $producto->stock_actual,
+                'stock_tienda' => (int) ($producto->stock_tienda ?? 0),
+                'stock_almacen' => (int) ($producto->stock_almacen ?? 0),
                 'precio' => (float) ($producto->precio_referencia ?? 0),
                 'imagenes' => $producto->imagenes
                     ->map(fn ($imagen) => [
@@ -62,6 +97,37 @@
         consultandoDocumentoCliente: false,
         mensajeDocumentoCliente: '',
         consultaDocumentoClienteOk: false,
+        montoRecibido: '',
+        formaPago: 'efectivo',
+        fotosPago: [],
+        modalFotosPago: false,
+        fotoPagoIndex: 0,
+        get totalVenta() {
+            let t = 0;
+            for (const linea of this.lineas) {
+                const p = this.productoPorId(linea.producto_id);
+                if (p && linea.cantidad) t += Number(p.precio) * Number(linea.cantidad);
+            }
+            return t;
+        },
+        get vuelto() {
+            if (!this.montoRecibido || this.montoRecibido <= 0) return 0;
+            const v = parseFloat(this.montoRecibido) - this.totalVenta;
+            return v > 0 ? v : 0;
+        },
+        initMontoRecibido() {
+            if (this.formaPago !== 'efectivo') this.montoRecibido = this.totalVenta;
+        },
+        onFotosPagoChange(e) {
+            const files = Array.from(e.target.files || []);
+            this.fotosPago = files.slice(0, 5);
+        },
+        abrirModalFotosPago() {
+            if (this.fotosPago.length > 0) this.modalFotosPago = true;
+        },
+        cerrarModalFotosPago() {
+            this.modalFotosPago = false;
+        },
         agregarLinea() {
             this.lineas.push({ producto_id: '', busqueda: '', cantidad: 1, abierto: false });
         },
@@ -156,6 +222,14 @@
                 this.consultandoDocumentoCliente = false;
             }
         },
+        consumidorFinal() {
+            if (this.$refs.documentoClienteVenta) this.$refs.documentoClienteVenta.value = '99999999';
+            if (this.$refs.documentoComprobante) this.$refs.documentoComprobante.value = '99999999';
+            if (this.$refs.nombreClienteVenta) this.$refs.nombreClienteVenta.value = 'Consumidor Final';
+            if (this.$refs.direccionCliente) this.$refs.direccionCliente.value = 'Consumidor Final';
+            this.mensajeDocumentoCliente = 'Cliente asignado como Consumidor Final.';
+            this.consultaDocumentoClienteOk = true;
+        },
         cerrarLista(i) {
             setTimeout(() => { if (this.lineas[i]) this.lineas[i].abierto = false; }, 120);
         }
@@ -166,65 +240,7 @@
 
         <form method="POST" action="{{ route('ventas.store') }}" class="space-y-5">
             @csrf
-
             <div class="space-y-4">
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Comprobante</h3>
-                    <div class="grid gap-3 md:grid-cols-3">
-                        <div>
-                            <label for="tipo_comprobante" class="mb-2 block text-sm font-medium text-gray-700">Tipo comprobante</label>
-                            <select x-ref="tipoComprobante" id="tipo_comprobante" name="tipo_comprobante" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
-                                <option value="boleta" @selected(old('tipo_comprobante', 'boleta') === 'boleta')>Boleta</option>
-                                <option value="factura" @selected(old('tipo_comprobante') === 'factura')>Factura</option>
-                            </select>
-                            @error('tipo_comprobante') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="documento_cliente_comprobante" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente</label>
-                            <input x-ref="documentoComprobante" id="documento_cliente_comprobante" name="documento_cliente" type="text" value="{{ old('documento_cliente') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="DNI o RUC" />
-                            @error('documento_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="direccion_cliente" class="mb-2 block text-sm font-medium text-gray-700">Direccion cliente</label>
-                            <input id="direccion_cliente" name="direccion_cliente" type="text" value="{{ old('direccion_cliente') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Opcional" />
-                            @error('direccion_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-                    <p class="mt-2 text-xs text-gray-500">La factura requiere RUC de 11 digitos y nombre/razon social del cliente.</p>
-                </div>
-
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Cliente (Opcional)</h3>
-                    <div class="grid gap-3 md:grid-cols-[1fr_auto]">
-                        <div>
-                            <label for="documento_cliente_venta" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente (DNI/RUC)</label>
-                            <input
-                                x-ref="documentoClienteVenta"
-                                id="documento_cliente_venta"
-                                name="documento_busqueda_cliente"
-                                type="text"
-                                value="{{ old('documento_cliente') }}"
-                                @keydown.enter.prevent="buscarClientePorDocumento()"
-                                class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
-                                placeholder="Ejemplo: 76636255 o 20601030013"
-                            />
-                        </div>
-                        <div class="md:pt-7">
-                            <button type="button" @click="buscarClientePorDocumento()" :disabled="consultandoDocumentoCliente" class="h-[46px] rounded-xl border border-gray-300 px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-60">
-                                <span x-show="!consultandoDocumentoCliente">Buscar</span>
-                                <span x-show="consultandoDocumentoCliente" style="display:none;">Buscando...</span>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">Primero busca en clientes del sistema. Si no existe: DNI consulta RENIEC y RUC consulta SUNAT. No se registra cliente hasta guardar la venta.</p>
-                    <p x-show="mensajeDocumentoCliente" class="mt-1 text-xs" :class="consultaDocumentoClienteOk ? 'text-emerald-700' : 'text-rose-700'" x-text="mensajeDocumentoCliente"></p>
-
-                    <div class="mt-3">
-                        <label for="cliente_nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre cliente</label>
-                        <input x-ref="nombreClienteVenta" id="cliente_nombre" name="cliente_nombre" type="text" value="{{ old('cliente_nombre') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Nombre cliente mostrador" />
-                    </div>
-                </div>
-
                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                     <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Productos</h3>
                     <div class="space-y-3">
@@ -239,7 +255,7 @@
                                         @focus="linea.abierto = true"
                                         @input="linea.abierto = true; linea.producto_id = ''"
                                         @blur="cerrarLista(i)"
-                                        class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900"
+                                        class="block h-[46px] w-full rounded-xl border border-gray-300 bg-gray-50 px-4 text-gray-900"
                                         placeholder="Buscar por codigo o nombre"
                                     />
                                     <div
@@ -276,26 +292,134 @@
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-medium text-gray-700">Cantidad</label>
-                                    <input :name="'cantidad['+i+']'" x-model="linea.cantidad" type="number" min="1" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900" />
+                                    <input :name="'cantidad['+i+']'" x-model="linea.cantidad" type="number" min="1" class="block h-[46px] w-full rounded-xl border border-gray-300 bg-gray-50 px-4 text-gray-900" />
                                 </div>
-                                <div class="flex items-end gap-2">
-                                    <button type="button" @click="agregarLinea" class="inline-flex h-[46px] w-[46px] items-center justify-center rounded-xl border border-gray-300 text-lg font-medium leading-none text-gray-700">+</button>
-                                    <button type="button" @click="quitarLinea(i)" class="inline-flex h-[46px] w-[46px] items-center justify-center rounded-xl border border-rose-300 text-lg font-medium leading-none text-rose-700">-</button>
+                                <div class="flex items-end">
+                                    <button type="button" @click="quitarLinea(i)" class="inline-flex h-[46px] w-[46px] items-center justify-center rounded-xl bg-red-600 hover:bg-red-700" title="Eliminar producto">
+                                        <img src="{{ asset('icons/eliminar.ico') }}" alt="Eliminar" class="h-5 w-5 object-contain pointer-events-none brightness-0 invert" />
+                                    </button>
                                 </div>
                             </div>
                         </template>
-                        <p class="text-xs text-gray-500">Ejemplo: cliente compra 3 medallas (1er, 2do, 3er puesto) seleccionando esos productos y sus cantidades.</p>
+                        <div class="flex justify-center pt-2">
+                            <button type="button" @click="agregarLinea" class="inline-flex items-center gap-3 rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90" style="background-color:#b9943d">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                Agregar producto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Cliente</h3>
+                    <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+                        <div>
+                            <label for="documento_cliente_venta" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente (DNI/RUC)</label>
+                            <input
+                                x-ref="documentoClienteVenta"
+                                id="documento_cliente_venta"
+                                name="documento_busqueda_cliente"
+                                type="text"
+                                value="{{ old('documento_cliente') }}"
+                                @keydown.enter.prevent="buscarClientePorDocumento()"
+                                class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
+                                placeholder="Ejemplo: 76636255 o 20601030013"
+                            />
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button type="button" @click="consumidorFinal()" class="h-[46px] rounded-xl border border-[#cba34d] px-4 py-3 text-xs font-semibold text-white hover:opacity-90" style="background-color:#b9943d">
+                                Consumidor Final
+                            </button>
+                            <button type="button" @click="buscarClientePorDocumento()" :disabled="consultandoDocumentoCliente" class="inline-flex h-[46px] w-[46px] items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60" title="Buscar">
+                                <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none brightness-0 invert" />
+                            </button>
+                        </div>
+                    </div>
+                    <p x-show="mensajeDocumentoCliente" class="mt-1 text-xs" :class="consultaDocumentoClienteOk ? 'text-emerald-700' : 'text-rose-700'" x-text="mensajeDocumentoCliente"></p>
+
+                    <div class="mt-3">
+                        <label for="cliente_nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre cliente</label>
+                        <input x-ref="nombreClienteVenta" id="cliente_nombre" name="cliente_nombre" type="text" value="{{ old('cliente_nombre') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Nombre del cliente" />
+                    </div>
+                    <div class="mt-3">
+                        <label for="direccion_cliente" class="mb-2 block text-sm font-medium text-gray-700">Direccion cliente</label>
+                        <input x-ref="direccionCliente" id="direccion_cliente" name="direccion_cliente" type="text" value="{{ old('direccion_cliente') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Direccion del cliente" />
+                        @error('direccion_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Pago</h3>
+                        <p class="text-sm font-semibold text-gray-700">Total: S/ <span x-text="totalVenta.toFixed(2)">0.00</span></p>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-3">
+                        <div>
+                            <label for="forma_pago" class="mb-2 block text-sm font-medium text-gray-700">Forma de pago</label>
+                            <select id="forma_pago" name="forma_pago" x-model="formaPago" @change="initMontoRecibido()" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                                <option value="efectivo" @selected(old('forma_pago', 'efectivo') === 'efectivo')>Efectivo</option>
+                                <option value="yape" @selected(old('forma_pago') === 'yape')>Yape</option>
+                                <option value="plin" @selected(old('forma_pago') === 'plin')>Plin</option>
+                                <option value="transferencia" @selected(old('forma_pago') === 'transferencia')>Transferencia bancaria</option>
+                                <option value="tarjeta" @selected(old('forma_pago') === 'tarjeta')>Tarjeta débito/crédito</option>
+                                <option value="mixto" @selected(old('forma_pago') === 'mixto')>Mixto</option>
+                            </select>
+                            @error('forma_pago') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="monto_recibido" class="mb-2 block text-sm font-medium text-gray-700">Monto recibido</label>
+                            <input id="monto_recibido" name="monto_recibido" type="number" step="0.01" x-model="montoRecibido" :readonly="formaPago !== 'efectivo'" :class="formaPago !== 'efectivo' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'" class="block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900" placeholder="0.00" />
+                            @error('monto_recibido') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div x-show="formaPago === 'efectivo'">
+                            <label for="vuelto" class="mb-2 block text-sm font-medium text-gray-700">Vuelto</label>
+                            <input id="vuelto" type="number" step="0.01" class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-500" :value="vuelto.toFixed(2)" readonly />
+                        </div>
+                        <div x-show="formaPago !== 'efectivo'">
+                            <label class="mb-2 block text-sm font-medium text-gray-700">Comprobante de pago <span class="text-xs text-gray-400">(Opcional)</span></label>
+                            <div class="flex gap-2">
+                                <label class="flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 hover:border-[#b9943d] hover:text-[#b9943d] transition-colors">
+                                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.58-4.58a1 1 0 011.41 0L12 13.5l2.59-2.59a1 1 0 011.41 0L20 16m-4-8a2 2 0 100-4 2 2 0 000 4z"/></svg>
+                                    <span x-text="fotosPago.length ? fotosPago.length + ' foto(s) seleccionada(s)' : 'Subir foto(s)'"></span>
+                                    <input id="comprobante_pago" name="comprobante_pago[]" type="file" accept="image/*" multiple @change="onFotosPagoChange($event)" class="hidden" />
+                                </label>
+                                <button type="button" @click="abrirModalFotosPago()" :disabled="fotosPago.length === 0" class="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-xl bg-[#111] hover:bg-[#262626] disabled:opacity-40" title="Ver fotos">
+                                    <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver fotos" class="h-5 w-5 object-contain pointer-events-none brightness-0 invert" />
+                                </button>
+                            </div>
+                            @error('comprobante_pago') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <h3 class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Comprobante</h3>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <div>
+                        <label for="tipo_comprobante" class="mb-2 block text-sm font-medium text-gray-700">Tipo comprobante</label>
+                        <select x-ref="tipoComprobante" id="tipo_comprobante" name="tipo_comprobante" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                            <option value="boleta" @selected(old('tipo_comprobante', 'boleta') === 'boleta')>Boleta</option>
+                            <option value="factura" @selected(old('tipo_comprobante') === 'factura')>Factura</option>
+                        </select>
+                        @error('tipo_comprobante') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="documento_cliente_comprobante" class="mb-2 block text-sm font-medium text-gray-700">Documento cliente</label>
+                        <input x-ref="documentoComprobante" id="documento_cliente_comprobante" name="documento_cliente" type="text" value="{{ old('documento_cliente') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="DNI o RUC" />
+                        @error('documento_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">La factura requiere RUC de 11 digitos y nombre/razon social del cliente.</p>
+            </div>
+
             <div>
                 <label for="observaciones" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
-                <textarea id="observaciones" name="observaciones" rows="3" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">{{ old('observaciones') }}</textarea>
+                <textarea id="observaciones" name="observaciones" rows="3" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900" placeholder="Notas adicionales sobre la venta">{{ old('observaciones') }}</textarea>
             </div>
 
             <div class="flex gap-2">
-                <button type="submit" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Guardar venta</button>
+                <button type="submit" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Registrar venta</button>
                 <a href="{{ route('ventas.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700">Cancelar</a>
             </div>
         </form>
@@ -350,7 +474,11 @@
                         </div>
                         <div>
                             <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Stock</p>
-                            <p class="mt-1 text-gray-900" x-text="productoVista ? productoVista.stock : '-'"></p>
+                            <div class="mt-1 flex gap-4 text-gray-900">
+                                <span>Tienda: <strong x-text="productoVista?.stock_tienda"></strong></span>
+                                <span>Almacen: <strong x-text="productoVista?.stock_almacen"></strong></span>
+                                <span class="text-gray-500">| Total: <strong x-text="productoVista?.stock"></strong></span>
+                            </div>
                         </div>
                         <div>
                             <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Precio referencia</p>
@@ -361,6 +489,33 @@
                             <p class="mt-1 text-gray-900" x-text="productoVista?.descripcion || '-'"></p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="modalFotosPago" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="cerrarModalFotosPago()"></div>
+        <div x-show="modalFotosPago" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+            <div class="w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                    <h3 class="text-base font-semibold text-gray-800">Comprobantes de pago</h3>
+                    <button type="button" @click="cerrarModalFotosPago()" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+                <div class="p-5">
+                    <template x-if="fotosPago.length">
+                        <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                            <template x-for="(foto, i) in fotosPago" :key="i">
+                                <div class="overflow-hidden rounded-xl border border-gray-200">
+                                    <img :src="URL.createObjectURL(foto)" :alt="'Foto ' + (i + 1)" class="h-48 w-full object-cover" />
+                                    <p class="truncate border-t border-gray-200 px-3 py-2 text-xs text-gray-500" x-text="foto.name"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="!fotosPago.length">
+                        <p class="py-10 text-center text-sm text-gray-500">No hay fotos seleccionadas.</p>
+                    </template>
                 </div>
             </div>
         </div>

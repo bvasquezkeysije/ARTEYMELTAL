@@ -11,6 +11,8 @@ use App\Http\Controllers\ClienteConsultaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AlmacenController;
+use App\Http\Controllers\CajaController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -26,6 +28,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::middleware('permiso:pedidos.ver')->group(function () {
         Route::get('pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
         Route::get('pedidos/{pedido}', [PedidoController::class, 'show'])->whereNumber('pedido')->name('pedidos.show');
+        Route::post('pedidos/{pedido}/transportar', [PedidoController::class, 'marcarEnTransporte'])->whereNumber('pedido')->name('pedidos.transportar');
+        Route::post('pedidos/{pedido}/recibir-almacen', [PedidoController::class, 'marcarEnAlmacen'])->whereNumber('pedido')->name('pedidos.recibir_almacen');
     });
     Route::middleware('permiso:pedidos.gestionar')->group(function () {
         Route::get('pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
@@ -67,8 +71,21 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::patch('productos/categorias/{categoriaProducto}/toggle', [ProductoController::class, 'categoriaToggle'])->whereNumber('categoriaProducto')->name('productos.categorias.toggle');
     });
 
+    // Almacen
+    Route::middleware('permiso:almacen.ver')->group(function () {
+        Route::get('almacen', [AlmacenController::class, 'index'])->name('almacen.index');
+        Route::get('almacen/productos', [AlmacenController::class, 'productos'])->name('almacen.productos');
+        Route::get('almacen/movimientos', [AlmacenController::class, 'movimientos'])->name('almacen.movimientos');
+    });
+    Route::middleware('permiso:almacen.gestionar')->group(function () {
+        Route::post('almacen/entrada', [AlmacenController::class, 'storeEntrada'])->name('almacen.entrada.store');
+        Route::post('almacen/salida', [AlmacenController::class, 'storeSalida'])->name('almacen.salida.store');
+    });
+
     Route::middleware('permiso:ventas.ver')->group(function () {
         Route::get('ventas', [VentaController::class, 'index'])->name('ventas.index');
+        Route::get('ventas/seleccionar-caja/{cajaApertura}', [VentaController::class, 'seleccionarCaja'])->whereNumber('cajaApertura')->name('ventas.seleccionar_caja');
+        Route::post('ventas/cambiar-caja', [VentaController::class, 'cambiarCaja'])->name('ventas.cambiar_caja');
         Route::get('ventas/{venta}', [VentaController::class, 'show'])->whereNumber('venta')->name('ventas.show');
         Route::get('ventas/{venta}/comprobante', [VentaController::class, 'comprobante'])->whereNumber('venta')->name('ventas.comprobante');
     });
@@ -76,6 +93,15 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('ventas/crear', [VentaController::class, 'create'])->name('ventas.create');
         Route::post('ventas', [VentaController::class, 'store'])->name('ventas.store');
         Route::post('ventas/{venta}/emitir-comprobante', [VentaController::class, 'emitirComprobante'])->whereNumber('venta')->name('ventas.emitir_comprobante');
+    });
+
+    Route::middleware('permiso:caja.ver')->group(function () {
+        Route::get('caja', [CajaController::class, 'index'])->name('cajas.index');
+        Route::get('caja/{cajaApertura}', [CajaController::class, 'show'])->whereNumber('cajaApertura')->name('cajas.show');
+    });
+    Route::middleware('permiso:caja.gestionar')->group(function () {
+        Route::post('caja', [CajaController::class, 'store'])->name('cajas.store');
+        Route::post('caja/{cajaApertura}/cerrar', [CajaController::class, 'cerrar'])->whereNumber('cajaApertura')->name('cajas.cerrar');
     });
 
     Route::middleware('permiso:reportes.ver')->group(function () {

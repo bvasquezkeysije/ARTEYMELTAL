@@ -34,9 +34,13 @@
                 <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Precio referencia</p>
                 <p class="mt-1 text-[#1f1f1f]">{{ $producto->precio_referencia !== null ? 'S/ ' . number_format((float) $producto->precio_referencia, 2) : '-' }}</p>
             </div>
-            <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Stock actual</p>
-                <p class="mt-1 text-[#1f1f1f]">{{ $producto->stock_actual }}</p>
+            <div class="col-span-2">
+                <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Stock</p>
+                <div class="mt-1 flex gap-6 text-[#1f1f1f]">
+                    <span>Tienda: <strong>{{ (int) ($producto->stock_tienda ?? 0) }}</strong></span>
+                    <span>Almacen: <strong>{{ (int) ($producto->stock_almacen ?? 0) }}</strong></span>
+                    <span class="text-[#8a6a2e]">| Total: <strong>{{ $producto->stock_actual }}</strong></span>
+                </div>
             </div>
         </div>
 

@@ -33,7 +33,7 @@
                 autofocus
                 autocomplete="username"
                 class="block w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-3 text-[#251e12] placeholder-[#9f8c62] focus:border-[#cba34d] focus:ring-[#cba34d]"
-                placeholder="admin@admin.com o admin"
+                placeholder="usuario@correo.com o usuario"
             />
             @error('login')
                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
