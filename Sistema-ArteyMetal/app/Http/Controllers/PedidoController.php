@@ -438,6 +438,12 @@ class PedidoController extends Controller
             'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
             'archivos_modelo' => ['nullable', 'array', 'max:10'],
             'archivos_modelo.*' => ['file', 'max:15360', 'mimes:cdr,pdf,jpg,jpeg,png,ai,eps,svg,dxf,dwg,step,stp,3dm,stl,obj,fbx,zip,rar'],
+            'productos_personalizados' => ['nullable', 'array'],
+            'productos_personalizados.*.nombre' => ['required', 'string', 'max:255'],
+            'productos_personalizados.*.descripcion' => ['nullable', 'string', 'max:255'],
+            'productos_personalizados.*.materiales' => ['nullable', 'string', 'max:255'],
+            'productos_personalizados.*.precio_unitario' => ['required', 'numeric', 'min:0'],
+            'productos_personalizados.*.cantidad' => ['required', 'integer', 'min:1'],
         ]);
     }
 

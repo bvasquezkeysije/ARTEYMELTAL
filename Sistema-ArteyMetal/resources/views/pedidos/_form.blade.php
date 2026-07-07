@@ -156,6 +156,63 @@
             </div>
         </div>
 
+        <div class="mt-4" x-data="{
+            productos: @js(old('productos_personalizados', $pedido->productos_personalizados ?? [['nombre' => '', 'descripcion' => '', 'materiales' => '', 'precio_unitario' => '', 'cantidad' => 1]])),
+            agregar() { this.productos.push({nombre: '', descripcion: '', materiales: '', precio_unitario: '', cantidad: 1}); },
+            eliminar(i) { if (this.productos.length > 1) this.productos.splice(i, 1); },
+            get totalGeneral() { return this.productos.reduce((s, p) => s + ((Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0)), 0); }
+        }">
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <th class="px-3 py-2 w-12">#</th>
+                            <th class="px-3 py-2">Nombre</th>
+                            <th class="px-3 py-2">Descripcion</th>
+                            <th class="px-3 py-2">Materiales</th>
+                            <th class="px-3 py-2 w-28">Precio uni.</th>
+                            <th class="px-3 py-2 w-20">Cant.</th>
+                            <th class="px-3 py-2 w-28">Total</th>
+                            <th class="px-3 py-2 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(p, i) in productos" :key="i">
+                            <tr class="border-t border-gray-100">
+                                <td class="px-3 py-2 text-center text-gray-400" x-text="i + 1"></td>
+                                <td class="px-3 py-2">
+                                    <input type="text" x-model="p.nombre" :name="'productos_personalizados['+i+'][nombre]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: Medalla" required />
+                                </td>
+                                <td class="px-3 py-2">
+                                    <input type="text" x-model="p.descripcion" :name="'productos_personalizados['+i+'][descripcion]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: 30mm x 40mm" />
+                                </td>
+                                <td class="px-3 py-2">
+                                    <input type="text" x-model="p.materiales" :name="'productos_personalizados['+i+'][materiales]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: Oro 18k" />
+                                </td>
+                                <td class="px-3 py-2">
+                                    <input type="number" step="0.01" min="0" x-model="p.precio_unitario" :name="'productos_personalizados['+i+'][precio_unitario]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="0.00" required />
+                                </td>
+                                <td class="px-3 py-2">
+                                    <input type="number" min="1" x-model="p.cantidad" :name="'productos_personalizados['+i+'][cantidad]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="1" required />
+                                </td>
+                                <td class="px-3 py-2 font-semibold text-gray-700" x-text="'S/ ' + ((Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0)).toFixed(2)"></td>
+                                <td class="px-3 py-2">
+                                    <button type="button" @click="eliminar(i)" x-show="productos.length > 1" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Eliminar">
+                                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-3 w-3 object-contain pointer-events-none" />
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2 flex items-center justify-between">
+                <button type="button" @click="agregar()" class="rounded-lg border border-[#d1be8a] px-3 py-1.5 text-xs font-medium text-[#5a4314] hover:bg-[#fff5dd]">+ Agregar producto</button>
+                <p class="text-xs font-semibold text-gray-700">Total productos: <span class="text-amber-800" x-text="'S/ ' + totalGeneral.toFixed(2)"></span></p>
+            </div>
+            @error('productos_personalizados') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+        </div>
+
         <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div x-data="{

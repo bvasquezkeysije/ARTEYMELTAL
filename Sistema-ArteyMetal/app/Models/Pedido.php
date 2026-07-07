@@ -20,6 +20,7 @@ class Pedido extends Model
         'correo_cliente',
         'tipo_producto',
         'materiales',
+        'productos_personalizados',
         'tipo_entrega',
         'direccion_entrega',
         'referencia_entrega',
@@ -54,6 +55,7 @@ class Pedido extends Model
         'monto_adelanto' => 'decimal:2',
         'monto_saldo' => 'decimal:2',
         'materiales' => 'array',
+        'productos_personalizados' => 'array',
     ];
 
     public function usuario(): BelongsTo
