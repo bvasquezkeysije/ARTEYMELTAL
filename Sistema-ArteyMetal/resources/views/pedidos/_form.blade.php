@@ -148,21 +148,16 @@
                 @endif
             </div>
 
-            <div>
-                <label for="nombre_producto" class="mb-2 block text-sm font-medium text-gray-700">Nombre del producto</label>
-                <input id="nombre_producto" name="nombre_producto" type="text" value="{{ old('nombre_producto', $pedido->nombre_producto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Copa, Anillo, Medalla" />
+            <div class="md:col-span-2">
+                <label for="nombre_producto" class="mb-2 block text-sm font-medium text-gray-700">Nombre del pedido</label>
+                <input id="nombre_producto" name="nombre_producto" type="text" value="{{ old('nombre_producto', $pedido->nombre_producto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Pedido de trofeos y medallas" />
                 @error('nombre_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
-            <div>
-                <label for="tipo_producto" class="mb-2 block text-sm font-medium text-gray-700">Categoria</label>
-                <select id="tipo_producto" name="tipo_producto" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
-                    <option value="">Seleccione una categoria</option>
-                    @foreach($categorias as $cat)
-                        <option value="{{ $cat->slug }}" @selected(old('tipo_producto', $pedido->tipo_producto ?? '') === $cat->slug)>{{ $cat->nombre }}</option>
-                    @endforeach
-                </select>
-                @error('tipo_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            <div class="md:col-span-2">
+                <label for="detalle_trabajo" class="mb-2 block text-sm font-medium text-gray-700">Descripcion</label>
+                <textarea id="detalle_trabajo" name="detalle_trabajo" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Describe lo que incluye el pedido. Ej: 20 medallas de oro + 10 trofeos de plata">{{ old('detalle_trabajo', $pedido->detalle_trabajo ?? '') }}</textarea>
+                @error('detalle_trabajo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
@@ -363,19 +358,11 @@
     </section>
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Detalle y Observaciones</h3>
-        <div class="space-y-4">
-            <div>
-                <label for="detalle_trabajo" class="mb-2 block text-sm font-medium text-gray-700">Detalle trabajo</label>
-                <textarea id="detalle_trabajo" name="detalle_trabajo" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Detalle tecnico o material solicitado">{{ old('detalle_trabajo', $pedido->detalle_trabajo ?? '') }}</textarea>
-                @error('detalle_trabajo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="observaciones" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
-                <textarea x-ref="observaciones" id="observaciones" name="observaciones" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Notas internas">{{ old('observaciones', $pedido->observaciones ?? '') }}</textarea>
-                @error('observaciones') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
+        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Observaciones</h3>
+        <div>
+            <label for="observaciones" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
+            <textarea x-ref="observaciones" id="observaciones" name="observaciones" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Notas internas">{{ old('observaciones', $pedido->observaciones ?? '') }}</textarea>
+            @error('observaciones') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         </div>
     </section>
 

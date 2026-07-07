@@ -148,12 +148,12 @@
                                 $pedidoVistaData = [
                                     'codigo' => $pedido->codigo,
                                     'nombre_producto' => $pedido->nombre_producto ?: '-',
+                                    'descripcion' => $pedido->detalle_trabajo ?: '-',
                                     'nombre_cliente' => $pedido->nombre_cliente,
                                     'cliente_catalogo' => $pedido->cliente?->id ? ('Cliente catalogo #' . $pedido->cliente->id) : null,
                                     'telefono_cliente' => $pedido->telefono_cliente ?: '-',
                                     'documento_cliente' => $pedido->documento_cliente ?: '-',
                                     'correo_cliente' => $pedido->correo_cliente ?: '-',
-                                    'categoria' => optional(\App\Models\CategoriaProducto::where('slug', $pedido->tipo_producto)->first())->nombre ?? $pedido->tipo_producto,
                                     'cantidad' => $pedido->cantidad,
                                     'materiales' => $materiales,
                                     'estado' => str_replace('_', ' ', $pedido->estado),
@@ -284,13 +284,13 @@
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Correo</p>
                         <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.correo_cliente"></p>
                     </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Nombre producto</p>
+                    <div class="md:col-span-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Nombre del pedido</p>
                         <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.nombre_producto"></p>
                     </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Categoria</p>
-                        <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.categoria"></p>
+                    <div class="md:col-span-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Descripcion</p>
+                        <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.descripcion"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Cantidad</p>
