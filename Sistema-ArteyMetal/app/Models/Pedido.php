@@ -56,15 +56,6 @@ class Pedido extends Model
         'materiales' => 'array',
     ];
 
-    protected static function booted(): void
-    {
-        static::saving(function (Pedido $pedido) {
-            if ($pedido->materiales && is_array($pedido->materiales)) {
-                $pedido->cantidad = collect($pedido->materiales)->sum('cantidad');
-            }
-        });
-    }
-
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_id');
