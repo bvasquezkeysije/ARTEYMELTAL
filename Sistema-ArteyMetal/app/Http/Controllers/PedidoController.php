@@ -417,7 +417,7 @@ class PedidoController extends Controller
             'telefono_cliente' => ['nullable', 'string', 'max:20'],
             'documento_cliente' => ['nullable', 'string', 'max:25'],
             'correo_cliente' => ['nullable', 'string', 'email', 'max:120'],
-            'nombre_producto' => ['required', 'string', 'max:255'],
+            'nombre_producto' => ['nullable', 'string', 'max:255'],
             'detalle_trabajo' => ['nullable', 'string'],
             'tipo_producto' => ['nullable', 'string', 'exists:categorias_producto,slug'],
             'materiales' => ['required', 'array', 'min:1'],

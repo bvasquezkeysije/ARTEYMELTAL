@@ -150,12 +150,6 @@
             </div>
 
             <div class="md:col-span-2">
-                <label for="nombre_producto" class="mb-2 block text-sm font-medium text-gray-700">Nombre del pedido</label>
-                <input id="nombre_producto" name="nombre_producto" type="text" value="{{ old('nombre_producto', $pedido->nombre_producto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Pedido de trofeos y medallas" />
-                @error('nombre_producto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="md:col-span-2">
                 <label for="detalle_trabajo" class="mb-2 block text-sm font-medium text-gray-700">Descripcion</label>
                 <textarea id="detalle_trabajo" name="detalle_trabajo" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Describe lo que incluye el pedido. Ej: 20 medallas de oro + 10 trofeos de plata">{{ old('detalle_trabajo', $pedido->detalle_trabajo ?? '') }}</textarea>
                 @error('detalle_trabajo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
