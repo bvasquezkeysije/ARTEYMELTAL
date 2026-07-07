@@ -120,7 +120,7 @@
                             @endif
                             @if(auth()->user()->tienePermiso('ventas.ver'))
                                 <a href="{{ route('ventas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Ventas" class="{{ request()->routeIs('ventas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 3v18M16 7.5c0-1.7-1.8-3-4-3s-4 1.3-4 3 1.8 3 4 3 4 1.3 4 3-1.8 3-4 3-4-1.3-4-3"/></svg>
+                                    <img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Ventas</span>
                                 </a>
                             @endif
