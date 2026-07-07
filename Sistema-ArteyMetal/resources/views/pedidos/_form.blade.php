@@ -160,7 +160,38 @@
                 <textarea id="detalle_trabajo" name="detalle_trabajo" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Describe lo que incluye el pedido. Ej: 20 medallas de oro + 10 trofeos de plata">{{ old('detalle_trabajo', $pedido->detalle_trabajo ?? '') }}</textarea>
                 @error('detalle_trabajo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
+        </div>
 
+        <div class="mt-4" x-data="{
+            materiales: @js(old('materiales', $pedido->materiales ?? [['nombre' => '', 'cantidad' => 1]])),
+            agregar() { this.materiales.push({nombre: '', cantidad: 1}); },
+            eliminar(i) { if (this.materiales.length > 1) this.materiales.splice(i, 1); },
+            get totalUnidades() { return this.materiales.reduce((s, m) => s + (Number(m.cantidad) || 0), 0); }
+        }">
+            <template x-for="(mat, i) in materiales" :key="i">
+                <div class="mb-3 flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="mb-1 block text-xs font-medium text-gray-600" x-text="'Material ' + (i + 1)"></label>
+                        <input type="text" x-model="mat.nombre" :name="'materiales['+i+'][nombre]'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Oro, Plata, Bronce" required />
+                    </div>
+                    <div class="w-28">
+                        <label class="mb-1 block text-xs font-medium text-gray-600">Cantidad</label>
+                        <input type="number" x-model="mat.cantidad" :name="'materiales['+i+'][cantidad]'" min="1" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" required />
+                    </div>
+                    <button type="button" @click="eliminar(i)" x-show="materiales.length > 1" class="btn-icon-sm bg-red-600 hover:bg-red-700 mb-0.5" title="Eliminar material">
+                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+            </template>
+            <div class="flex items-center gap-3 mt-2">
+                <button type="button" @click="agregar()" class="rounded-lg border border-[#d1be8a] px-3 py-1.5 text-xs font-medium text-[#5a4314] hover:bg-[#fff5dd]">+ Agregar material</button>
+                <p class="text-xs text-gray-500">Total unidades: <span class="font-semibold" x-text="totalUnidades"></span></p>
+            </div>
+            @error('materiales') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            @error('materiales.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2 mt-4">
             <div>
                 <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado</label>
                 <select id="estado" name="estado" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
@@ -191,39 +222,7 @@
         </div>
     </section>
 
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Materiales</h3>
-        <div x-data="{
-            materiales: @js(old('materiales', $pedido->materiales ?? [['nombre' => '', 'cantidad' => 1]])),
-            agregar() { this.materiales.push({nombre: '', cantidad: 1}); },
-            eliminar(i) { if (this.materiales.length > 1) this.materiales.splice(i, 1); },
-            get totalUnidades() { return this.materiales.reduce((s, m) => s + (Number(m.cantidad) || 0), 0); }
-        }">
-            <template x-for="(mat, i) in materiales" :key="i">
-                <div class="mb-3 flex items-end gap-2">
-                    <div class="flex-1">
-                        <label class="mb-1 block text-xs font-medium text-gray-600" x-text="'Material ' + (i + 1)"></label>
-                        <input type="text" x-model="mat.nombre" :name="'materiales['+i+'][nombre]'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Oro, Plata, Bronce" required />
-                    </div>
-                    <div class="w-28">
-                        <label class="mb-1 block text-xs font-medium text-gray-600">Cantidad</label>
-                        <input type="number" x-model="mat.cantidad" :name="'materiales['+i+'][cantidad]'" min="1" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" required />
-                    </div>
-                    <button type="button" @click="eliminar(i)" x-show="materiales.length > 1" class="btn-icon-sm bg-red-600 hover:bg-red-700 mb-0.5" title="Eliminar material">
-                        <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
-                    </button>
-                </div>
-            </template>
-            <div class="flex items-center gap-3 mt-2">
-                <button type="button" @click="agregar()" class="rounded-lg border border-[#d1be8a] px-3 py-1.5 text-xs font-medium text-[#5a4314] hover:bg-[#fff5dd]">+ Agregar material</button>
-                <p class="text-xs text-gray-500">Total unidades: <span class="font-semibold" x-text="totalUnidades"></span></p>
-            </div>
-            @error('materiales') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            @error('materiales.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-        </div>
-    </section>
-
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h3>
         <div>
             <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno (CDR, PDF, JPG, PNG)</label>
