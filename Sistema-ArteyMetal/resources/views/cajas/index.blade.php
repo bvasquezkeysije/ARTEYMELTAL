@@ -22,7 +22,7 @@
         }
     </style>
 
-    <div x-data="{ modalAbrir: false, cerrarId: null, montoCerrar: {} }" class="space-y-5">
+    <div x-data="{ modalAbrir: false, cerrarId: null, montoCerrar: {}, detalleCaja: null }" class="space-y-5">
         @if (session('success'))
             <div class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('success') }}</div>
         @endif
@@ -68,9 +68,27 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('cajas.show', $apertura) }}" class="btn-icon-sm" style="background-color:#0891B2" title="Ver detalle">
+                                        @php
+                                            $detalleData = [
+                                                'id' => $apertura->id,
+                                                'usuario' => $apertura->usuario?->name ?? '-',
+                                                'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
+                                                'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
+                                                'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
+                                                'ventas' => $apertura->total_ventas ? 'S/ '.number_format($apertura->total_ventas, 2) : '-',
+                                                'final' => $apertura->monto_final ? 'S/ '.number_format($apertura->monto_final, 2) : '—',
+                                                'estado' => $apertura->estado,
+                                                'observaciones' => $apertura->observaciones,
+                                            ];
+                                        @endphp
+                                        <button
+                                            type="button"
+                                            @click="detalleCaja = @js($detalleData)"
+                                            class="btn-icon-sm" style="background-color:#0891B2"
+                                            title="Ver detalle"
+                                        >
                                             <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
-                                        </a>
+                                        </button>
                                         @if ($apertura->estado === 'abierta')
                                             <button type="button" @click="cerrarId = {{ $apertura->id }}" class="btn-icon-sm bg-rose-600 hover:bg-rose-700" title="Cerrar caja">
                                                 <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
@@ -150,5 +168,59 @@
             </div>
             @endif
         @endforeach
+
+        {{-- Modal ver detalle --}}
+        <div x-show="detalleCaja" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="detalleCaja = null"></div>
+        <div x-show="detalleCaja" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+            <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                    <h3 class="text-base font-semibold text-gray-800">Detalle de caja</h3>
+                    <button type="button" @click="detalleCaja = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+                <div class="grid gap-4 p-5 md:grid-cols-2">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Usuario</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.usuario"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Apertura</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.apertura"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Cierre</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.cierre"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto inicial</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.inicial"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total ventas</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.ventas"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.final"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
+                        <p class="mt-1">
+                            <template x-if="detalleCaja?.estado === 'abierta'">
+                                <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
+                            </template>
+                            <template x-if="detalleCaja?.estado !== 'abierta'">
+                                <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
+                            </template>
+                        </p>
+                    </div>
+                    <div class="md:col-span-2" x-show="detalleCaja?.observaciones">
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Observaciones</p>
+                        <p class="mt-1 text-gray-700" x-text="detalleCaja?.observaciones"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </x-app-layout>

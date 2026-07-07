@@ -35,9 +35,9 @@ class CajaController extends Controller
         return redirect()->route('cajas.index')->with('success', 'Caja abierta correctamente.');
     }
 
-    public function cerrar(Request $request, CajaApertura $caja)
+    public function cerrar(Request $request, CajaApertura $cajaApertura)
     {
-        if ($caja->estado !== 'abierta') {
+        if ($cajaApertura->estado !== 'abierta') {
             return back()->withErrors(['caja' => 'Esta caja ya está cerrada.']);
         }
 
@@ -46,27 +46,27 @@ class CajaController extends Controller
             'observaciones' => 'nullable|string|max:255',
         ]);
 
-        $totalVentas = $caja->ventas()->sum('monto_total');
+        $totalVentas = $cajaApertura->ventas()->sum('monto_total');
 
-        $caja->update([
+        $cajaApertura->update([
             'fecha_cierre' => now(),
             'monto_final' => $request->monto_final,
             'total_ventas' => $totalVentas,
             'estado' => 'cerrada',
-            'observaciones' => $request->observaciones ?: $caja->observaciones,
+            'observaciones' => $request->observaciones ?: $cajaApertura->observaciones,
         ]);
 
-        if (session('caja_apertura_id') == $caja->id) {
+        if (session('caja_apertura_id') == $cajaApertura->id) {
             session()->forget('caja_apertura_id');
         }
 
         return redirect()->route('cajas.index')->with('success', 'Caja cerrada correctamente.');
     }
 
-    public function show(CajaApertura $caja)
+    public function show(CajaApertura $cajaApertura)
     {
-        $ventas = $caja->ventas()->orderBy('created_at', 'desc')->get();
+        $ventas = $cajaApertura->ventas()->orderBy('created_at', 'desc')->get();
 
-        return view('cajas.show', compact('caja', 'ventas'));
+        return view('cajas.show', compact('cajaApertura', 'ventas'));
     }
 }

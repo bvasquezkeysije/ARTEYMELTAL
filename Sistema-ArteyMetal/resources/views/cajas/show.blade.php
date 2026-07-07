@@ -10,42 +10,42 @@
             <div class="grid gap-4 md:grid-cols-3">
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Usuario</p>
-                    <p class="mt-1 text-gray-900">{{ $caja->usuario?->name ?? '-' }}</p>
+                    <p class="mt-1 text-gray-900">{{ $cajaApertura->usuario?->name ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Apertura</p>
-                    <p class="mt-1 text-gray-900">{{ $caja->fecha_apertura->format('d/m/Y H:i') }}</p>
+                    <p class="mt-1 text-gray-900">{{ $cajaApertura->fecha_apertura->format('d/m/Y H:i') }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Cierre</p>
-                    <p class="mt-1 text-gray-900">{{ $caja->fecha_cierre?->format('d/m/Y H:i') ?? '—' }}</p>
+                    <p class="mt-1 text-gray-900">{{ $cajaApertura->fecha_cierre?->format('d/m/Y H:i') ?? '—' }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto inicial</p>
-                    <p class="mt-1 text-gray-900">S/ {{ number_format($caja->monto_inicial, 2) }}</p>
+                    <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->monto_inicial, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total ventas</p>
-                    <p class="mt-1 text-gray-900">S/ {{ number_format($caja->total_ventas, 2) }}</p>
+                    <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->total_ventas, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
-                    <p class="mt-1 text-gray-900">{{ $caja->monto_final ? 'S/ '.number_format($caja->monto_final, 2) : '—' }}</p>
+                    <p class="mt-1 text-gray-900">{{ $cajaApertura->monto_final ? 'S/ '.number_format($cajaApertura->monto_final, 2) : '—' }}</p>
                 </div>
                 <div class="md:col-span-3">
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
                     <p class="mt-1">
-                        @if ($caja->estado === 'abierta')
+                        @if ($cajaApertura->estado === 'abierta')
                             <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
                         @else
                             <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
                         @endif
                     </p>
                 </div>
-                @if ($caja->observaciones)
+                @if ($cajaApertura->observaciones)
                     <div class="md:col-span-3">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Observaciones</p>
-                        <p class="mt-1 text-gray-700">{{ $caja->observaciones }}</p>
+                        <p class="mt-1 text-gray-700">{{ $cajaApertura->observaciones }}</p>
                     </div>
                 @endif
             </div>
