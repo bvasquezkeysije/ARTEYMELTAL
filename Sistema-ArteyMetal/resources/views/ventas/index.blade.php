@@ -39,14 +39,16 @@
         }
     </style>
 
-    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false }" class="space-y-5">
+    <div x-data="{ modalVenta: false, ventaVista: null, modalComprobante: false, urlComprobante: '', filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? null) ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }} }" class="space-y-5">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
+                    @if($caja)
                     <div class="shrink-0 rounded-lg bg-[#f4ebd4] px-3 py-1.5 text-xs text-[#6a5122]">
                         {{ $caja->nombre ?? 'Caja #'.$caja->id }}
                         <span class="ml-1 text-emerald-600">Abierta</span>
                     </div>
+                    @endif
                     <form id="search-form" method="GET" action="{{ route('ventas.index') }}" class="flex min-w-0 flex-1">
                         <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por codigo, cliente o tipo" />
                     </form>
@@ -310,6 +312,63 @@
                             </button>
                         </div>
                         <iframe :src="urlComprobante" class="h-[calc(92vh-56px)] w-full" title="Vista previa comprobante"></iframe>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal seleccionar caja --}}
+        <template x-teleport="body">
+            <div x-show="selectorCajaAbierto" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="selectorCajaAbierto = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-gray-800">Selecciona tu caja de trabajo</h3>
+                            <a href="{{ route('cajas.index') }}" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Ir a abrir caja">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </a>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <p class="text-sm text-gray-500">Elige la caja en la que deseas operar.</p>
+                            @foreach ($cajasAbiertas as $cajaItem)
+                                <a
+                                    href="{{ route('ventas.seleccionar_caja', $cajaItem) }}"
+                                    class="flex items-center justify-between rounded-2xl border border-[#d1be8a] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#b8953a] hover:shadow-md"
+                                >
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-semibold text-[#2a2419]">{{ $cajaItem->nombre ?? 'Caja #'.$cajaItem->id }}</p>
+                                        <p class="text-xs text-gray-500">Abierta: {{ $cajaItem->fecha_apertura->format('d/m/Y H:i') }}</p>
+                                        @if ($cajaItem->monto_inicial > 0)
+                                            <p class="text-xs text-gray-500">Monto inicial: S/ {{ number_format($cajaItem->monto_inicial, 2) }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
+                                        <svg class="h-5 w-5 text-[#b8953a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal sin caja abierta --}}
+        <template x-teleport="body">
+            <div x-show="sinCajaAbierto" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">No hay ninguna caja abierta</h3>
+                        <p class="mt-2 text-sm text-gray-500">Ve al módulo de caja, abre una caja y vuelve para empezar a registrar ventas.</p>
+                        <a href="{{ route('cajas.index') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px"><img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none" /> Ir a abrir caja</a>
                     </div>
                 </div>
             </div>

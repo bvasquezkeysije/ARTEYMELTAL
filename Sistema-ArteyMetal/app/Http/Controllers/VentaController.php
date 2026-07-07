@@ -64,16 +64,25 @@ class VentaController extends Controller
             ->where('estado', 'abierta')
             ->get();
 
+        session()->forget('caja_apertura_id');
+
         if ($cajasAbiertas->isEmpty()) {
-            return view('ventas.sin_caja');
+            return view('ventas.index', [
+                'ventas' => collect(),
+                'busqueda' => '',
+                'tipo' => '',
+                'caja' => null,
+                'sinCaja' => true,
+            ]);
         }
 
-        if ($cajasAbiertas->count() === 1) {
-            session(['caja_apertura_id' => $cajasAbiertas->first()->id]);
-            return redirect()->route('ventas.index');
-        }
-
-        return view('ventas.seleccionar_caja', compact('cajasAbiertas'));
+        return view('ventas.index', [
+            'ventas' => collect(),
+            'busqueda' => '',
+            'tipo' => '',
+            'caja' => null,
+            'cajasAbiertas' => $cajasAbiertas,
+        ]);
     }
 
     public function seleccionarCaja(CajaApertura $cajaApertura)
