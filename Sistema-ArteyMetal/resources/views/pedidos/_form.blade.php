@@ -158,17 +158,25 @@
 
         <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
-        <div>
-            <label for="archivos_modelo" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno</label>
+        <div x-data="{ archivosSeleccionados: null }">
+            <label class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de diseno</label>
+            <label for="archivos_modelo" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
+                <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                </svg>
+                <p class="text-sm font-medium">Haz clic para seleccionar archivos</p>
+                <p class="mt-1 text-xs" x-text="archivosSeleccionados ? archivosSeleccionados.length + ' archivo(s) seleccionado(s)' : 'CDR, PDF, JPG, PNG, AI, EPS y mas'"></p>
+            </label>
             <input
                 id="archivos_modelo"
                 name="archivos_modelo[]"
                 type="file"
                 multiple
                 accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
-                class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900"
+                @change="archivosSeleccionados = $event.target.files"
+                class="sr-only"
             />
-            <p class="mt-1 text-xs text-gray-500">Sube hasta 10 archivos (CDR, PDF, JPG, PNG, AI, EPS, SVG, DXF, DWG, STEP, 3DM, STL, OBJ, FBX, ZIP, RAR).</p>
+            <p class="mt-1 text-xs text-gray-500">Sube hasta 10 archivos.</p>
             @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
 
