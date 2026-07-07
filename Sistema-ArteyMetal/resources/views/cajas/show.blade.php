@@ -9,6 +9,10 @@
         <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <div class="grid gap-4 md:grid-cols-3">
                 <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Caja</p>
+                    <p class="mt-1 text-gray-900">{{ $cajaApertura->nombre ?? 'Caja #'.$cajaApertura->id }}</p>
+                </div>
+                <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Usuario</p>
                     <p class="mt-1 text-gray-900">{{ $cajaApertura->usuario?->name ?? '-' }}</p>
                 </div>

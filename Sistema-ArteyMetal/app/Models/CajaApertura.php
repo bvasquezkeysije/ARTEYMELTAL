@@ -12,6 +12,7 @@ class CajaApertura extends Model
 
     protected $fillable = [
         'usuario_id',
+        'nombre',
         'fecha_apertura',
         'monto_inicial',
         'fecha_cierre',

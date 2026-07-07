@@ -17,7 +17,7 @@
                         class="flex items-center justify-between rounded-2xl border border-[#d1be8a] bg-[#fffdf7] p-4 shadow-sm transition hover:border-[#b8953a] hover:shadow-md"
                     >
                         <div class="space-y-1">
-                            <p class="text-sm font-semibold text-[#2a2419]">Caja #{{ $caja->id }}</p>
+                            <p class="text-sm font-semibold text-[#2a2419]">{{ $caja->nombre ?? 'Caja #'.$caja->id }}</p>
                             <p class="text-xs text-gray-500">Abierta: {{ $caja->fecha_apertura->format('d/m/Y H:i') }}</p>
                             @if ($caja->monto_inicial > 0)
                                 <p class="text-xs text-gray-500">Monto inicial: S/ {{ number_format($caja->monto_inicial, 2) }}</p>

@@ -40,6 +40,7 @@
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="border-b border-gray-200 text-xs uppercase tracking-[0.15em] text-gray-500">
+                            <th class="px-4 py-3 font-medium">Caja</th>
                             <th class="px-4 py-3 font-medium">Usuario</th>
                             <th class="px-4 py-3 font-medium">Apertura</th>
                             <th class="px-4 py-3 font-medium">Inicial</th>
@@ -53,6 +54,7 @@
                     <tbody>
                         @forelse ($aperturas as $apertura)
                             <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                                <td class="px-4 py-3 text-gray-900">{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</td>
                                 <td class="px-4 py-3 text-gray-900">{{ $apertura->usuario?->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
@@ -69,9 +71,10 @@
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         @php
-                                            $detalleData = [
-                                                'id' => $apertura->id,
-                                                'usuario' => $apertura->usuario?->name ?? '-',
+                                        $detalleData = [
+                                            'id' => $apertura->id,
+                                            'nombre' => $apertura->nombre ?? 'Caja #'.$apertura->id,
+                                            'usuario' => $apertura->usuario?->name ?? '-',
                                                 'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
                                                 'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
                                                 'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
@@ -99,7 +102,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
+                                <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -122,6 +125,10 @@
                 </div>
                 <form method="POST" action="{{ route('cajas.store') }}" class="p-5 space-y-4">
                     @csrf
+                    <div>
+                        <label for="nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre (opcional)</label>
+                        <input id="nombre" name="nombre" type="text" maxlength="100" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Caja Principal" />
+                    </div>
                     <div>
                         <label for="monto_inicial" class="mb-2 block text-sm font-medium text-gray-700">Monto inicial</label>
                         <input id="monto_inicial" name="monto_inicial" type="number" step="0.01" min="0" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
@@ -150,7 +157,8 @@
                     <form method="POST" action="{{ route('cajas.cerrar', $apertura) }}" class="p-5 space-y-4">
                         @csrf
                         <div>
-                            <p class="text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? '-' }}</strong></p>
+                            <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
+                            <p class="mt-1 text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? '-' }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Monto inicial: <strong>S/ {{ number_format($apertura->monto_inicial, 2) }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Apertura: <strong>{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</strong></p>
                         </div>
@@ -180,6 +188,10 @@
                     </button>
                 </div>
                 <div class="grid gap-4 p-5 md:grid-cols-2">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Caja</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.nombre"></p>
+                    </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Usuario</p>
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.usuario"></p>

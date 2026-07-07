@@ -21,12 +21,14 @@ class CajaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'nombre' => 'nullable|string|max:100',
             'monto_inicial' => 'required|numeric|min:0',
             'observaciones' => 'nullable|string|max:255',
         ]);
 
         CajaApertura::create([
             'usuario_id' => Auth::id(),
+            'nombre' => $request->nombre,
             'monto_inicial' => $request->monto_inicial,
             'observaciones' => $request->observaciones,
             'estado' => 'abierta',
