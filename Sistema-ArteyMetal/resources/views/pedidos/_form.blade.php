@@ -13,6 +13,7 @@
             monto: '{{ old('monto_total', $pedido->monto_total ?? '') }}',
             adelanto: '{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}',
             tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
+            init() { this.adelanto = (Number(this.monto) * 0.5).toFixed(2); this.$watch('monto', value => { this.adelanto = (Number(value) * 0.5).toFixed(2); }); },
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
         mensajeDocumento: '',
@@ -183,8 +184,8 @@
             </div>
             <div>
                 <label for="monto_adelanto" class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
-                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
-                <p class="mt-2 text-xs text-gray-500">El saldo pendiente se calcula automaticamente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
+                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required readonly class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700" placeholder="0.00" />
+                <p class="mt-2 text-xs text-gray-500">El adelanto es automatico (50% del total). Saldo pendiente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
                 @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
