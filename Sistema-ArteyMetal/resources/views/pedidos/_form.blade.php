@@ -194,36 +194,6 @@
             </div>
         </section>
 
-        <div class="grid gap-4 md:grid-cols-2 mt-4">
-            <div>
-                <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-                <select id="estado" name="estado" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
-                    @foreach ($estados as $valor => $etiqueta)
-                        <option value="{{ $valor }}" @selected(old('estado', $pedido->estado ?? 'registrado') === $valor)>{{ $etiqueta }}</option>
-                    @endforeach
-                </select>
-                @error('estado') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
-                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="monto_total" class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
-                <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
-                @error('monto_total') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label for="monto_adelanto" class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
-                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required readonly class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700" placeholder="0.00" />
-                <p class="mt-2 text-xs text-gray-500">El adelanto es automatico (50% del total). Saldo pendiente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
-                @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-        </div>
-
         <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
             <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
         <div>
@@ -258,6 +228,37 @@
             @endif
         </div>
     </section>
+
+        <div class="grid gap-4 md:grid-cols-2 mt-4">
+            <div>
+                <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado</label>
+                <select id="estado" name="estado" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                    @foreach ($estados as $valor => $etiqueta)
+                        <option value="{{ $valor }}" @selected(old('estado', $pedido->estado ?? 'registrado') === $valor)>{{ $etiqueta }}</option>
+                    @endforeach
+                </select>
+                @error('estado') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
+                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
+                @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label for="monto_total" class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
+                <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
+                @error('monto_total') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label for="monto_adelanto" class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
+                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required readonly class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700" placeholder="0.00" />
+                <p class="mt-2 text-xs text-gray-500">El adelanto es automatico (50% del total). Saldo pendiente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
+                @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
     </section>
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
