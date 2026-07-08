@@ -1,3 +1,11 @@
+<style>
+    .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; flex-shrink: 0; color: #fff; }
+    .btn-icon:active { filter: brightness(0.85); }
+    .btn-icon:focus, .btn-icon:focus-visible { outline: 0 none !important; }
+    .btn-icon-sm { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 0.5rem; flex-shrink: 0; color: #fff; }
+    .btn-icon-sm:active { filter: brightness(0.85); }
+    .btn-icon-sm:focus, .btn-icon-sm:focus-visible { outline: 0 none !important; }
+</style>
 @php
     $estados = [
         'registrado' => 'Registrado',
