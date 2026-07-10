@@ -21,6 +21,8 @@ class Venta extends Model
         'monto_cobrado',
         'estado_pago',
         'metodo_pago',
+        'monto_efectivo',
+        'monto_digital',
         'vuelto',
         'observaciones',
         'usuario_id',

@@ -148,6 +148,8 @@ class VentaController extends Controller
             'tipo_comprobante' => ['required', 'string', 'in:boleta,factura'],
             'documento_cliente' => ['nullable', 'string', 'max:20'],
             'direccion_cliente' => ['nullable', 'string', 'max:255'],
+            'forma_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia,mixto'],
+            'monto_recibido' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (empty($datosBase['documento_cliente']) && $datosBase['tipo_comprobante'] === 'boleta') {
@@ -262,6 +264,10 @@ class VentaController extends Controller
                 'monto_total' => $total,
                 'monto_cobrado' => $total,
                 'estado_pago' => 'pagado_completo',
+                'metodo_pago' => $datosBase['forma_pago'],
+                'vuelto' => $datosBase['forma_pago'] === 'efectivo' ? max(0, (float)($datosBase['monto_recibido'] ?? 0) - $total) : 0,
+                'monto_efectivo' => $datosBase['forma_pago'] === 'efectivo' ? $total : 0,
+                'monto_digital' => in_array($datosBase['forma_pago'], ['yape','plin','tarjeta','transferencia','mixto']) ? $total : 0,
                 'observaciones' => $datosBase['observaciones'] ?? null,
                 'usuario_id' => $request->user()->id,
                 'caja_apertura_id' => $cajaAperturaId,

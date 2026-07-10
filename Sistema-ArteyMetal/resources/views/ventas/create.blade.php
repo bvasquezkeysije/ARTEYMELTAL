@@ -404,7 +404,7 @@
                         </div>
                         <div x-show="formaPago === 'efectivo'">
                             <label for="vuelto" class="mb-2 block text-sm font-medium text-gray-700">Vuelto</label>
-                            <input id="vuelto" type="number" step="0.01" class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-500" :value="vuelto.toFixed(2)" readonly />
+                            <input id="vuelto" name="vuelto" type="number" step="0.01" class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-500" :value="vuelto.toFixed(2)" readonly />
                         </div>
                         <div x-show="formaPago !== 'efectivo'">
                             <label class="mb-2 block text-sm font-medium text-gray-700">Comprobante de pago <span class="text-xs text-gray-400">(Opcional)</span></label>
