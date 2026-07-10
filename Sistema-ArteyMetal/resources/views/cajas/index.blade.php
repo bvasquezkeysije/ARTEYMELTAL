@@ -45,11 +45,11 @@
                             <th class="px-4 py-3 font-medium">Apertura</th>
                             <th class="px-4 py-3 font-medium">Inicial</th>
                             <th class="px-4 py-3 font-medium">Cierre</th>
-                            <th class="px-4 py-3 font-medium">Final</th>
                             <th class="px-4 py-3 font-medium">N° Ventas</th>
                             <th class="px-4 py-3 font-medium">Efectivo</th>
                             <th class="px-4 py-3 font-medium">Digital</th>
                             <th class="px-4 py-3 font-medium">Vuelto</th>
+                            <th class="px-4 py-3 font-medium">Total final</th>
                             <th class="px-4 py-3 font-medium">Estado</th>
                             <th class="px-4 py-3 text-right font-medium">Acciones</th>
                         </tr>
@@ -62,11 +62,12 @@
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format("d/m/Y H:i") }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_cierre?->format("d/m/Y H:i") ?? "-" }}</td>
-                                <td class="px-4 py-3 text-gray-900">{{ $apertura->monto_final ? "S/ ".number_format($apertura->monto_final, 2) : "-" }}</td>
                                 <td class="px-4 py-3 text-gray-900">{{ $apertura->ventas_count ?? 0 }} ventas</td>
                                 <td class="px-4 py-3 text-emerald-700">S/ {{ number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2) }}</td>
                                 <td class="px-4 py-3 text-sky-700">S/ {{ number_format($apertura->ventas_sum_monto_digital ?? 0, 2) }}</td>
                                 <td class="px-4 py-3 text-amber-700">S/ {{ number_format($apertura->ventas_sum_vuelto ?? 0, 2) }}</td>
+                                @php $totalFinal = $apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0); @endphp
+                                <td class="px-4 py-3 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</td>
                                 <td class="px-4 py-3">
                                     @if ($apertura->estado === "abierta")
                                         <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
@@ -87,7 +88,8 @@
                                             "ventas" => ($apertura->ventas_count ?? 0)." ventas (S/ ".number_format($apertura->total_ventas ?? 0, 2).")",
                                             "efectivo" => "S/ ".number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2),
                                             "digital" => "S/ ".number_format($apertura->ventas_sum_monto_digital ?? 0, 2),
-                                            "final" => $apertura->monto_final ? "S/ ".number_format($apertura->monto_final, 2) : "—",
+                                            "vuelto" => "S/ ".number_format($apertura->ventas_sum_vuelto ?? 0, 2),
+                                            "final" => "S/ ".number_format($apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0), 2),
                                             "estado" => $apertura->estado,
                                             "observaciones" => $apertura->observaciones,
                                         ];
@@ -163,10 +165,10 @@
                         </button>
                     </div>
                     @php
-                        $ventasTotal = $apertura->ventas_sum_monto_total ?? 0;
                         $ventasEfectivo = $apertura->ventas_sum_monto_efectivo ?? 0;
                         $ventasDigital = $apertura->ventas_sum_monto_digital ?? 0;
-                        $esperado = $apertura->monto_inicial + $ventasTotal;
+                        $ventasVuelto = $apertura->ventas_sum_vuelto ?? 0;
+                        $esperado = $apertura->monto_inicial + $ventasEfectivo + $ventasDigital - $ventasVuelto;
                     @endphp
                     <form method="POST" action="{{ route("cajas.cerrar", $apertura) }}" class="p-5 space-y-4">
                         @csrf
@@ -188,9 +190,13 @@
                                 <span>+ Ventas digital</span>
                                 <span class="font-medium text-sky-700">S/ {{ number_format($ventasDigital, 2) }}</span>
                             </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>- Vueltos</span>
+                                <span class="font-medium text-amber-700">S/ {{ number_format($ventasVuelto, 2) }}</span>
+                            </div>
                             <hr class="border-gray-300">
                             <div class="flex justify-between text-sm font-semibold text-gray-900">
-                                <span>Monto esperado</span>
+                                <span>Total final</span>
                                 <span>S/ {{ number_format($esperado, 2) }}</span>
                             </div>
                         </div>
@@ -267,8 +273,12 @@
                         <p class="mt-1 text-sky-700 font-medium" x-text="detalleCaja?.digital"></p>
                     </div>
                     <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.final"></p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vueltos</p>
+                        <p class="mt-1 text-amber-700 font-medium" x-text="detalleCaja?.vuelto"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.final"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>

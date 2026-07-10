@@ -48,9 +48,10 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
                     <p class="mt-1 text-amber-700 font-medium">S/ {{ number_format($totalVuelto, 2) }}</p>
                 </div>
+                @php $totalFinal = $cajaApertura->monto_inicial + $totalEfectivoVentas + $totalDigitalVentas - $totalVuelto; @endphp
                 <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
-                    <p class="mt-1 text-gray-900">{{ $cajaApertura->monto_final ? "S/ ".number_format($cajaApertura->monto_final, 2) : "—" }}</p>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
+                    <p class="mt-1 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
