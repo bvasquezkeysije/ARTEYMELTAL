@@ -94,7 +94,7 @@
                                 <th class="px-3 py-2">#</th>
                                 <th class="px-3 py-2">Nombre</th>
                                 <th class="px-3 py-2">Descripcion</th>
-                                <th class="px-3 py-2">Archivos referencia</th>
+                                <th class="px-3 py-2">Archivos</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -106,18 +106,31 @@
                                     </td>
                                     <td class="px-3 py-2 text-[#4a4026]">{{ $pp->descripcion ?? '-' }}</td>
                                     <td class="px-3 py-2">
-                                        @if($pp->archivos->isNotEmpty())
-                                            <div class="flex flex-wrap gap-1">
-                                                @foreach($pp->archivos as $a)
+                                        @if($pp->archivosCliente->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mb-1">
+                                                @foreach($pp->archivosCliente as $a)
                                                     <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank"
                                                        class="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800 hover:bg-amber-200"
-                                                       title="{{ $a->nombre_original }}">
+                                                       title="Cliente: {{ $a->nombre_original }}">
                                                         <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                         {{ Str::limit($a->nombre_original, 25) }}
                                                     </a>
                                                 @endforeach
                                             </div>
-                                        @else
+                                        @endif
+                                        @if($pp->archivosDisenador->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach($pp->archivosDisenador as $a)
+                                                    <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank"
+                                                       class="inline-flex items-center gap-0.5 rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-800 hover:bg-sky-200"
+                                                       title="Disenador: {{ $a->nombre_original }}">
+                                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        {{ Str::limit($a->nombre_original, 25) }}
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        @if($pp->archivosCliente->isEmpty() && $pp->archivosDisenador->isEmpty())
                                             <span class="text-[#bbb]">-</span>
                                         @endif
                                     </td>
@@ -130,17 +143,25 @@
 
             <div class="mt-5">
                 <p class="text-xs font-semibold uppercase tracking-wider text-[#6a5122]">Archivos de diseno subidos</p>
-                <div class="mt-1">
-                    @if($pedido->archivosDiseno->isNotEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($pedido->archivosDiseno as $archivo)
-                                <a href="{{ asset('storage/' . $archivo->archivo_path) }}" target="_blank"
-                                   class="inline-flex items-center gap-1 rounded-lg border border-[#e5dec8] px-3 py-1.5 text-sm text-[#6a5122] hover:bg-[#faf8f2]">
-                                    {{ $archivo->nombre_original }}
-                                    <span class="text-[#bbb]">({{ round($archivo->tamano_bytes / 1024) }} KB)</span>
-                                </a>
-                            @endforeach
-                        </div>
+                <div class="mt-1 space-y-2">
+                    @php
+                        $disenosPorProducto = $pedido->productos->filter(fn($p) => $p->archivosDisenador->isNotEmpty());
+                    @endphp
+                    @if($disenosPorProducto->isNotEmpty())
+                        @foreach($disenosPorProducto as $pp)
+                            <div>
+                                <p class="text-xs text-[#6a5122] font-medium mb-1">{{ $pp->nombre }}:</p>
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($pp->archivosDisenador as $a)
+                                        <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank"
+                                           class="inline-flex items-center gap-1 rounded-lg border border-[#e5dec8] px-2.5 py-1 text-xs text-sky-700 hover:bg-sky-50">
+                                            {{ $a->nombre_original }}
+                                            <span class="text-[#bbb]">({{ round($a->tamano_bytes / 1024) }} KB)</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
                     @else
                         <p class="text-[#bbb]">-</p>
                     @endif
@@ -238,13 +259,46 @@
                     @csrf
                     @method('PUT')
 
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-[#2d2b24]">Archivos de diseno</label>
-                        <input type="file" name="archivos_diseno[]" multiple
-                               accept=".cdr,.pdf,.png,.jpg,.jpeg,.svg,.ai,.eps,.psd,.webp"
-                               class="block w-full rounded-lg border border-[#d5d0c0] bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200">
-                        <p class="mt-1 text-xs text-[#999]">Max 10MB c/u. cdr, pdf, png, jpg, svg, ai, eps, psd, webp</p>
+                    <div class="max-h-60 space-y-3 overflow-y-auto rounded-lg border border-[#e5dec8] bg-[#faf8f2] p-3">
+                        @if($pedido->productos->isNotEmpty())
+                            @foreach($pedido->productos as $pp)
+                                <div class="rounded-lg border border-[#e5dec8] bg-white p-3">
+                                    <p class="text-sm font-medium text-[#2d2b24] mb-1">{{ $pp->nombre }}</p>
+                                    @if($pp->descripcion)
+                                        <p class="text-xs text-[#555] mb-2">{{ $pp->descripcion }}</p>
+                                    @endif
+                                    @if($pp->archivosCliente->isNotEmpty())
+                                        <div class="mb-2 flex flex-wrap gap-1">
+                                            @foreach($pp->archivosCliente as $a)
+                                                <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank"
+                                                   class="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800 hover:bg-amber-200"
+                                                   title="Cliente: {{ $a->nombre_original }}">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    {{ Str::limit($a->nombre_original, 18) }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if($pp->archivosDisenador->isNotEmpty())
+                                        <div class="mb-2 flex flex-wrap gap-1">
+                                            @foreach($pp->archivosDisenador as $a)
+                                                <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank"
+                                                   class="inline-flex items-center gap-0.5 rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-800 hover:bg-sky-200"
+                                                   title="Disenador: {{ $a->nombre_original }}">
+                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    {{ Str::limit($a->nombre_original, 18) }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    <input type="file" name="archivos_producto[{{ $pp->id }}][]" multiple
+                                           accept=".cdr,.pdf,.png,.jpg,.jpeg,.svg,.ai,.eps,.psd,.webp"
+                                           class="block w-full rounded-lg border border-[#d5d0c0] bg-white px-3 py-1.5 text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-amber-100 file:px-2 file:py-0.5 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200">
+                                </div>
+                            @endforeach
+                        @endif
                     </div>
+                    <p class="text-xs text-[#999]">Max 10MB c/u. cdr, pdf, png, jpg, svg, ai, eps, psd, webp</p>
 
                     <div>
                         <label class="mb-1 block text-sm font-medium text-[#2d2b24]">Accion</label>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pedido;
-use App\Models\PedidoDisenoArchivo;
+use App\Models\PedidoProductoArchivo;
 use Illuminate\Http\Request;
 
 class DisenoController extends Controller
@@ -11,7 +11,7 @@ class DisenoController extends Controller
     public function index()
     {
         $pedidos = Pedido::query()
-            ->with('cliente', 'productos.archivos', 'archivosDiseno')
+            ->with('cliente', 'productos.archivosCliente', 'productos.archivosDisenador', 'archivosDiseno')
             ->whereIn('estado_personalizacion', ['en_diseno', 'en_revision'])
             ->orderByDesc('id')
             ->paginate(10);
@@ -21,7 +21,7 @@ class DisenoController extends Controller
 
     public function show(Pedido $pedido)
     {
-        $pedido->load('cliente', 'productos.archivos', 'archivosDiseno');
+        $pedido->load('cliente', 'productos.archivosCliente', 'productos.archivosDisenador', 'archivosDiseno');
 
         return view('diseno.show', compact('pedido'));
     }
@@ -36,8 +36,9 @@ class DisenoController extends Controller
 
         $request->validate([
             'estado_personalizacion' => ['required', 'string', 'in:en_diseno,en_revision,aprobado'],
-            'archivos_diseno' => ['nullable', 'array'],
-            'archivos_diseno.*' => ['file', 'max:10240', 'mimes:cdr,pdf,png,jpg,jpeg,svg,ai,eps,psd,webp'],
+            'archivos_producto' => ['nullable', 'array'],
+            'archivos_producto.*' => ['nullable', 'array'],
+            'archivos_producto.*.*' => ['file', 'max:10240', 'mimes:cdr,pdf,png,jpg,jpeg,svg,ai,eps,psd,webp'],
         ]);
 
         if ($request->input('estado_personalizacion') === 'aprobado') {
@@ -51,17 +52,21 @@ class DisenoController extends Controller
             ]);
         }
 
-        if ($request->hasFile('archivos_diseno')) {
-            foreach ($request->file('archivos_diseno') as $archivo) {
-                $path = $archivo->store('disenos_pedido', 'public');
+        if ($request->hasFile('archivos_producto')) {
+            foreach ($request->file('archivos_producto') as $productoId => $archivos) {
+                foreach ($archivos as $archivo) {
+                    if (! $archivo->isValid()) continue;
+                    $path = $archivo->store('disenos_producto', 'public');
 
-                PedidoDisenoArchivo::create([
-                    'pedido_id' => $pedido->id,
-                    'archivo_path' => $path,
-                    'nombre_original' => $archivo->getClientOriginalName(),
-                    'mime_type' => $archivo->getMimeType(),
-                    'tamano_bytes' => $archivo->getSize(),
-                ]);
+                    PedidoProductoArchivo::create([
+                        'pedido_producto_id' => $productoId,
+                        'tipo' => 'disenador',
+                        'archivo_path' => $path,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'mime_type' => $archivo->getMimeType(),
+                        'tamano_bytes' => $archivo->getSize(),
+                    ]);
+                }
             }
         }
 

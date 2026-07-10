@@ -42,7 +42,7 @@ class PedidoController extends Controller
         $filtroPersonalizacion = request('estado_personalizacion');
 
         $pedidos = Pedido::query()
-            ->with('cliente', 'productos.archivos')
+            ->with('cliente', 'productos.archivosCliente', 'productos.archivosDisenador')
             ->when($busqueda, function ($query) use ($busqueda) {
                 $query->where('codigo', 'like', "%{$busqueda}%")
                     ->orWhere('nombre_cliente', 'like', "%{$busqueda}%")
@@ -176,14 +176,14 @@ class PedidoController extends Controller
 
     public function show(Pedido $pedido)
     {
-        $pedido->load('cliente', 'archivosDiseno', 'archivosOrden', 'productos.archivos');
+        $pedido->load('cliente', 'archivosDiseno', 'archivosOrden', 'productos.archivosCliente', 'productos.archivosDisenador');
 
         return view('pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $pedido)
     {
-        $pedido->load('productos.archivos');
+        $pedido->load('productos.archivosCliente', 'productos.archivosDisenador');
         $clientes = Cliente::orderBy('nombre_completo')->get();
         $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
 
@@ -656,6 +656,7 @@ class PedidoController extends Controller
                     $path = $archivo->store('disenos_producto', 'public');
                     PedidoProductoArchivo::create([
                         'pedido_producto_id' => $producto->id,
+                        'tipo' => 'cliente',
                         'archivo_path' => $path,
                         'nombre_original' => $archivo->getClientOriginalName(),
                         'mime_type' => $archivo->getMimeType(),
