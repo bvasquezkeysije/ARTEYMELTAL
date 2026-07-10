@@ -1,0 +1,6 @@
+**
+
+13. # REGISTRO Y SEGUIMIENTO DE DEFECTOS
+    
+
+**
