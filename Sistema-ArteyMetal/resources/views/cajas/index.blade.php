@@ -23,8 +23,8 @@
     </style>
 
     <div x-data="{ modalAbrir: false, cerrarId: null, montoCerrar: {}, detalleCaja: null }" class="space-y-5">
-        @if (session("success"))
-            <div class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session("success") }}</div>
+        @if (session('success'))
+            <div class="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('success') }}</div>
         @endif
         @if ($errors->any())
             <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ $errors->first() }}</div>
@@ -46,11 +46,7 @@
                             <th class="px-4 py-3 font-medium">Inicial</th>
                             <th class="px-4 py-3 font-medium">Cierre</th>
                             <th class="px-4 py-3 font-medium">Final</th>
-                            <th class="px-4 py-3 font-medium">N° Ventas</th>
-                            <th class="px-4 py-3 font-medium">Efectivo</th>
-                            <th class="px-4 py-3 font-medium">Digital</th>
-                            <th class="px-4 py-3 font-medium">Vuelto</th>
-                            <th class="px-4 py-3 font-medium">Total final</th>
+                            <th class="px-4 py-3 font-medium">Ventas</th>
                             <th class="px-4 py-3 font-medium">Estado</th>
                             <th class="px-4 py-3 text-right font-medium">Acciones</th>
                         </tr>
@@ -58,21 +54,15 @@
                     <tbody>
                         @forelse ($aperturas as $apertura)
                             <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                <td class="px-4 py-3"><span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $apertura->nombre ?? "Caja #".$apertura->id }}</span></td>
-                                <td class="px-4 py-3 text-gray-900">{{ $apertura->usuario?->name ?? "-" }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format("d/m/Y H:i") }}</td>
+                                <td class="px-4 py-3"><span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</span></td>
+                                <td class="px-4 py-3 text-gray-900">{{ $apertura->usuario?->name ?? '-' }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_cierre?->format("d/m/Y H:i") ?? "-" }}</td>
-                                @php $finalEfectivo = $apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) - ($apertura->ventas_sum_vuelto ?? 0); @endphp
-                                <td class="px-4 py-3 text-gray-900 font-medium">S/ {{ number_format($finalEfectivo, 2) }}</td>
-                                <td class="px-4 py-3 text-gray-900">{{ $apertura->ventas_count ?? 0 }} ventas</td>
-                                <td class="px-4 py-3 text-emerald-700">S/ {{ number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2) }}</td>
-                                <td class="px-4 py-3 text-sky-700">S/ {{ number_format($apertura->ventas_sum_monto_digital ?? 0, 2) }}</td>
-                                <td class="px-4 py-3 text-amber-700">S/ {{ number_format($apertura->ventas_sum_vuelto ?? 0, 2) }}</td>
-                                @php $totalFinal = $finalEfectivo + ($apertura->ventas_sum_monto_digital ?? 0); @endphp
-                                <td class="px-4 py-3 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</td>
+                                <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '-' }}</td>
+                                <td class="px-4 py-3 text-gray-900">{{ $apertura->monto_final ? 'S/ '.number_format($apertura->monto_final, 2) : '-' }}</td>
+                                <td class="px-4 py-3 text-gray-900">{{ $apertura->total_ventas ? 'S/ '.number_format($apertura->total_ventas, 2) : '-' }}</td>
                                 <td class="px-4 py-3">
-                                    @if ($apertura->estado === "abierta")
+                                    @if ($apertura->estado === 'abierta')
                                         <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
                                     @else
                                         <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
@@ -82,21 +72,17 @@
                                     <div class="flex justify-end gap-2">
                                         @php
                                         $detalleData = [
-                                            "id" => $apertura->id,
-                                            "nombre" => $apertura->nombre ?? "Caja #".$apertura->id,
-                                            "usuario" => $apertura->usuario?->name ?? "-",
-                                            "apertura" => $apertura->fecha_apertura->format("d/m/Y H:i"),
-                                            "cierre" => $apertura->fecha_cierre?->format("d/m/Y H:i") ?? "—",
-                                            "inicial" => "S/ ".number_format($apertura->monto_inicial, 2),
-                                            "ventas" => ($apertura->ventas_count ?? 0)." ventas (S/ ".number_format($apertura->total_ventas ?? 0, 2).")",
-                                            "efectivo" => "S/ ".number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2),
-                                            "digital" => "S/ ".number_format($apertura->ventas_sum_monto_digital ?? 0, 2),
-                                            "vuelto" => "S/ ".number_format($apertura->ventas_sum_vuelto ?? 0, 2),
-                                            "final" => "S/ ".number_format($apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) - ($apertura->ventas_sum_vuelto ?? 0), 2),
-                                            "total_final" => "S/ ".number_format($apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0), 2),
-                                            "estado" => $apertura->estado,
-                                            "observaciones" => $apertura->observaciones,
-                                        ];
+                                            'id' => $apertura->id,
+                                            'nombre' => $apertura->nombre ?? 'Caja #'.$apertura->id,
+                                            'usuario' => $apertura->usuario?->name ?? '-',
+                                                'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
+                                                'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
+                                                'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
+                                                'ventas' => $apertura->total_ventas ? 'S/ '.number_format($apertura->total_ventas, 2) : '-',
+                                                'final' => $apertura->monto_final ? 'S/ '.number_format($apertura->monto_final, 2) : '—',
+                                                'estado' => $apertura->estado,
+                                                'observaciones' => $apertura->observaciones,
+                                            ];
                                         @endphp
                                         <button
                                             type="button"
@@ -104,11 +90,11 @@
                                             class="btn-icon-sm" style="background-color:#0891B2"
                                             title="Ver detalle"
                                         >
-                                            <img src="{{ asset("icons/ver-detalle.ico") }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
+                                            <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
                                         </button>
-                                        @if ($apertura->estado === "abierta")
+                                        @if ($apertura->estado === 'abierta')
                                             <button type="button" @click="cerrarId = {{ $apertura->id }}" class="btn-icon-sm bg-rose-600 hover:bg-rose-700" title="Cerrar caja">
-                                                <img src="{{ asset("icons/cerrar.ico") }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                                             </button>
                                         @endif
                                     </div>
@@ -116,7 +102,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
+                                <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -134,10 +120,10 @@
                 <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
                     <h3 class="text-base font-semibold text-gray-800">Abrir caja</h3>
                     <button type="button" @click="modalAbrir = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                        <img src="{{ asset("icons/cerrar.ico") }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                     </button>
                 </div>
-                <form method="POST" action="{{ route("cajas.store") }}" class="p-5 space-y-4">
+                <form method="POST" action="{{ route('cajas.store') }}" class="p-5 space-y-4">
                     @csrf
                     <div>
                         <label for="nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre de caja</label>
@@ -158,28 +144,26 @@
 
         {{-- Modales cerrar caja --}}
         @foreach ($aperturas as $apertura)
-            @if ($apertura->estado === "abierta")
+            @if ($apertura->estado === 'abierta')
             <div x-show="cerrarId === {{ $apertura->id }}" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="cerrarId = null"></div>
             <div x-show="cerrarId === {{ $apertura->id }}" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
                 <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
                     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
                         <h3 class="text-base font-semibold text-gray-800">Cerrar caja</h3>
                         <button type="button" @click="cerrarId = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                            <img src="{{ asset("icons/cerrar.ico") }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                         </button>
                     </div>
                     @php
-                        $ventasEfectivo = $apertura->ventas_sum_monto_efectivo ?? 0;
-                        $ventasDigital = $apertura->ventas_sum_monto_digital ?? 0;
-                        $ventasVuelto = $apertura->ventas_sum_vuelto ?? 0;
-                        $esperado = $apertura->monto_inicial + $ventasEfectivo + $ventasDigital - $ventasVuelto;
+                        $ventasTotal = $apertura->ventas_sum_monto_total ?? 0;
+                        $esperado = $apertura->monto_inicial + $ventasTotal;
                     @endphp
-                    <form method="POST" action="{{ route("cajas.cerrar", $apertura) }}" class="p-5 space-y-4">
+                    <form method="POST" action="{{ route('cajas.cerrar', $apertura) }}" class="p-5 space-y-4">
                         @csrf
                         <div>
-                            <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? "Caja #".$apertura->id }}</strong></p>
-                            <p class="mt-1 text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? "-" }}</strong></p>
-                            <p class="mt-1 text-sm text-gray-600">Apertura: <strong>{{ $apertura->fecha_apertura->format("d/m/Y H:i") }}</strong></p>
+                            <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
+                            <p class="mt-1 text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? '-' }}</strong></p>
+                            <p class="mt-1 text-sm text-gray-600">Apertura: <strong>{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</strong></p>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2">
                             <div class="flex justify-between text-sm text-gray-600">
@@ -187,40 +171,18 @@
                                 <span class="font-medium text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</span>
                             </div>
                             <div class="flex justify-between text-sm text-gray-600">
-                                <span>+ Ventas efectivo</span>
-                                <span class="font-medium text-emerald-700">S/ {{ number_format($ventasEfectivo, 2) }}</span>
-                            </div>
-                            <div class="flex justify-between text-sm text-gray-600">
-                                <span>+ Ventas digital</span>
-                                <span class="font-medium text-sky-700">S/ {{ number_format($ventasDigital, 2) }}</span>
-                            </div>
-                            <div class="flex justify-between text-sm text-gray-600">
-                                <span>- Vueltos</span>
-                                <span class="font-medium text-amber-700">S/ {{ number_format($ventasVuelto, 2) }}</span>
+                                <span>+ Ventas registradas</span>
+                                <span class="font-medium text-gray-900">S/ {{ number_format($ventasTotal, 2) }}</span>
                             </div>
                             <hr class="border-gray-300">
                             <div class="flex justify-between text-sm font-semibold text-gray-900">
-                                <span>Total final</span>
+                                <span>Monto esperado</span>
                                 <span>S/ {{ number_format($esperado, 2) }}</span>
                             </div>
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700">Desglose al cierre</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label for="total_efectivo_{{ $apertura->id }}" class="mb-1 block text-xs text-gray-500">Total efectivo</label>
-                                    <input id="total_efectivo_{{ $apertura->id }}" name="total_efectivo" type="number" step="0.01" min="0" required value="{{ number_format($ventasEfectivo, 2, ".", "") }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                                </div>
-                                <div>
-                                    <label for="total_digital_{{ $apertura->id }}" class="mb-1 block text-xs text-gray-500">Total digital</label>
-                                    <input id="total_digital_{{ $apertura->id }}" name="total_digital" type="number" step="0.01" min="0" required value="{{ number_format($ventasDigital, 2, ".", "") }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                                </div>
-                            </div>
-                        </div>
-                        <div>
                             <label for="monto_final_{{ $apertura->id }}" class="mb-2 block text-sm font-medium text-gray-700">Monto final en caja</label>
-                            <input id="monto_final_{{ $apertura->id }}" name="monto_final" type="number" step="0.01" min="0" required value="{{ number_format($esperado, 2, ".", "") }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
-                            <p class="mt-1 text-xs text-gray-500">Efectivo físico + lo que hay en la caja registradora</p>
+                            <input id="monto_final_{{ $apertura->id }}" name="monto_final" type="number" step="0.01" min="0" required value="{{ number_format($esperado, 2, '.', '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
                         </div>
                         <div>
                             <label for="obs_cerrar_{{ $apertura->id }}" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
@@ -240,7 +202,7 @@
                 <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
                     <h3 class="text-base font-semibold text-gray-800">Detalle de caja</h3>
                     <button type="button" @click="detalleCaja = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                        <img src="{{ asset("icons/cerrar.ico") }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                     </button>
                 </div>
                 <div class="grid gap-4 p-5 md:grid-cols-2">
@@ -269,32 +231,16 @@
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.ventas"></p>
                     </div>
                     <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo</p>
-                        <p class="mt-1 text-emerald-700 font-medium" x-text="detalleCaja?.efectivo"></p>
-                    </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Digital</p>
-                        <p class="mt-1 text-sky-700 font-medium" x-text="detalleCaja?.digital"></p>
-                    </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vueltos</p>
-                        <p class="mt-1 text-amber-700 font-medium" x-text="detalleCaja?.vuelto"></p>
-                    </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Final (efectivo)</p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.final"></p>
                     </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
-                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
-                    </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
                         <p class="mt-1">
-                            <template x-if="detalleCaja?.estado === abierta">
+                            <template x-if="detalleCaja?.estado === 'abierta'">
                                 <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
                             </template>
-                            <template x-if="detalleCaja?.estado !== abierta">
+                            <template x-if="detalleCaja?.estado !== 'abierta'">
                                 <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
                             </template>
                         </p>

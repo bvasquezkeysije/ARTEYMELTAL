@@ -127,25 +127,15 @@
                                 <td class="px-3 py-2 text-gray-700">{{ $pp->cantidad }}</td>
                                 <td class="px-3 py-2 font-semibold text-gray-900">S/ {{ number_format((float) $pp->total, 2) }}</td>
                                 <td class="px-3 py-2">
-                                    @if($pp->archivosCliente->isNotEmpty())
-                                        <div class="flex flex-wrap gap-1 mb-1">
-                                            @foreach($pp->archivosCliente as $a)
+                                    @if($pp->archivos->isNotEmpty())
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($pp->archivos as $a)
                                                 <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank" class="inline-flex items-center rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-100" title="{{ $a->nombre_original }}">
                                                     {{ str($a->nombre_original)->limit(15) }}
                                                 </a>
                                             @endforeach
                                         </div>
-                                    @endif
-                                    @if($pp->archivosDisenador->isNotEmpty())
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach($pp->archivosDisenador as $a)
-                                                <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank" class="inline-flex items-center rounded bg-sky-50 px-2 py-0.5 text-xs text-sky-700 hover:bg-sky-100" title="{{ $a->nombre_original }}">
-                                                    {{ str($a->nombre_original)->limit(15) }}
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if($pp->archivosCliente->isEmpty() && $pp->archivosDisenador->isEmpty())
+                                    @else
                                         <span class="text-gray-400">-</span>
                                     @endif
                                 </td>

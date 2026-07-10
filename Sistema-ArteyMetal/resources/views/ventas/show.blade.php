@@ -30,28 +30,6 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Cobrado</p>
                     <p class="mt-1 text-gray-900">S/ {{ number_format((float) $venta->monto_cobrado, 2) }}</p>
                 </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Método de pago</p>
-                    <p class="mt-1">
-                        @php
-                            $metodo = $venta->metodo_pago ?? 'efectivo';
-                            $badgeClass = $metodo === 'efectivo' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700';
-                        @endphp
-                        <span class="rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">{{ ucfirst($metodo) }}</span>
-                    </p>
-                </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo</p>
-                    <p class="mt-1 text-emerald-700 font-medium">S/ {{ number_format((float) ($venta->monto_efectivo ?? 0), 2) }}</p>
-                </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Digital</p>
-                    <p class="mt-1 text-sky-700 font-medium">S/ {{ number_format((float) ($venta->monto_digital ?? 0), 2) }}</p>
-                </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
-                    <p class="mt-1 text-amber-700 font-medium">{{ ($venta->vuelto ?? 0) > 0 ? 'S/ '.number_format((float) $venta->vuelto, 2) : '—' }}</p>
-                </div>
             </div>
 
             @if($venta->pedido)

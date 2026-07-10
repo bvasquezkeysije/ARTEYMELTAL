@@ -526,9 +526,7 @@
                     <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
                         <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
                             <h3 class="text-base font-semibold text-[#2a2419]">Derivar pedido</h3>
-                            <button type="button" @click="modalDerivar = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
-                            </button>
+                            <button type="button" @click="modalDerivar = false" class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">&times;</button>
                         </div>
                         <div class="space-y-3 p-5">
                             <p class="text-sm text-gray-600" x-text="'Selecciona el destino para el pedido ' + (derivarData?.codigo || '')"></p>
