@@ -28,13 +28,18 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto inicial</p>
                     <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->monto_inicial, 2) }}</p>
                 </div>
+                @php $finalEfectivo = $cajaApertura->monto_inicial + $totalEfectivoVentas - $totalVuelto; @endphp
                 <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total ventas</p>
-                    <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->total_ventas, 2) }}</p>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Final (efectivo)</p>
+                    <p class="mt-1 text-gray-900 font-medium">S/ {{ number_format($finalEfectivo, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
                     <p class="mt-1 text-gray-900">{{ $cantidadVentas }} ventas</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total ventas</p>
+                    <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->total_ventas, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo</p>
@@ -48,11 +53,7 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
                     <p class="mt-1 text-amber-700 font-medium">S/ {{ number_format($totalVuelto, 2) }}</p>
                 </div>
-                <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Final (efectivo)</p>
-                    <p class="mt-1 text-gray-900">{{ $cajaApertura->total_efectivo ? "S/ ".number_format($cajaApertura->total_efectivo, 2) : "—" }}</p>
-                </div>
-                @php $totalFinal = $cajaApertura->monto_inicial + $totalEfectivoVentas + $totalDigitalVentas - $totalVuelto; @endphp
+                @php $totalFinal = $finalEfectivo + $totalDigitalVentas; @endphp
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
                     <p class="mt-1 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</p>
