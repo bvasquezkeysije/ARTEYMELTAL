@@ -1,4 +1,3 @@
-<?php
 
 namespace App\Models;
 
@@ -18,6 +17,8 @@ class CajaApertura extends Model
         'fecha_cierre',
         'monto_final',
         'total_ventas',
+        'total_efectivo',
+        'total_digital',
         'estado',
         'observaciones',
     ];
@@ -28,6 +29,8 @@ class CajaApertura extends Model
         'monto_inicial' => 'decimal:2',
         'monto_final' => 'decimal:2',
         'total_ventas' => 'decimal:2',
+        'total_efectivo' => 'decimal:2',
+        'total_digital' => 'decimal:2',
     ];
 
     public function usuario(): BelongsTo

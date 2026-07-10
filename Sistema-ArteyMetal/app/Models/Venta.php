@@ -1,4 +1,3 @@
-<?php
 
 namespace App\Models;
 
@@ -22,6 +21,8 @@ class Venta extends Model
         'estado_pago',
         'metodo_pago',
         'vuelto',
+        'monto_efectivo',
+        'monto_digital',
         'observaciones',
         'usuario_id',
         'caja_apertura_id',
@@ -31,6 +32,9 @@ class Venta extends Model
         'fecha_venta' => 'date',
         'monto_total' => 'decimal:2',
         'monto_cobrado' => 'decimal:2',
+        'monto_efectivo' => 'decimal:2',
+        'monto_digital' => 'decimal:2',
+        'vuelto' => 'decimal:2',
     ];
 
     public function detalles(): HasMany

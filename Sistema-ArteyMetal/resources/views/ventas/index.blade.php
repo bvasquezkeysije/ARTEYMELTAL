@@ -109,6 +109,7 @@
                             <th class="px-4 py-3 font-semibold">Cliente</th>
                             <th class="px-4 py-3 font-semibold">Monto</th>
                             <th class="px-4 py-3 font-semibold">Cobrado</th>
+                            <th class="px-4 py-3 font-semibold">Pago</th>
                             <th class="px-4 py-3 font-semibold text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -127,6 +128,7 @@
                                     'monto_cobrado' => 'S/ ' . number_format((float) $venta->monto_cobrado, 2),
                                     'estado_pago' => str_replace('_', ' ', $venta->estado_pago ?? '-'),
                                     'pedido_codigo' => $venta->pedido?->codigo,
+                                    'pago' => ucfirst($venta->metodo_pago ?? 'Efectivo'),
                                     'observaciones' => $venta->observaciones ?: '-',
                                     'detalles' => $venta->detalles->map(fn ($d) => [
                                         'producto' => $d->producto_nombre,
@@ -151,6 +153,13 @@
                                 <td class="px-4 py-3 text-[#4a4026]">{{ $venta->cliente_nombre ?: '-' }}</td>
                                 <td class="px-4 py-3 text-[#4a4026]">S/ {{ number_format((float) $venta->monto_total, 2) }}</td>
                                 <td class="px-4 py-3 text-[#4a4026]">S/ {{ number_format((float) $venta->monto_cobrado, 2) }}</td>
+                                <td class="px-4 py-3">
+                                    @php
+                                        $metodo = $venta->metodo_pago ?? 'efectivo';
+                                        $badgeClass = $metodo === 'efectivo' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700';
+                                    @endphp
+                                    <span class="rounded-full px-2.5 py-0.5 text-xs font-medium {{ $badgeClass }}">{{ ucfirst($metodo) }}</span>
+                                </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         @if(auth()->user()->tienePermiso('ventas.ver'))
@@ -240,6 +249,10 @@
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Cobrado</p>
                         <p class="mt-1 text-[#1f1f1f]" x-text="ventaVista?.monto_cobrado"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Pago</p>
+                        <p class="mt-1 text-[#1f1f1f]" x-text="ventaVista?.pago"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Estado pago</p>
