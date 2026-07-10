@@ -49,6 +49,7 @@
                             <th class="px-4 py-3 font-medium">Efectivo</th>
                             <th class="px-4 py-3 font-medium">Digital</th>
                             <th class="px-4 py-3 font-medium">Vuelto</th>
+                            <th class="px-4 py-3 font-medium">Final</th>
                             <th class="px-4 py-3 font-medium">Total final</th>
                             <th class="px-4 py-3 font-medium">Estado</th>
                             <th class="px-4 py-3 text-right font-medium">Acciones</th>
@@ -66,6 +67,7 @@
                                 <td class="px-4 py-3 text-emerald-700">S/ {{ number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2) }}</td>
                                 <td class="px-4 py-3 text-sky-700">S/ {{ number_format($apertura->ventas_sum_monto_digital ?? 0, 2) }}</td>
                                 <td class="px-4 py-3 text-amber-700">S/ {{ number_format($apertura->ventas_sum_vuelto ?? 0, 2) }}</td>
+                                <td class="px-4 py-3 text-gray-900">{{ $apertura->total_efectivo ? "S/ ".number_format($apertura->total_efectivo, 2) : "-" }}</td>
                                 @php $totalFinal = $apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0); @endphp
                                 <td class="px-4 py-3 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</td>
                                 <td class="px-4 py-3">
@@ -89,7 +91,8 @@
                                             "efectivo" => "S/ ".number_format($apertura->ventas_sum_monto_efectivo ?? 0, 2),
                                             "digital" => "S/ ".number_format($apertura->ventas_sum_monto_digital ?? 0, 2),
                                             "vuelto" => "S/ ".number_format($apertura->ventas_sum_vuelto ?? 0, 2),
-                                            "final" => "S/ ".number_format($apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0), 2),
+                                            "final" => $apertura->total_efectivo ? "S/ ".number_format($apertura->total_efectivo, 2) : "—",
+                                            "total_final" => "S/ ".number_format($apertura->monto_inicial + ($apertura->ventas_sum_monto_efectivo ?? 0) + ($apertura->ventas_sum_monto_digital ?? 0) - ($apertura->ventas_sum_vuelto ?? 0), 2),
                                             "estado" => $apertura->estado,
                                             "observaciones" => $apertura->observaciones,
                                         ];
@@ -277,8 +280,12 @@
                         <p class="mt-1 text-amber-700 font-medium" x-text="detalleCaja?.vuelto"></p>
                     </div>
                     <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Final (efectivo)</p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.final"></p>
+                    </div>
+                    <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
-                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.final"></p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
