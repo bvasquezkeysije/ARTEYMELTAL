@@ -12,7 +12,11 @@ class CajaController extends Controller
     {
         $aperturas = CajaApertura::query()
             ->with('usuario')
+            ->withCount('ventas')
             ->withSum('ventas', 'monto_total')
+            ->withSum('ventas', 'monto_efectivo')
+            ->withSum('ventas', 'monto_digital')
+            ->withSum('ventas', 'vuelto')
             ->orderBy('id', 'desc')
             ->paginate(20);
 
@@ -70,6 +74,18 @@ class CajaController extends Controller
     {
         $ventas = $cajaApertura->ventas()->orderBy('created_at', 'desc')->get();
 
-        return view('cajas.show', compact('cajaApertura', 'ventas'));
+        $totalEfectivoVentas = $cajaApertura->ventas()->sum('monto_efectivo');
+        $totalDigitalVentas = $cajaApertura->ventas()->sum('monto_digital');
+        $totalVuelto = $cajaApertura->ventas()->sum('vuelto');
+        $cantidadVentas = $cajaApertura->ventas()->count();
+
+        return view('cajas.show', compact(
+            'cajaApertura',
+            'ventas',
+            'totalEfectivoVentas',
+            'totalDigitalVentas',
+            'totalVuelto',
+            'cantidadVentas',
+        ));
     }
 }
