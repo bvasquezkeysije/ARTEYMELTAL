@@ -51,7 +51,7 @@
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
-                    <p class="mt-1 text-amber-700 font-medium">S/ {{ number_format($totalVuelto, 2) }}</p>
+                    <p class="mt-1 text-red-600 font-medium">-S/ {{ number_format($totalVuelto, 2) }}</p>
                 </div>
                 @php $totalFinal = $finalEfectivo + $totalDigitalVentas; @endphp
                 <div>

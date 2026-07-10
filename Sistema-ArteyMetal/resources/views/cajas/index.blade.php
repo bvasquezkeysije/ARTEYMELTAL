@@ -45,12 +45,12 @@
                             <th class="px-4 py-3 font-medium">Apertura</th>
                             <th class="px-4 py-3 font-medium">Inicial</th>
                             <th class="px-4 py-3 font-medium">Cierre</th>
+                            <th class="px-4 py-3 font-medium">Efectivo Final</th>
                             <th class="px-4 py-3 font-medium">N° Ventas</th>
                             <th class="px-4 py-3 font-medium">Efectivo</th>
                             <th class="px-4 py-3 font-medium">Digital</th>
                             <th class="px-4 py-3 font-medium">Vuelto</th>
                             <th class="px-4 py-3 font-medium">Total final</th>
-                            <th class="px-4 py-3 font-medium">Final</th>
                             <th class="px-4 py-3 font-medium">Estado</th>
                             <th class="px-4 py-3 text-right font-medium">Acciones</th>
                         </tr>
@@ -70,12 +70,12 @@
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '-' }}</td>
-                                <td class="px-4 py-3 text-gray-900">{{ $apertura->ventas_count ?? 0 }}</td>
+                                <td class="px-4 py-3 text-gray-900 font-semibold">S/ {{ number_format($finalEfectivo, 2) }}</td>
+                                <td class="px-4 py-3">{{ $apertura->ventas_count ?? 0 }}</td>
                                 <td class="px-4 py-3 text-emerald-700 font-medium">S/ {{ number_format($totalEfectivo, 2) }}</td>
                                 <td class="px-4 py-3 text-sky-700 font-medium">S/ {{ number_format($totalDigital, 2) }}</td>
-                                <td class="px-4 py-3 text-amber-700 font-medium">S/ {{ number_format($totalVuelto, 2) }}</td>
+                                <td class="px-4 py-3 text-red-600 font-medium">-S/ {{ number_format($totalVuelto, 2) }}</td>
                                 <td class="px-4 py-3 text-gray-900 font-semibold">S/ {{ number_format($totalFinal, 2) }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ $apertura->monto_final ? 'S/ '.number_format($apertura->monto_final, 2) : '-' }}</td>
                                 <td class="px-4 py-3">
                                     @if ($apertura->estado === 'abierta')
                                         <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
@@ -95,10 +95,10 @@
                                             'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
                                             'efectivo' => 'S/ '.number_format($totalEfectivo, 2),
                                             'digital' => 'S/ '.number_format($totalDigital, 2),
-                                            'vuelto' => 'S/ '.number_format($totalVuelto, 2),
+                                            'vuelto' => '-S/ '.number_format($totalVuelto, 2),
+                                            'efectivo_final' => 'S/ '.number_format($finalEfectivo, 2),
                                             'total_final' => 'S/ '.number_format($totalFinal, 2),
                                             'ventas_count' => $apertura->ventas_count ?? 0,
-                                            'final' => $apertura->monto_final ? 'S/ '.number_format($apertura->monto_final, 2) : '—',
                                             'estado' => $apertura->estado,
                                             'observaciones' => $apertura->observaciones,
                                         ];
@@ -121,7 +121,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="13" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
+                                <td colspan="12" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -174,10 +174,13 @@
                         </button>
                     </div>
                     @php
-                        $ventasTotal = $apertura->ventas_sum_monto_total ?? 0;
-                        $esperado = $apertura->monto_inicial + $ventasTotal;
+                        $totalEfec = $apertura->ventas_sum_monto_efectivo ?? 0;
+                        $totalDig = $apertura->ventas_sum_monto_digital ?? 0;
+                        $totalVue = $apertura->ventas_sum_vuelto ?? 0;
+                        $totalVentasCalc = $totalEfec + $totalDig - $totalVue;
+                        $esperado = $apertura->monto_inicial + $totalVentasCalc;
                     @endphp
-                    <form method="POST" action="{{ route('cajas.cerrar", $apertura) }}" class="p-5 space-y-4">
+                    <form method="POST" action="{{ route('cajas.cerrar', $apertura) }}" class="p-5 space-y-4">
                         @csrf
                         <div>
                             <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
@@ -190,8 +193,16 @@
                                 <span class="font-medium text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</span>
                             </div>
                             <div class="flex justify-between text-sm text-gray-600">
-                                <span>+ Ventas registradas</span>
-                                <span class="font-medium text-gray-900">S/ {{ number_format($ventasTotal, 2) }}</span>
+                                <span>+ Efectivo</span>
+                                <span class="font-medium text-emerald-700">S/ {{ number_format($totalEfec, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>+ Digital</span>
+                                <span class="font-medium text-sky-700">S/ {{ number_format($totalDig, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>- Vuelto</span>
+                                <span class="font-medium text-red-600">-S/ {{ number_format($totalVue, 2) }}</span>
                             </div>
                             <hr class="border-gray-300">
                             <div class="flex justify-between text-sm font-semibold text-gray-900">
@@ -246,7 +257,11 @@
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.inicial"></p>
                     </div>
                     <div>
-                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">NB� Ventas</p>
+                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo Final</p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.efectivo_final"></p>
+                    </div>
+                    <div>
+                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.ventas_count"></p>
                     </div>
                     <div>
@@ -259,15 +274,11 @@
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
-                        <p class="mt-1 text-amber-700 font-medium" x-text="detalleCaja?.vuelto"></p>
+                        <p class="mt-1 text-red-600 font-medium" x-text="detalleCaja?.vuelto"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
                         <p  class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
-                    </div>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.final"></p>
                     </div>
                     <div class="md:col-span-2">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>

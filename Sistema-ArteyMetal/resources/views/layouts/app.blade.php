@@ -280,7 +280,7 @@
                                 <button
                                     type="button"
                                     @click="openPerfil = !openPerfil"
-                                    class="inline-flex items-center gap-2 rounded-xl border border-[#d8cfb8] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#3b2e11] hover:bg-[#fff7e7]"
+                                    class="inline-flex h-10 items-center gap-2 rounded-xl border border-[#d8cfb8] bg-[#fffdf7] px-3 text-sm font-medium text-[#3b2e11] hover:bg-[#fff7e7]"
                                 >
                                     <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#111] text-xs font-semibold text-white">
                                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}

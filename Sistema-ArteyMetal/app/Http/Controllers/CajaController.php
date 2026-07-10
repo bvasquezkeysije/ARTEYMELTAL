@@ -53,7 +53,7 @@ class CajaController extends Controller
             'observaciones' => 'nullable|string|max:255',
         ]);
 
-        $totalVentas = $cajaApertura->ventas()->sum('monto_total');
+        $totalVentas = $cajaApertura->ventas()->sum("monto_efectivo") + $cajaApertura->ventas()->sum("monto_digital") - $cajaApertura->ventas()->sum("vuelto");
 
         $cajaApertura->update([
             'fecha_cierre' => now(),
