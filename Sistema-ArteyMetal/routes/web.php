@@ -16,6 +16,7 @@ use App\Http\Controllers\CajaController;
 use App\Http\Controllers\DisenoController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\RepartidorController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -181,6 +182,11 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
+
+    Route::get('notificaciones', [NotificationController::class, 'index'])->name('notificaciones.index');
+    Route::get('notificaciones/unread', [NotificationController::class, 'unread'])->name('notificaciones.unread');
+    Route::post('notificaciones/{notification}/read', [NotificationController::class, 'markAsRead'])->whereNumber('notification')->name('notificaciones.read');
+    Route::post('notificaciones/read-all', [NotificationController::class, 'markAllAsRead'])->name('notificaciones.read_all');
 });
 
 require __DIR__.'/auth.php';

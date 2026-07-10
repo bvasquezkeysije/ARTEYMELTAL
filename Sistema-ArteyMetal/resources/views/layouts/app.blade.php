@@ -218,6 +218,60 @@
                                 </div>
                             </div>
 
+                            <div class="flex items-center gap-2">
+                                <div x-data="{ notifOpen: false, count: 0, items: [], polling: null }" x-init="
+                                    fetch('{{ route('notificaciones.unread') }}')
+                                        .then(r => r.json())
+                                        .then(d => { count = d.count; items = d.notifications; });
+                                    polling = setInterval(() => {
+                                        fetch('{{ route('notificaciones.unread') }}')
+                                            .then(r => r.json())
+                                            .then(d => { count = d.count; items = d.notifications; });
+                                    }, 30000);
+                                    window.addEventListener('beforeunload', () => { if(polling) clearInterval(polling); });
+                                " class="relative">
+                                    <button type="button" @click="notifOpen = !notifOpen" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8cfb8] bg-[#fffdf7] text-[#7a5b25] hover:bg-[#fff7e7]">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                        <template x-if="count > 0">
+                                            <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white" x-text="count > 99 ? '99+' : count"></span>
+                                        </template>
+                                    </button>
+                                    <div x-show="notifOpen" x-transition @click.outside="notifOpen = false" class="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-[#e3d7bb] bg-white shadow-xl" style="display: none;">
+                                        <div class="border-b border-[#efe7d1] bg-[#fff9ec] px-4 py-3">
+                                            <div class="flex items-center justify-between">
+                                                <p class="text-sm font-semibold text-[#3b2e11]">Notificaciones</p>
+                                                <template x-if="count > 0">
+                                                    <form action="{{ route('notificaciones.read_all') }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="text-xs text-[#7a5b25] hover:underline">Marcar todo leido</button>
+                                                    </form>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="max-h-72 overflow-y-auto">
+                                            <template x-for="item in items" :key="item.id">
+                                                <div class="flex items-start gap-3 border-b border-[#f0ede3] px-4 py-3">
+                                                    <span class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#b9943d]/20 text-[#7a5b25]">
+                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                                                        </svg>
+                                                    </span>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-xs font-medium text-[#3b2e11]" x-text="item.title"></p>
+                                                        <p class="text-[10px] text-gray-400" x-text="item.created_at ? new Date(item.created_at).toLocaleDateString() : ''"></p>
+                                                    </div>
+                                                    <template x-if="item.action_url">
+                                                        <a :href="item.action_url" class="shrink-0 rounded-lg border border-[#e3d7bb] px-2.5 py-1 text-[10px] font-medium text-[#7a5b25] hover:bg-[#fff5dd]">Ver</a>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <a href="{{ route('notificaciones.index') }}" class="block border-t border-[#f0ede3] px-4 py-2.5 text-center text-xs font-medium text-[#7a5b25] hover:bg-[#fffbee]">Ver todas las notificaciones</a>
+                                    </div>
+                                </div>
+
                             <div class="relative" x-data="{ openPerfil: false, openAyuda: false }" @keydown.escape.window="openPerfil = false; openAyuda = false">
                                 <button
                                     type="button"

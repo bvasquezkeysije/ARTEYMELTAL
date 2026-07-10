@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SeparadorServicion;
 use App\Models\Pedido;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProduccionController extends Controller
@@ -41,6 +43,14 @@ class ProduccionController extends Controller
 
         $pedido->update(['estado' => 'produciendo']);
 
+        NotificationController::create(
+            userId: $pedido->usuario_id,
+            type: 'produccion',
+            title: 'Produccion iniciada',
+            body: "El pedido {$pedido->codigo} ha iniciado produccion.",
+            actionUrl: route('pedidos.show', $pedido, false),
+        );
+
         return back()->with('ok', 'Produccion iniciada.');
     }
 
@@ -57,6 +67,25 @@ class ProduccionController extends Controller
         }
 
         $pedido->update(['estado' => 'listo_entrega']);
+
+        $repartidores = User::whereHas('rol', fn ($q) => $q->where('nombre', 'repartidor'))->get();
+        foreach ($repartidores as $repartidor) {
+            NotificationController::create(
+                userId: $repartidor->id,
+                type: 'repartidor',
+                title: 'Pedido listo para recoger',
+                body: "El pedido {$pedido->codigo} esta listo para recoger y entregar.",
+                actionUrl: route('repartidor.show', $pedido, false),
+            );
+        }
+
+        NotificationController::create(
+            userId: $pedido->usuario_id,
+            type: 'produccion',
+            title: 'Pedido en etapa de entrega',
+            body: "El pedido {$pedido->codigo} ha sido marcado como listo para entrega.",
+            actionUrl: route('pedidos.show', $pedido, false),
+        );
 
         return back()->with('ok', 'Repartidor notificado. El pedido esta listo para recoger.');
     }
