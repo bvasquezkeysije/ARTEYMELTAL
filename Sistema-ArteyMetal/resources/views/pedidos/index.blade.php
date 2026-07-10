@@ -120,6 +120,7 @@
             @endif
             @if($rol === 'almacenero')
                 <a href="{{ route('pedidos.index', array_filter(['estado' => 'en_transporte'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'en_transporte' ? 'ring-2 ring-amber-400' : '' }}">Por recibir</a>
+                <a href="{{ route('pedidos.index', array_filter(['estado' => 'listo_recoger'])) }}" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm font-medium text-[#5a4314] hover:bg-[#fff5dd] {{ request('estado') === 'listo_recoger' ? 'ring-2 ring-amber-400' : '' }}">Listos recoger</a>
             @endif
         </div>
 
@@ -228,7 +229,7 @@
                                 <td class="px-4 py-3 text-[#4a4026]">{{ optional($pedido->fecha_entrega_compromiso)->format('d/m/Y') ?? '-' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
-                                        @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+                                        @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado !== 'en_almacen' && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                                             <button type="button"
                                                 @click="cobroData = @js($pedidoVistaData); modalCobro = true"
                                                 class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700"

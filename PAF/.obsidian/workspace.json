@@ -55,12 +55,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+                "file": "Parte 1- INTRODUCCIÓN.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN"
+              "title": "Parte 1- INTRODUCCIÓN"
             }
           }
         ],
@@ -137,7 +137,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+                "file": "Parte 1- INTRODUCCIÓN.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -147,7 +147,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN"
+              "title": "Enlaces entrantes de Parte 1- INTRODUCCIÓN"
             }
           },
           {
@@ -156,12 +156,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+                "file": "Parte 1- INTRODUCCIÓN.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN"
+              "title": "Enlaces salientes de Parte 1- INTRODUCCIÓN"
             }
           },
           {
@@ -199,13 +199,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+                "file": "Parte 1- INTRODUCCIÓN.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN"
+              "title": "Esquema de Parte 1- INTRODUCCIÓN"
             }
           }
         ]
@@ -228,10 +228,9 @@
   },
   "active": "6ad5ca48779760d7",
   "lastOpenFiles": [
-    "Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
-    "Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
     "Parte 2 - DATOS GENERALES DEL PROYECTO.md",
-    "Parte 1- INTRODUCCIÓN.md",
+    "Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
+    "Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
     "Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
     "Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
     "Parte 7 - ESTRATEGIA Y TIPOS DE PRUEBA.md",
@@ -246,6 +245,7 @@
     "Parte 16 - CONCLUSIONES Y RECOMENDACIONES.md",
     "REFERENCIAS.md",
     "Reglas.md",
+    "Parte 1- INTRODUCCIÓN.md",
     "Parte 11"
   ]
 }

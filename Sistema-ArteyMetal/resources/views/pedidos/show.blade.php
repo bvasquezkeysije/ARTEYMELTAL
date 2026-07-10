@@ -232,7 +232,12 @@
         @php $rol = auth()->user()->rol->nombre; @endphp
 
         <div class="mt-6 flex flex-wrap gap-2">
-            @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_almacen' && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_almacen' && $pedido->estado_pago === 'pagado_completo')
+                <form method="POST" action="{{ route('pedidos.autorizar_recoger', $pedido) }}" onsubmit="return confirm('Habilitar recoger en almacen?')">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-indigo-300 px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50">Autorizar recoger en almacen</button>
+                </form>
+            @elseif(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_almacen' && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                 <form method="POST" action="{{ route('pedidos.autorizar_recoger', $pedido) }}" onsubmit="return confirm('Cobrar saldo y habilitar recoger en almacen? Se emitira comprobante.')">
                     @csrf
                     <div class="flex items-center gap-2">

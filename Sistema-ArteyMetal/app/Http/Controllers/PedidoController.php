@@ -434,12 +434,14 @@ class PedidoController extends Controller
             return back()->with('ok', 'Primero debes registrar el adelanto del 50% en personalizacion.');
         }
 
-        if (($pedido->estado_pago ?? null) === 'pagado_completo' || (float) ($pedido->monto_saldo ?? 0) <= 0) {
-            return back()->with('ok', 'Este pedido ya fue cerrado y no tiene saldo pendiente.');
-        }
-
         if ((float) ($pedido->monto_total ?? 0) <= 0) {
             return back()->with('ok', 'El pedido no tiene monto total valido.');
+        }
+
+        // Si ya se cobro el saldo, solo autorizar recoger
+        if (($pedido->estado_pago ?? null) === 'pagado_completo' || (float) ($pedido->monto_saldo ?? 0) <= 0) {
+            $pedido->update(['estado' => 'listo_recoger']);
+            return redirect()->route('pedidos.index')->with('ok', 'Pedido habilitado para recoger en almacen.');
         }
 
         $request->validate([
