@@ -10,6 +10,8 @@ use App\Models\PedidoDisenoArchivo;
 use App\Models\PedidoOrdenArchivo;
 use App\Models\Venta;
 use App\Models\VentaDetalle;
+use App\Models\PedidoProducto;
+use App\Models\PedidoProductoArchivo;
 use App\Services\ComprobanteVentaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +42,7 @@ class PedidoController extends Controller
         $filtroPersonalizacion = request('estado_personalizacion');
 
         $pedidos = Pedido::query()
-            ->with('cliente')
+            ->with('cliente', 'productos.archivos')
             ->when($busqueda, function ($query) use ($busqueda) {
                 $query->where('codigo', 'like', "%{$busqueda}%")
                     ->orWhere('nombre_cliente', 'like', "%{$busqueda}%")
@@ -77,8 +79,9 @@ class PedidoController extends Controller
 
         $clientes = Cliente::orderBy('nombre_completo')->get();
         $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
+        $pedido = new Pedido();
 
-        return view('pedidos.create', compact('clientes', 'categorias'));
+        return view('pedidos.create', compact('clientes', 'categorias', 'pedido'));
     }
 
     public function store(Request $request)
@@ -97,23 +100,23 @@ class PedidoController extends Controller
         }
 
         $datos = $this->validarPedido($request);
-
-        if ((float) ($datos['monto_adelanto'] ?? 0) > (float) ($datos['monto_total'] ?? 0)) {
-            return back()->withInput()->withErrors(['monto_adelanto' => 'El adelanto no puede ser mayor al monto total.']);
-        }
+        $montos = $this->calcularMontosDesdeProductos($request);
+        $datos['monto_total'] = $montos['monto_total'];
+        $datos['monto_adelanto'] = $montos['monto_adelanto'];
 
         $datos = $this->completarDatosCliente($datos);
         $datos = $this->sincronizarClientePorDocumento($datos);
         $datos = $this->normalizarDatosEntrega($datos);
         $datos['codigo'] = $this->generarCodigoPedido();
         $datos['usuario_id'] = $request->user()->id;
+        $datos['estado'] = 'registrado';
         $datos['estado_pago'] = 'adelanto_pagado';
-        $datos['monto_saldo'] = round((float) ($datos['monto_total'] ?? 0) - (float) ($datos['monto_adelanto'] ?? 0), 2);
+        $datos['monto_saldo'] = round($datos['monto_total'] - $datos['monto_adelanto'], 2);
 
         DB::transaction(function () use ($datos, $request, $cajaAperturaId) {
             $pedido = Pedido::create($datos);
             $this->guardarArchivosOrden($request, $pedido);
-            $this->guardarArchivosModelo($request, $pedido);
+            $this->guardarProductos($request, $pedido);
 
             $venta = Venta::create([
                 'codigo' => $this->generarCodigoVenta(),
@@ -124,6 +127,8 @@ class PedidoController extends Controller
                 'monto_total' => $datos['monto_adelanto'],
                 'monto_cobrado' => $datos['monto_adelanto'],
                 'estado_pago' => 'pagado_completo',
+                'metodo_pago' => $datos['metodo_pago'],
+                'vuelto' => $datos['vuelto'] ?? null,
                 'observaciones' => 'Adelanto pedido '.$pedido->codigo,
                 'usuario_id' => $request->user()->id,
                 'caja_apertura_id' => $cajaAperturaId,
@@ -171,13 +176,14 @@ class PedidoController extends Controller
 
     public function show(Pedido $pedido)
     {
-        $pedido->load('cliente', 'archivosDiseno', 'archivosOrden');
+        $pedido->load('cliente', 'archivosDiseno', 'archivosOrden', 'productos.archivos');
 
         return view('pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $pedido)
     {
+        $pedido->load('productos.archivos');
         $clientes = Cliente::orderBy('nombre_completo')->get();
         $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
 
@@ -187,12 +193,16 @@ class PedidoController extends Controller
     public function update(Request $request, Pedido $pedido)
     {
         $datos = $this->validarPedido($request, $pedido->id);
+        $montos = $this->calcularMontosDesdeProductos($request);
+        $datos['monto_total'] = $montos['monto_total'];
+        $datos['monto_adelanto'] = $montos['monto_adelanto'];
+        $datos['monto_saldo'] = round($datos['monto_total'] - $datos['monto_adelanto'], 2);
         $datos = $this->completarDatosCliente($datos);
         $datos = $this->sincronizarClientePorDocumento($datos);
         $datos = $this->normalizarDatosEntrega($datos);
         $pedido->update($datos);
         $this->guardarArchivosOrden($request, $pedido);
-        $this->guardarArchivosModelo($request, $pedido);
+        $this->guardarProductos($request, $pedido);
 
         return redirect()->route('pedidos.index')->with('ok', 'Pedido actualizado correctamente.');
     }
@@ -250,7 +260,7 @@ class PedidoController extends Controller
         ];
 
         if (in_array($rol, ['administrador', 'vendedor'], true)) {
-            $rules['estado'] = ['required', 'string', 'in:registrado,en_produccion,listo_entrega,en_transporte,en_almacen,entregado,cancelado'];
+            $rules['estado'] = ['required', 'string', 'in:registrado,en_produccion,listo_entrega,en_transporte,en_almacen,listo_recoger,entregado,cancelado'];
             $rules['estado_pago'] = ['required', 'string', 'in:pendiente_adelanto,adelanto_pagado,pagado_completo'];
         }
 
@@ -343,10 +353,6 @@ class PedidoController extends Controller
             abort(403, 'No tienes permiso para cobrar el saldo final.');
         }
 
-        if (! in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true)) {
-            return back()->with('ok', 'Para cerrar el pedido, primero debe estar en estado listo entrega o entregado.');
-        }
-
         if (($pedido->estado_pago ?? 'pendiente_adelanto') === 'pendiente_adelanto') {
             return back()->with('ok', 'Primero debes registrar el adelanto del 50% en personalizacion.');
         }
@@ -358,6 +364,11 @@ class PedidoController extends Controller
         if ((float) ($pedido->monto_total ?? 0) <= 0) {
             return back()->with('ok', 'El pedido no tiene monto total valido para cerrar la venta.');
         }
+
+        $request->validate([
+            'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
+            'vuelto' => ['nullable', 'numeric', 'min:0'],
+        ]);
 
         DB::transaction(function () use ($pedido, $request) {
             $cajaAperturaId = session('pedido_caja_apertura_id');
@@ -372,6 +383,8 @@ class PedidoController extends Controller
                 'monto_total' => $saldoPendiente,
                 'monto_cobrado' => $saldoPendiente,
                 'estado_pago' => 'pagado_completo',
+                'metodo_pago' => $request->input('metodo_pago'),
+                'vuelto' => $request->input('vuelto'),
                 'observaciones' => 'Pago final pedido '.$pedido->codigo,
                 'usuario_id' => $request->user()->id,
                 'caja_apertura_id' => $cajaAperturaId,
@@ -397,20 +410,144 @@ class PedidoController extends Controller
             ]);
 
             $pedido->update([
-                'estado' => 'entregado',
-                'estado_personalizacion' => 'entregado',
                 'estado_pago' => 'pagado_completo',
                 'monto_saldo' => 0,
             ]);
         });
 
-        return redirect()->route('pedidos.index')->with('ok', 'Pago final confirmado. Pedido cerrado y registrado en ventas.');
+        return redirect()->route('pedidos.index')->with('ok', 'Pago registrado correctamente.');
+    }
+
+    public function autorizarRecoger(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['administrador', 'vendedor'], true)) {
+            abort(403, 'No tienes permiso para autorizar recoger pedido.');
+        }
+
+        if ($pedido->estado !== 'en_almacen') {
+            return back()->with('ok', 'El pedido debe estar en almacen para autorizar recoger.');
+        }
+
+        if (($pedido->estado_pago ?? 'pendiente_adelanto') === 'pendiente_adelanto') {
+            return back()->with('ok', 'Primero debes registrar el adelanto del 50% en personalizacion.');
+        }
+
+        if (($pedido->estado_pago ?? null) === 'pagado_completo' || (float) ($pedido->monto_saldo ?? 0) <= 0) {
+            return back()->with('ok', 'Este pedido ya fue cerrado y no tiene saldo pendiente.');
+        }
+
+        if ((float) ($pedido->monto_total ?? 0) <= 0) {
+            return back()->with('ok', 'El pedido no tiene monto total valido.');
+        }
+
+        $request->validate([
+            'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
+            'vuelto' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        DB::transaction(function () use ($pedido, $request) {
+            $cajaAperturaId = session('pedido_caja_apertura_id');
+            $saldoPendiente = round((float) ($pedido->monto_saldo ?? 0), 2);
+
+            $venta = Venta::create([
+                'codigo' => $this->generarCodigoVenta(),
+                'tipo_venta' => 'pedido',
+                'pedido_id' => $pedido->id,
+                'cliente_nombre' => $pedido->nombre_cliente,
+                'fecha_venta' => now()->toDateString(),
+                'monto_total' => $saldoPendiente,
+                'monto_cobrado' => $saldoPendiente,
+                'estado_pago' => 'pagado_completo',
+                'metodo_pago' => $request->input('metodo_pago'),
+                'vuelto' => $request->input('vuelto'),
+                'observaciones' => 'Pago final + autorizar recoger '.$pedido->codigo,
+                'usuario_id' => $request->user()->id,
+                'caja_apertura_id' => $cajaAperturaId,
+            ]);
+
+            VentaDetalle::create([
+                'venta_id' => $venta->id,
+                'producto_id' => null,
+                'producto_nombre' => 'Pago final pedido '.$pedido->codigo,
+                'cantidad' => 1,
+                'precio_unitario' => $saldoPendiente,
+                'subtotal' => $saldoPendiente,
+            ]);
+
+            $documento = preg_replace('/\D/', '', (string) ($pedido->documento_cliente ?? ''));
+            $tipoComprobante = strlen($documento) === 11 ? 'factura' : 'boleta';
+
+            $this->comprobanteService->emitir($venta, [
+                'tipo_comprobante' => $tipoComprobante,
+                'documento_cliente' => $documento !== '' ? $documento : null,
+                'nombre_cliente' => $pedido->nombre_cliente ?: 'Cliente',
+                'direccion_cliente' => $pedido->direccion_entrega,
+            ]);
+
+            $pedido->update([
+                'estado' => 'listo_recoger',
+                'estado_pago' => 'pagado_completo',
+                'monto_saldo' => 0,
+            ]);
+        });
+
+        return redirect()->route('pedidos.index')->with('ok', 'Pago registrado y pedido habilitado para recoger en almacen.');
+    }
+
+    public function registrarLlegadaTienda(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['administrador', 'vendedor'], true)) {
+            abort(403, 'Solo el vendedor puede confirmar llegada a tienda.');
+        }
+
+        if ($pedido->estado !== 'en_tienda') {
+            return back()->with('ok', 'El pedido debe estar despachado a tienda.');
+        }
+
+        $pedido->update(['estado' => 'entregado']);
+
+        return redirect()->route('pedidos.show', $pedido)->with('ok', 'Pedido recibido en tienda.');
+    }
+
+    public function derivar(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['administrador', 'vendedor'], true)) {
+            abort(403, 'No tienes permiso para derivar pedidos.');
+        }
+
+        $request->validate([
+            'destino' => ['required', 'string', 'in:diseno,produccion'],
+        ]);
+
+        $destino = $request->input('destino');
+
+        if ($destino === 'diseno') {
+            $permitidos = ['sin_iniciar'];
+            if (! in_array($pedido->estado_personalizacion, $permitidos, true)) {
+                return back()->with('ok', 'El pedido ya fue derivado a diseno o se encuentra en una etapa posterior.');
+            }
+            $pedido->update(['estado_personalizacion' => 'en_diseno']);
+            $mensaje = 'Pedido derivado a Diseno correctamente.';
+        } else {
+            $permitidos = ['registrado'];
+            if (! in_array($pedido->estado, $permitidos, true)) {
+                return back()->with('ok', 'El pedido ya fue derivado a produccion o se encuentra en una etapa posterior.');
+            }
+            $pedido->update(['estado' => 'en_produccion']);
+            $mensaje = 'Pedido derivado a Produccion correctamente.';
+        }
+
+        return redirect()->route('pedidos.index')->with('ok', $mensaje);
     }
 
     private function validarPedido(Request $request, ?int $pedidoId = null): array
     {
-        $estados = 'registrado,en_produccion,listo_entrega,entregado,cancelado';
-
         return $request->validate([
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'nombre_cliente' => ['required', 'string', 'max:120'],
@@ -420,7 +557,6 @@ class PedidoController extends Controller
             'nombre_producto' => ['nullable', 'string', 'max:255'],
             'detalle_trabajo' => ['nullable', 'string'],
             'tipo_producto' => ['nullable', 'string', 'exists:categorias_producto,slug'],
-            'materiales' => ['nullable', 'array'],
             'tipo_entrega' => ['required', 'string', 'in:local,delivery,agencia'],
             'direccion_entrega' => ['nullable', 'string', 'max:255', 'required_unless:tipo_entrega,local'],
             'referencia_entrega' => ['nullable', 'string', 'max:255'],
@@ -429,22 +565,33 @@ class PedidoController extends Controller
             'nombre_recibe' => ['nullable', 'string', 'max:120', 'required_unless:tipo_entrega,local'],
             'telefono_recibe' => ['nullable', 'string', 'max:20', 'required_unless:tipo_entrega,local'],
             'costo_delivery' => ['nullable', 'numeric', 'min:0', 'required_unless:tipo_entrega,local'],
-            'estado' => ['required', 'string', 'in:'.$estados],
             'fecha_entrega_compromiso' => ['nullable', 'date'],
-            'monto_total' => ['required', 'numeric', 'min:0.01'],
-            'monto_adelanto' => ['required', 'numeric', 'min:0.01'],
             'observaciones' => ['nullable', 'string'],
             'archivos_orden' => ['nullable', 'array'],
             'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
-            'archivos_modelo' => ['nullable', 'array', 'max:10'],
-            'archivos_modelo.*' => ['file', 'max:15360', 'mimes:cdr,pdf,jpg,jpeg,png,ai,eps,svg,dxf,dwg,step,stp,3dm,stl,obj,fbx,zip,rar'],
-            'productos_personalizados' => ['nullable', 'array'],
-            'productos_personalizados.*.nombre' => ['required', 'string', 'max:255'],
-            'productos_personalizados.*.descripcion' => ['nullable', 'string', 'max:255'],
-            'productos_personalizados.*.materiales' => ['nullable', 'string', 'max:255'],
-            'productos_personalizados.*.precio_unitario' => ['required', 'numeric', 'min:0'],
-            'productos_personalizados.*.cantidad' => ['required', 'integer', 'min:1'],
+            'productos' => ['nullable', 'array'],
+            'productos.*.nombre' => ['required', 'string', 'max:255'],
+            'productos.*.descripcion' => ['nullable', 'string', 'max:255'],
+            'productos.*.precio_unitario' => ['required', 'numeric', 'min:0'],
+            'productos.*.cantidad' => ['required', 'integer', 'min:1'],
+            'tipo_pago' => ['required', 'string', 'in:contado,dos_partes'],
+            'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
+            'vuelto' => ['nullable', 'numeric', 'min:0'],
         ]);
+    }
+
+    private function calcularMontosDesdeProductos(Request $request): array
+    {
+        $total = 0;
+        foreach ($request->input('productos', []) as $p) {
+            $total += (float) ($p['precio_unitario'] ?? 0) * (int) ($p['cantidad'] ?? 0);
+        }
+        $tipoPago = $request->input('tipo_pago', 'dos_partes');
+        $adelanto = $tipoPago === 'contado' ? round($total, 2) : round($total * 0.5, 2);
+        return [
+            'monto_total' => round($total, 2),
+            'monto_adelanto' => $adelanto,
+        ];
     }
 
     private function guardarArchivosOrden(Request $request, Pedido $pedido): void
@@ -470,27 +617,62 @@ class PedidoController extends Controller
         }
     }
 
-    private function guardarArchivosModelo(Request $request, Pedido $pedido): void
+    private function guardarProductos(Request $request, Pedido $pedido): void
     {
-        if (! $request->hasFile('archivos_modelo')) {
+        if (! $request->has('productos')) {
             return;
         }
 
-        foreach ($request->file('archivos_modelo') as $archivo) {
-            if (! $archivo->isValid()) {
-                continue;
+        $productosData = $request->input('productos', []);
+        $archivosPorProducto = $request->file('productos_archivos', []);
+
+        $idsActuales = $pedido->productos()->pluck('id')->toArray();
+        $idsRecibidos = [];
+
+        foreach ($productosData as $i => $data) {
+            $data['pedido_id'] = $pedido->id;
+            $data['total'] = round(((float) ($data['precio_unitario'] ?? 0)) * ((int) ($data['cantidad'] ?? 0)), 2);
+            $data['orden'] = $i;
+
+            if (! empty($data['id']) && in_array($data['id'], $idsActuales)) {
+                $producto = PedidoProducto::find($data['id']);
+                if ($producto) {
+                    $producto->update($data);
+                } else {
+                    unset($data['id']);
+                    $producto = PedidoProducto::create($data);
+                }
+            } else {
+                unset($data['id']);
+                $producto = PedidoProducto::create($data);
             }
+            $idsRecibidos[] = $producto->id;
 
-            $path = $archivo->store('modelos_pedido', 'public');
-
-            PedidoDisenoArchivo::create([
-                'pedido_id' => $pedido->id,
-                'archivo_path' => $path,
-                'nombre_original' => $archivo->getClientOriginalName(),
-                'mime_type' => $archivo->getMimeType(),
-                'tamano_bytes' => $archivo->getSize(),
-            ]);
+            if (isset($archivosPorProducto[$i])) {
+                foreach ($archivosPorProducto[$i] as $archivo) {
+                    if (! $archivo->isValid()) continue;
+                    $path = $archivo->store('disenos_producto', 'public');
+                    PedidoProductoArchivo::create([
+                        'pedido_producto_id' => $producto->id,
+                        'archivo_path' => $path,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'mime_type' => $archivo->getMimeType(),
+                        'tamano_bytes' => $archivo->getSize(),
+                    ]);
+                }
+            }
         }
+
+        $idsAEliminar = array_diff($idsActuales, $idsRecibidos);
+        if (! empty($idsAEliminar)) {
+            PedidoProducto::whereIn('id', $idsAEliminar)->delete();
+        }
+    }
+
+    public function eliminarArchivoProducto(PedidoProductoArchivo $pedidoProductoArchivo): \Illuminate\Http\JsonResponse
+    {
+        $pedidoProductoArchivo->delete();
+        return response()->json(['ok' => true]);
     }
 
     private function completarDatosCliente(array $datos): array

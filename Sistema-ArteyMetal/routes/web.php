@@ -13,6 +13,9 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\CajaController;
+use App\Http\Controllers\DisenoController;
+use App\Http\Controllers\ProduccionController;
+use App\Http\Controllers\RepartidorController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -32,6 +35,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('pedidos/{pedido}', [PedidoController::class, 'show'])->whereNumber('pedido')->name('pedidos.show');
         Route::post('pedidos/{pedido}/transportar', [PedidoController::class, 'marcarEnTransporte'])->whereNumber('pedido')->name('pedidos.transportar');
         Route::post('pedidos/{pedido}/recibir-almacen', [PedidoController::class, 'marcarEnAlmacen'])->whereNumber('pedido')->name('pedidos.recibir_almacen');
+        Route::post('pedidos/{pedido}/derivar', [PedidoController::class, 'derivar'])->whereNumber('pedido')->name('pedidos.derivar');
     });
     Route::middleware('permiso:pedidos.gestionar')->group(function () {
         Route::get('pedidos/create', [PedidoController::class, 'create'])->name('pedidos.create');
@@ -39,8 +43,11 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('pedidos/{pedido}/edit', [PedidoController::class, 'edit'])->whereNumber('pedido')->name('pedidos.edit');
         Route::put('pedidos/{pedido}', [PedidoController::class, 'update'])->whereNumber('pedido')->name('pedidos.update');
         Route::delete('pedidos/{pedido}', [PedidoController::class, 'destroy'])->whereNumber('pedido')->name('pedidos.destroy');
+        Route::delete('pedidos/archivo-producto/{pedidoProductoArchivo}', [PedidoController::class, 'eliminarArchivoProducto'])->name('pedidos.eliminar_archivo_producto');
         Route::put('pedidos/{pedido}/personalizacion', [PedidoController::class, 'actualizarPersonalizacion'])->whereNumber('pedido')->name('pedidos.personalizacion');
         Route::post('pedidos/{pedido}/confirmar-pago-final', [PedidoController::class, 'confirmarPagoFinal'])->whereNumber('pedido')->name('pedidos.confirmar_pago_final');
+        Route::post('pedidos/{pedido}/autorizar-recoger', [PedidoController::class, 'autorizarRecoger'])->whereNumber('pedido')->name('pedidos.autorizar_recoger');
+        Route::post('pedidos/{pedido}/llegada-tienda', [PedidoController::class, 'registrarLlegadaTienda'])->whereNumber('pedido')->name('pedidos.llegada_tienda');
     });
 
     Route::middleware('permiso:clientes.ver')->group(function () {
@@ -78,10 +85,13 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('almacen', [AlmacenController::class, 'index'])->name('almacen.index');
         Route::get('almacen/productos', [AlmacenController::class, 'productos'])->name('almacen.productos');
         Route::get('almacen/movimientos', [AlmacenController::class, 'movimientos'])->name('almacen.movimientos');
+        Route::get('almacen/pedidos', [AlmacenController::class, 'pedidosPendientes'])->name('almacen.pedidos');
     });
     Route::middleware('permiso:almacen.gestionar')->group(function () {
         Route::post('almacen/entrada', [AlmacenController::class, 'storeEntrada'])->name('almacen.entrada.store');
         Route::post('almacen/salida', [AlmacenController::class, 'storeSalida'])->name('almacen.salida.store');
+        Route::post('almacen/pedidos/{pedido}/recibir', [AlmacenController::class, 'recibirPedido'])->whereNumber('pedido')->name('almacen.pedidos.recibir');
+        Route::post('almacen/pedidos/{pedido}/entregar-cliente', [AlmacenController::class, 'entregarCliente'])->whereNumber('pedido')->name('almacen.pedidos.entregar_cliente');
     });
 
     Route::middleware('permiso:ventas.ver')->group(function () {
@@ -104,6 +114,31 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::middleware('permiso:caja.gestionar')->group(function () {
         Route::post('caja', [CajaController::class, 'store'])->name('cajas.store');
         Route::post('caja/{cajaApertura}/cerrar', [CajaController::class, 'cerrar'])->whereNumber('cajaApertura')->name('cajas.cerrar');
+    });
+
+    Route::middleware('permiso:diseno.ver')->group(function () {
+        Route::get('diseno', [DisenoController::class, 'index'])->name('diseno.index');
+        Route::get('diseno/{pedido}', [DisenoController::class, 'show'])->whereNumber('pedido')->name('diseno.show');
+    });
+    Route::middleware('permiso:diseno.gestionar')->group(function () {
+        Route::put('diseno/{pedido}', [DisenoController::class, 'update'])->whereNumber('pedido')->name('diseno.update');
+    });
+
+    Route::middleware('permiso:produccion.ver')->group(function () {
+        Route::get('produccion', [ProduccionController::class, 'index'])->name('produccion.index');
+        Route::get('produccion/{pedido}', [ProduccionController::class, 'show'])->whereNumber('pedido')->name('produccion.show');
+    });
+    Route::middleware('permiso:produccion.gestionar')->group(function () {
+        Route::post('produccion/{pedido}/iniciar', [ProduccionController::class, 'iniciarProduccion'])->whereNumber('pedido')->name('produccion.iniciar');
+        Route::post('produccion/{pedido}/notificar', [ProduccionController::class, 'notificarRepartidor'])->whereNumber('pedido')->name('produccion.notificar');
+    });
+
+    Route::middleware('permiso:repartidor.ver')->group(function () {
+        Route::get('repartidor', [RepartidorController::class, 'index'])->name('repartidor.index');
+        Route::get('repartidor/{pedido}', [RepartidorController::class, 'show'])->whereNumber('pedido')->name('repartidor.show');
+    });
+    Route::middleware('permiso:repartidor.gestionar')->group(function () {
+        Route::post('repartidor/{pedido}/recoger', [RepartidorController::class, 'recoger'])->whereNumber('pedido')->name('repartidor.recoger');
     });
 
     Route::middleware('permiso:reportes.ver')->group(function () {

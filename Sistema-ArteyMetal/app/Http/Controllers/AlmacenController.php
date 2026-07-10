@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MovimientoAlmacen;
+use App\Models\Pedido;
+use App\Models\PedidoProducto;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -181,5 +183,107 @@ class AlmacenController extends Controller
 
         return redirect()->route('almacen.index')
             ->with('success', 'Salida registrada correctamente.');
+    }
+
+    public function pedidosPendientes(): View
+    {
+        $pedidos = Pedido::query()
+            ->with('cliente', 'productos')
+            ->whereIn('estado', ['en_transporte', 'en_almacen', 'listo_recoger'])
+            ->orderByDesc('id')
+            ->paginate(10);
+
+        return view('almacen.pedidos', compact('pedidos'));
+    }
+
+    public function recibirPedido(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['almacenero', 'administrador'], true)) {
+            abort(403, 'Solo el almacenero puede recibir pedidos.');
+        }
+
+        if ($pedido->estado !== 'en_transporte') {
+            return back()->with('ok', 'El pedido debe estar en transporte.');
+        }
+
+        DB::transaction(function () use ($pedido, $request) {
+            $pedido->load('productos');
+
+            foreach ($pedido->productos as $pp) {
+                $cantidad = $pp->cantidad_recoge ?? $pp->cantidad;
+                $producto = Producto::firstOrCreate(
+                    ['nombre' => $pp->nombre],
+                    [
+                        'codigo' => 'PED-' . $pedido->id . '-' . $pp->id,
+                        'categoria' => $pedido->tipo_producto ?? 'personalizado',
+                        'stock_tienda' => 0,
+                        'stock_almacen' => 0,
+                    ]
+                );
+
+                $producto->increment('stock_almacen', $cantidad);
+                $producto->refresh();
+
+                MovimientoAlmacen::create([
+                    'producto_id' => $producto->id,
+                    'tipo' => 'entrada',
+                    'cantidad' => $cantidad,
+                    'stock_resultante' => $producto->stock_actual,
+                    'concepto' => '[Almacen] Recepcion pedido ' . $pedido->codigo,
+                    'pedido_id' => $pedido->id,
+                    'usuario_id' => auth()->id(),
+                ]);
+            }
+
+            $pedido->update(['estado' => 'en_almacen']);
+        });
+
+        return redirect()->route('almacen.pedidos')->with('success', 'Pedido recibido en almacen correctamente.');
+    }
+
+    public function entregarCliente(Request $request, Pedido $pedido)
+    {
+        $rol = $request->user()->rol->nombre;
+
+        if (! in_array($rol, ['almacenero', 'administrador'], true)) {
+            abort(403, 'Solo el almacenero puede entregar al cliente.');
+        }
+
+        if ($pedido->estado !== 'listo_recoger') {
+            return back()->with('ok', 'El pedido debe estar autorizado para recoger.');
+        }
+
+        DB::transaction(function () use ($pedido) {
+            $pedido->load('productos');
+
+            foreach ($pedido->productos as $pp) {
+                $cantidad = $pp->cantidad_recoge ?? $pp->cantidad;
+                $producto = Producto::where('nombre', $pp->nombre)->first();
+                if (! $producto) continue;
+
+                if ($producto->stock_almacen < $cantidad) {
+                    abort(422, "Stock insuficiente en almacen para {$pp->nombre}.");
+                }
+
+                $producto->decrement('stock_almacen', $cantidad);
+                $producto->refresh();
+
+                MovimientoAlmacen::create([
+                    'producto_id' => $producto->id,
+                    'tipo' => 'salida',
+                    'cantidad' => $cantidad,
+                    'stock_resultante' => $producto->stock_actual,
+                    'concepto' => '[Almacen] Entrega cliente pedido ' . $pedido->codigo,
+                    'pedido_id' => $pedido->id,
+                    'usuario_id' => auth()->id(),
+                ]);
+            }
+
+            $pedido->update(['estado' => 'entregado']);
+        });
+
+        return redirect()->route('almacen.pedidos')->with('success', 'Pedido entregado al cliente correctamente.');
     }
 }

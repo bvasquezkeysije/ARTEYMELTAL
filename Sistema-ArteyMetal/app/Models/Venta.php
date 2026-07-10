@@ -20,6 +20,8 @@ class Venta extends Model
         'monto_total',
         'monto_cobrado',
         'estado_pago',
+        'metodo_pago',
+        'vuelto',
         'observaciones',
         'usuario_id',
         'caja_apertura_id',

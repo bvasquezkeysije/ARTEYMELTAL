@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        @if(!empty($pedido->productos_personalizados))
+        @if($pedido->productos->isNotEmpty())
             <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200">
                 <table class="w-full text-sm">
                     <thead>
@@ -111,22 +111,34 @@
                             <th class="px-3 py-2">#</th>
                             <th class="px-3 py-2">Nombre</th>
                             <th class="px-3 py-2">Descripcion</th>
-                            <th class="px-3 py-2">Materiales</th>
                             <th class="px-3 py-2">Precio uni.</th>
                             <th class="px-3 py-2">Cant.</th>
                             <th class="px-3 py-2">Total</th>
+                            <th class="px-3 py-2">Diseno</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($pedido->productos_personalizados as $idx => $pp)
+                        @foreach($pedido->productos as $idx => $pp)
                             <tr class="border-t border-gray-100">
                                 <td class="px-3 py-2 text-center text-gray-400">{{ $idx + 1 }}</td>
-                                <td class="px-3 py-2 font-medium text-gray-900">{{ $pp['nombre'] ?? '-' }}</td>
-                                <td class="px-3 py-2 text-gray-700">{{ $pp['descripcion'] ?? '-' }}</td>
-                                <td class="px-3 py-2 text-gray-700">{{ $pp['materiales'] ?? '-' }}</td>
-                                <td class="px-3 py-2 text-gray-700">S/ {{ number_format((float) ($pp['precio_unitario'] ?? 0), 2) }}</td>
-                                <td class="px-3 py-2 text-gray-700">{{ $pp['cantidad'] ?? 0 }}</td>
-                                <td class="px-3 py-2 font-semibold text-gray-900">S/ {{ number_format(((float) ($pp['precio_unitario'] ?? 0)) * ((int) ($pp['cantidad'] ?? 0)), 2) }}</td>
+                                <td class="px-3 py-2 font-medium text-gray-900">{{ $pp->nombre }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $pp->descripcion ?? '-' }}</td>
+                                <td class="px-3 py-2 text-gray-700">S/ {{ number_format((float) $pp->precio_unitario, 2) }}</td>
+                                <td class="px-3 py-2 text-gray-700">{{ $pp->cantidad }}</td>
+                                <td class="px-3 py-2 font-semibold text-gray-900">S/ {{ number_format((float) $pp->total, 2) }}</td>
+                                <td class="px-3 py-2">
+                                    @if($pp->archivos->isNotEmpty())
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($pp->archivos as $a)
+                                                <a href="{{ asset('storage/' . $a->archivo_path) }}" target="_blank" class="inline-flex items-center rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-100" title="{{ $a->nombre_original }}">
+                                                    {{ str($a->nombre_original)->limit(15) }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -220,7 +232,24 @@
         @php $rol = auth()->user()->rol->nombre; @endphp
 
         <div class="mt-6 flex flex-wrap gap-2">
-            @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_almacen' && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+                <form method="POST" action="{{ route('pedidos.autorizar_recoger', $pedido) }}" onsubmit="return confirm('Cobrar saldo y habilitar recoger en almacen? Se emitira comprobante.')">
+                    @csrf
+                    <div class="flex items-center gap-2">
+                        <select name="metodo_pago" required class="rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900">
+                            <option value="">Metodo pago</option>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="yape">Yape</option>
+                            <option value="plin">Plin</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                        <input type="number" name="vuelto" placeholder="Vuelto" step="0.01" min="0" class="rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 w-24" />
+                        <button type="submit" class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700">Cobrar y autorizar recoger</button>
+                    </div>
+                </form>
+            @endif
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_tienda', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                 <form method="POST" action="{{ route('pedidos.confirmar_pago_final', $pedido) }}" onsubmit="return confirm('Confirmar pago final y cerrar este pedido? Se registrara automaticamente en ventas.')">
                     @csrf
                     <button type="submit" class="rounded-xl border border-emerald-300 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Cobrar saldo y cerrar pedido</button>
@@ -244,6 +273,12 @@
                 <form method="POST" action="{{ route('pedidos.recibir_almacen', $pedido) }}" onsubmit="return confirm('Registrar entrada de este pedido en el almacen?')">
                     @csrf
                     <button type="submit" class="rounded-xl border border-sky-400 px-4 py-2.5 text-sm font-medium text-sky-700 hover:bg-sky-50">Registrar entrada en almacen</button>
+                </form>
+            @endif
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_tienda')
+                <form method="POST" action="{{ route('pedidos.llegada_tienda', $pedido) }}" onsubmit="return confirm('Confirmar llegada del pedido a tienda?')">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-emerald-400 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Registrar llegada a tienda</button>
                 </form>
             @endif
             <a href="{{ route('pedidos.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Volver</a>
@@ -272,11 +307,12 @@
                                         <option value="registrado" @selected(old('estado', $pedido->estado) === 'registrado')>Registrado</option>
                                     @endif
                                     <option value="en_produccion" @selected(old('estado', $pedido->estado) === 'en_produccion')>En produccion</option>
-                                    <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
-                                    @if(in_array($rol, ['administrador', 'vendedor'], true))
-                                        <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
-                                        <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
-                                    @endif
+                                        <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
+                                        @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                            <option value="listo_recoger" @selected(old('estado', $pedido->estado) === 'listo_recoger')>Listo recoger</option>
+                                            <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
+                                            <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
+                                        @endif
                                 </select>
                             </div>
                         @endif

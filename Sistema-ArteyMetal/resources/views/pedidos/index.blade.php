@@ -39,7 +39,7 @@
         }
     </style>
 
-    <div x-data="{ modalPedido: false, pedidoVista: null, filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? collect())->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }}, showSuccess: {{ session()->has('ok') ? 'true' : 'false' }}, showErrors: {{ $errors->any() ? 'true' : 'false' }}, errorMessages: @js($errors->any() ? $errors->all() : []) }" class="space-y-3">
+    <div x-data="{ modalPedido: false, pedidoVista: null, modalCobro: false, cobroData: null, modalDerivar: false, derivarData: null, metodoPago: 'efectivo', montoRecibido: 0, filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? collect())->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }}, showSuccess: {{ session()->has('ok') ? 'true' : 'false' }}, showErrors: {{ $errors->any() ? 'true' : 'false' }}, errorMessages: @js($errors->any() ? $errors->all() : []) }" class="space-y-3">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -94,6 +94,7 @@
                         <option value="listo_entrega" @selected($filtroEstado === 'listo_entrega')>Listo para entrega</option>
                         <option value="en_transporte" @selected($filtroEstado === 'en_transporte')>En transporte</option>
                         <option value="en_almacen" @selected($filtroEstado === 'en_almacen')>En almacen</option>
+                        <option value="listo_recoger" @selected($filtroEstado === 'listo_recoger')>Listo recoger</option>
                         <option value="entregado" @selected($filtroEstado === 'entregado')>Entregado</option>
                         <option value="cancelado" @selected($filtroEstado === 'cancelado')>Cancelado</option>
                     </select>
@@ -144,7 +145,6 @@
                                 $saldoPendiente = (float) ($pedido->monto_saldo ?? 0);
                                 $montoCancelado = max(0, $montoTotal - $saldoPendiente);
                                 $porcentajeCancelado = $montoTotal > 0 ? min(100, round(($montoCancelado / $montoTotal) * 100, 2)) : 0;
-                                $materiales = $pedido->materiales ? json_decode(json_encode($pedido->materiales), true) : [];
                                 $pedidoVistaData = [
                                     'codigo' => $pedido->codigo,
                                     'nombre_producto' => $pedido->nombre_producto ?: '-',
@@ -154,9 +154,18 @@
                                     'telefono_cliente' => $pedido->telefono_cliente ?: '-',
                                     'documento_cliente' => $pedido->documento_cliente ?: '-',
                                     'correo_cliente' => $pedido->correo_cliente ?: '-',
-                                    'cantidad' => $pedido->cantidad,
-                                    'materiales' => $materiales,
-                                    'productos_personalizados' => $pedido->productos_personalizados ?? [],
+                                    'cantidad' => $pedido->productos->isNotEmpty() ? $pedido->productos->sum('cantidad') : $pedido->cantidad,
+                                    'productos' => $pedido->productos->map(fn($pp) => [
+                                        'nombre' => $pp->nombre,
+                                        'descripcion' => $pp->descripcion ?? '-',
+                                        'precio_unitario' => (float) $pp->precio_unitario,
+                                        'cantidad' => $pp->cantidad,
+                                        'total' => (float) $pp->total,
+                                        'archivos' => $pp->archivos->map(fn($a) => [
+                                            'nombre_original' => $a->nombre_original,
+                                            'url' => asset('storage/' . $a->archivo_path),
+                                        ]),
+                                    ])->toArray(),
                                     'estado' => str_replace('_', ' ', $pedido->estado),
                                     'estado_pago' => str_replace('_', ' ', $pedido->estado_pago ?? 'pendiente_adelanto'),
                                     'estado_personalizacion' => str_replace('_', ' ', $pedido->estado_personalizacion ?? 'sin_iniciar'),
@@ -174,6 +183,14 @@
                                     'porcentaje_cancelado' => number_format($porcentajeCancelado, 2) . '%',
                                     'detalle_trabajo' => $pedido->detalle_trabajo ?: '-',
                                     'observaciones' => $pedido->observaciones ?: '-',
+                                    'cobro_url' => route('pedidos.confirmar_pago_final', $pedido),
+                                    'monto_total_raw' => (float) ($pedido->monto_total ?? 0),
+                                    'monto_adelanto_raw' => (float) ($pedido->monto_adelanto ?? 0),
+                                    'monto_saldo_raw' => (float) ($pedido->monto_saldo ?? 0),
+                                    'tipo_pago' => $pedido->tipo_pago ?? 'dos_partes',
+                                    'derivar_url' => route('pedidos.derivar', $pedido),
+                                    'estado_personalizacion_raw' => $pedido->estado_personalizacion ?? 'sin_iniciar',
+                                    'estado_raw' => $pedido->estado,
                                 ];
                             @endphp
                             <tr>
@@ -184,8 +201,16 @@
                                         <p class="text-xs text-[#6e6e6e]">Cliente catalogo #{{ $pedido->cliente->id }}</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->nombre_producto ?: $pedido->tipo_producto }}</td>
-                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->cantidad }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">
+                                    @php
+                                        $prodText = $pedido->nombre_producto ?: $pedido->tipo_producto;
+                                        if ($pedido->productos->isNotEmpty()) {
+                                            $prodText = $pedido->productos->pluck('nombre')->implode(', ');
+                                        }
+                                    @endphp
+                                    {{ $prodText }}
+                                </td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->productos->isNotEmpty() ? $pedido->productos->sum('cantidad') : $pedido->cantidad }}</td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-medium text-[#6a5122]">{{ str_replace('_', ' ', $pedido->estado) }}</span>
                                 </td>
@@ -203,11 +228,21 @@
                                 <td class="px-4 py-3 text-[#4a4026]">{{ optional($pedido->fecha_entrega_compromiso)->format('d/m/Y') ?? '-' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
-                                        @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_almacen', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
-                                            <form method="POST" action="{{ route('pedidos.confirmar_pago_final', $pedido) }}" onsubmit="return confirm('Confirmar pago final y cerrar este pedido? Se registrara automaticamente en ventas.')">
-                                                @csrf
-                                                <button type="submit" class="rounded-lg border border-emerald-300 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50">Cobrar 50% y cerrar</button>
-                                            </form>
+                                        @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+                                            <button type="button"
+                                                @click="cobroData = @js($pedidoVistaData); modalCobro = true"
+                                                class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700"
+                                                title="Cobrar 50%">
+                                                <img src="{{ asset('icons/cobro-blanco.png') }}" class="h-4 w-4 object-contain pointer-events-none" alt="Cobrar">
+                                            </button>
+                                        @endif
+                                        @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                            <button type="button"
+                                                @click="derivarData = @js($pedidoVistaData); modalDerivar = true"
+                                                class="btn-icon-sm" style="background-color:#7c3aed"
+                                                title="Derivar">
+                                                <img src="{{ asset('icons/Derivar-Blanco.png') }}" class="h-4 w-4 object-contain pointer-events-none" alt="Derivar">
+                                            </button>
                                         @endif
                                         @if(auth()->user()->tienePermiso('pedidos.ver'))
                                             <button
@@ -297,28 +332,7 @@
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Cantidad</p>
                         <p class="mt-1 text-[#1f1f1f]" x-text="pedidoVista?.cantidad"></p>
                     </div>
-                    <div class="md:col-span-2" x-show="pedidoVista?.materiales?.length">
-                        <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Materiales</p>
-                        <div class="mt-2 overflow-hidden rounded-xl border border-[#e9dec2]">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-[#faf6ea] text-left text-[#5a4a2a]">
-                                    <tr>
-                                        <th class="px-3 py-2 font-semibold">Material</th>
-                                        <th class="px-3 py-2 font-semibold">Cantidad</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-[#efeee9]">
-                                    <template x-for="(mat, idx) in (pedidoVista?.materiales || [])" :key="idx">
-                                        <tr>
-                                            <td class="px-3 py-2 text-[#4a4026]" x-text="mat.nombre"></td>
-                                            <td class="px-3 py-2 text-[#4a4026]" x-text="mat.cantidad"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="md:col-span-2" x-show="pedidoVista?.productos_personalizados?.length">
+                    <div class="md:col-span-2" x-show="pedidoVista?.productos?.length">
                         <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Productos personalizados</p>
                         <div class="mt-2 overflow-x-auto rounded-xl border border-[#e9dec2]">
                             <table class="min-w-full text-sm">
@@ -327,22 +341,33 @@
                                         <th class="px-3 py-2 font-semibold">#</th>
                                         <th class="px-3 py-2 font-semibold">Nombre</th>
                                         <th class="px-3 py-2 font-semibold">Descripcion</th>
-                                        <th class="px-3 py-2 font-semibold">Materiales</th>
                                         <th class="px-3 py-2 font-semibold">P.Unit</th>
                                         <th class="px-3 py-2 font-semibold">Cant</th>
                                         <th class="px-3 py-2 font-semibold">Total</th>
+                                        <th class="px-3 py-2 font-semibold">Diseno</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#efeee9]">
-                                    <template x-for="(pp, idx) in (pedidoVista?.productos_personalizados || [])" :key="idx">
+                                    <template x-for="(pp, idx) in (pedidoVista?.productos || [])" :key="idx">
                                         <tr>
                                             <td class="px-3 py-2 text-center text-[#8a7a5a]" x-text="idx + 1"></td>
                                             <td class="px-3 py-2 font-medium text-[#4a4026]" x-text="pp.nombre"></td>
                                             <td class="px-3 py-2 text-[#4a4026]" x-text="pp.descripcion || '-'"></td>
-                                            <td class="px-3 py-2 text-[#4a4026]" x-text="pp.materiales || '-'"></td>
                                             <td class="px-3 py-2 text-[#4a4026]" x-text="'S/ ' + (Number(pp.precio_unitario) || 0).toFixed(2)"></td>
                                             <td class="px-3 py-2 text-[#4a4026]" x-text="pp.cantidad"></td>
-                                            <td class="px-3 py-2 font-semibold text-[#4a4026]" x-text="'S/ ' + ((Number(pp.precio_unitario) || 0) * (Number(pp.cantidad) || 0)).toFixed(2)"></td>
+                                            <td class="px-3 py-2 font-semibold text-[#4a4026]" x-text="'S/ ' + (Number(pp.total) || 0).toFixed(2)"></td>
+                                            <td class="px-3 py-2 text-[#4a4026]">
+                                                <template x-if="pp.archivos?.length">
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <template x-for="a in pp.archivos" :key="a.url">
+                                                            <a :href="a.url" target="_blank" class="inline-flex items-center rounded bg-amber-50 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-100" x-text="a.nombre_original.length > 12 ? a.nombre_original.substring(0, 12) + '...' : a.nombre_original"></a>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!pp.archivos?.length">
+                                                    <span class="text-gray-400">-</span>
+                                                </template>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -386,6 +411,153 @@
                 </div>
             </div>
             </div>
+            </div>
+        </template>
+
+        {{-- Modal cobrar 50% y cerrar --}}
+        <template x-teleport="body">
+            <div x-show="modalCobro" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="modalCobro = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-lg rounded-2xl border border-[#e5dec8] bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-[#efe7d2] px-5 py-3">
+                            <div class="flex items-center gap-2">
+                                <img src="{{ asset('icons/cobro-blanco.png') }}" class="h-5 w-5" alt="">
+                                <h3 class="text-base font-semibold text-[#2a2419]">Cobrar 50%</h3>
+                            </div>
+                            <button type="button" @click="modalCobro = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </button>
+                        </div>
+
+                        <div class="p-5 space-y-4" x-show="cobroData">
+                            <div class="grid gap-3 md:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Cliente</p>
+                                    <p class="mt-1 text-sm text-[#1f1f1f]" x-text="cobroData?.nombre_cliente"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Codigo</p>
+                                    <p class="mt-1 text-sm text-[#1f1f1f]" x-text="cobroData?.codigo"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Monto total</p>
+                                    <p class="mt-1 text-sm text-[#1f1f1f]" x-text="cobroData?.monto_total"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Adelanto pagado</p>
+                                    <p class="mt-1 text-sm text-[#1f1f1f]" x-text="cobroData?.monto_cancelado"></p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Forma de pago</p>
+                                    <p class="mt-1 text-sm font-semibold text-[#1f1f1f]" x-text="cobroData?.tipo_pago === 'contado' ? 'Contado (100%)' : 'En 2 Partes (50% + 50%)'"></p>
+                                </div>
+                                <div class="md:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                                    <p class="text-xs uppercase tracking-[0.2em] text-emerald-700">A cobrar ahora</p>
+                                    <p class="mt-1 text-xl font-bold text-emerald-800" x-text="'S/ ' + (cobroData?.monto_saldo_raw || 0).toFixed(2)"></p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="mb-2 text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Metodo de pago</p>
+                                <div class="flex flex-wrap gap-3">
+                                    <label class="flex cursor-pointer items-center gap-2">
+                                        <input type="radio" name="metodo_pago_modal" value="efectivo" x-model="metodoPago" class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm text-gray-700">Efectivo</span>
+                                    </label>
+                                    <label class="flex cursor-pointer items-center gap-2">
+                                        <input type="radio" name="metodo_pago_modal" value="yape" x-model="metodoPago" class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm text-gray-700">Yape</span>
+                                    </label>
+                                    <label class="flex cursor-pointer items-center gap-2">
+                                        <input type="radio" name="metodo_pago_modal" value="plin" x-model="metodoPago" class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm text-gray-700">Plin</span>
+                                    </label>
+                                    <label class="flex cursor-pointer items-center gap-2">
+                                        <input type="radio" name="metodo_pago_modal" value="tarjeta" x-model="metodoPago" class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm text-gray-700">Tarjeta</span>
+                                    </label>
+                                    <label class="flex cursor-pointer items-center gap-2">
+                                        <input type="radio" name="metodo_pago_modal" value="transferencia" x-model="metodoPago" class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500">
+                                        <span class="text-sm text-gray-700">Transferencia</span>
+                                    </label>
+                                </div>
+                                <div x-show="metodoPago === 'efectivo'" style="display: none;" class="grid grid-cols-2 gap-3 mt-2">
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium text-gray-600">Monto recibido</label>
+                                        <input type="number" step="0.01" min="0" x-model="montoRecibido"
+                                               class="block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900"
+                                               placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium text-gray-600">Vuelto</label>
+                                        <p class="mt-2 text-lg font-bold text-emerald-700" x-text="'S/ ' + Math.max(0, Number(montoRecibido) - Number(cobroData?.monto_saldo_raw || 0)).toFixed(2)"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form method="POST" x-bind:action="cobroData?.cobro_url">
+                                @csrf
+                                <input type="hidden" name="metodo_pago" x-model="metodoPago">
+                                <input type="hidden" name="monto_recibido" x-model="montoRecibido">
+                                <input type="hidden" name="vuelto" x-model="Math.max(0, Number(montoRecibido) - Number(cobroData?.monto_saldo_raw || 0)).toFixed(2)">
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" @click="modalCobro = false" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                        <img src="{{ asset('icons/cobro-blanco.png') }}" class="h-4 w-4" alt="">
+                                        Confirmar pago
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal Derivar --}}
+        <template x-teleport="body">
+            <div x-show="modalDerivar" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="modalDerivar = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-[#2a2419]">Derivar pedido</h3>
+                            <button type="button" @click="modalDerivar = false" class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">&times;</button>
+                        </div>
+                        <div class="space-y-3 p-5">
+                            <p class="text-sm text-gray-600" x-text="'Selecciona el destino para el pedido ' + (derivarData?.codigo || '')"></p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <form method="POST" x-bind:action="derivarData?.derivar_url">
+                                    @csrf
+                                    <input type="hidden" name="destino" value="diseno">
+                                    <button type="submit"
+                                        class="flex w-full flex-col items-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-amber-600 hover:bg-amber-700 border-0"
+                                        :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
+                                        <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
+                                        <span>A Diseño</span>
+                                        <span class="text-xs text-amber-200" x-show="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">Ya derivado</span>
+                                    </button>
+                                </form>
+                                <form method="POST" x-bind:action="derivarData?.derivar_url">
+                                    @csrf
+                                    <input type="hidden" name="destino" value="produccion">
+                                    <button type="submit"
+                                        class="flex w-full flex-col items-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 border-0"
+                                        :class="derivarData?.estado_raw !== 'registrado' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :disabled="derivarData?.estado_raw !== 'registrado'">
+                                        <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
+                                        <span>A Producción</span>
+                                        <span class="text-xs text-gray-500" x-show="derivarData?.estado_raw !== 'registrado'">Ya derivado</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </template>
 

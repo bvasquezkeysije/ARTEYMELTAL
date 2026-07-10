@@ -19,8 +19,6 @@ class Pedido extends Model
         'documento_cliente',
         'correo_cliente',
         'tipo_producto',
-        'materiales',
-        'productos_personalizados',
         'tipo_entrega',
         'direccion_entrega',
         'referencia_entrega',
@@ -39,6 +37,7 @@ class Pedido extends Model
         'archivo_diseno_path',
         'observaciones_personalizacion',
         'monto_total',
+        'tipo_pago',
         'estado_pago',
         'monto_adelanto',
         'monto_saldo',
@@ -54,8 +53,6 @@ class Pedido extends Model
         'costo_delivery' => 'decimal:2',
         'monto_adelanto' => 'decimal:2',
         'monto_saldo' => 'decimal:2',
-        'materiales' => 'array',
-        'productos_personalizados' => 'array',
     ];
 
     public function usuario(): BelongsTo
@@ -81,5 +78,10 @@ class Pedido extends Model
     public function ventas(): HasMany
     {
         return $this->hasMany(Venta::class, 'pedido_id');
+    }
+
+    public function productos(): HasMany
+    {
+        return $this->hasMany(PedidoProducto::class, 'pedido_id')->orderBy('orden');
     }
 }

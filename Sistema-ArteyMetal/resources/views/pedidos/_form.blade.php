@@ -6,22 +6,42 @@
     .btn-icon-sm:active { filter: brightness(0.85); }
     .btn-icon-sm:focus, .btn-icon-sm:focus-visible { outline: 0 none !important; }
 </style>
-@php
-    $estados = [
-        'registrado' => 'Registrado',
-        'en_produccion' => 'En produccion',
-        'listo_entrega' => 'Listo para entrega',
-        'entregado' => 'Entregado',
-        'cancelado' => 'Cancelado',
-    ];
-@endphp
-
     <div
         x-data="{
-            monto: '{{ old('monto_total', $pedido->monto_total ?? '') }}',
-            adelanto: '{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}',
+            totalProd() { let t=0; for(let p of this.productos) t+=(Number(p.precio_unitario)||0)*(Number(p.cantidad)||0); return t; },
             tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
-            init() { this.adelanto = (Number(this.monto) * 0.5).toFixed(2); this.$watch('monto', value => { this.adelanto = (Number(value) * 0.5).toFixed(2); }); },
+            metodoPago: '{{ old('metodo_pago', 'efectivo') }}',
+            productos: window._prodData,
+            rowArchivos: window._archData,
+            agregar() {
+                this.productos.push({nombre: '', descripcion: '', precio_unitario: '', cantidad: 1});
+                this.rowArchivos.push([]);
+            },
+            eliminar(i) {
+                if (this.productos.length > 1) {
+                    this.productos.splice(i, 1);
+                    this.rowArchivos.splice(i, 1);
+                }
+            },
+            onRowArchivosChange(i, e) {
+                const nuevos = Array.from(e.target.files || []).map(f => ({ file: f, name: f.name }));
+                this.rowArchivos[i] = [...(this.rowArchivos[i] || []), ...nuevos];
+            },
+            modalIndex: -1,
+            eliminarArchivoRow(i, fi) {
+                const archivos = this.rowArchivos[i] || [];
+                const removed = archivos[fi];
+                if (removed && removed.id) {
+                    fetch('{{ url('pedidos/archivo-producto') }}/' + removed.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }).catch(() => {});
+                }
+                archivos.splice(fi, 1);
+                this.rowArchivos[i] = [...archivos];
+            },
+            abrirVistaPrevia(archivo) {
+                if (archivo.url) { window.open(archivo.url, '_blank'); return; }
+                if (archivo.file) { const url = URL.createObjectURL(archivo.file); window.open(url, '_blank'); setTimeout(() => URL.revokeObjectURL(url), 60000); }
+            },
+
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
         mensajeDocumento: '',
@@ -144,9 +164,9 @@
             </div>
         </div>
     </section>
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
 
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos del Producto</h3>
+        <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos del Producto Personalizado</h3>
         <div class="grid gap-4 md:grid-cols-2">
             <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">Codigo pedido</label>
@@ -157,19 +177,18 @@
                 @endif
             </div>
 
-            <div class="md:col-span-2">
-                <label for="detalle_trabajo" class="mb-2 block text-sm font-medium text-gray-700">Descripcion</label>
-                <textarea id="detalle_trabajo" name="detalle_trabajo" rows="3" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Describe lo que incluye el pedido. Ej: 20 medallas de oro + 10 trofeos de plata">{{ old('detalle_trabajo', $pedido->detalle_trabajo ?? '') }}</textarea>
-                @error('detalle_trabajo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
         </div>
 
-        <div class="mt-4" x-data="{
-            productos: @js(old('productos_personalizados', $pedido->productos_personalizados ?? [['nombre' => '', 'descripcion' => '', 'materiales' => '', 'precio_unitario' => '', 'cantidad' => 1]])),
-            agregar() { this.productos.push({nombre: '', descripcion: '', materiales: '', precio_unitario: '', cantidad: 1}); },
-            eliminar(i) { if (this.productos.length > 1) this.productos.splice(i, 1); },
-            get totalGeneral() { return this.productos.reduce((s, p) => s + ((Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0)), 0); }
-        }">
+        @php
+            $productosExist = isset($pedido) && $pedido->exists ? $pedido->productos : collect();
+            $productosIniciales = old('productos', $productosExist->map(fn($pp) => ['id' => $pp->id, 'nombre' => $pp->nombre, 'descripcion' => $pp->descripcion ?? '', 'precio_unitario' => $pp->precio_unitario ?? '', 'cantidad' => $pp->cantidad ?? 1])->toArray()) ?: [['nombre' => '', 'descripcion' => '', 'precio_unitario' => '', 'cantidad' => 1]];
+            $archivosIniciales = old('productos_archivos', $productosExist->map(fn($pp) => $pp->archivos->map(fn($a) => ['path' => $a->archivo_path, 'name' => $a->nombre_original, 'id' => $a->id, 'url' => asset('storage/' . $a->archivo_path)])->toArray())->toArray()) ?: [];
+            if (empty($archivosIniciales)) {
+                $archivosIniciales = array_fill(0, count($productosIniciales), []);
+            }
+        @endphp
+        <script>window._prodData = @json($productosIniciales); window._archData = @json($archivosIniciales);</script>
+        <div class="mt-4">
             <div class="overflow-x-auto rounded-xl border border-gray-200">
                 <table class="w-full text-sm">
                     <thead>
@@ -177,33 +196,44 @@
                             <th class="px-3 py-2 w-12">#</th>
                             <th class="px-3 py-2">Nombre</th>
                             <th class="px-3 py-2">Descripcion</th>
-                            <th class="px-3 py-2">Materiales</th>
                             <th class="px-3 py-2 w-28">Precio uni.</th>
                             <th class="px-3 py-2 w-20">Cant.</th>
                             <th class="px-3 py-2 w-28">Total</th>
+                            <th class="px-3 py-2 w-24">Diseno</th>
                             <th class="px-3 py-2 w-10"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="(p, i) in productos" :key="i">
                             <tr class="border-t border-gray-100">
+                                <input type="hidden" x-model="p.id" :name="'productos['+i+'][id]'" />
                                 <td class="px-3 py-2 text-center text-gray-400" x-text="i + 1"></td>
                                 <td class="px-3 py-2">
-                                    <input type="text" x-model="p.nombre" :name="'productos_personalizados['+i+'][nombre]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: Medalla" required />
+                                    <input type="text" x-model="p.nombre" :name="'productos['+i+'][nombre]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: Medalla" required />
                                 </td>
                                 <td class="px-3 py-2">
-                                    <input type="text" x-model="p.descripcion" :name="'productos_personalizados['+i+'][descripcion]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: 30mm x 40mm" />
+                                    <input type="text" x-model="p.descripcion" :name="'productos['+i+'][descripcion]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: 30mm x 40mm" />
                                 </td>
                                 <td class="px-3 py-2">
-                                    <input type="text" x-model="p.materiales" :name="'productos_personalizados['+i+'][materiales]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="Ej: Oro 18k" />
+                                    <input type="number" step="0.01" min="0" x-model="p.precio_unitario" :name="'productos['+i+'][precio_unitario]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="0.00" required />
                                 </td>
                                 <td class="px-3 py-2">
-                                    <input type="number" step="0.01" min="0" x-model="p.precio_unitario" :name="'productos_personalizados['+i+'][precio_unitario]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="0.00" required />
-                                </td>
-                                <td class="px-3 py-2">
-                                    <input type="number" min="1" x-model="p.cantidad" :name="'productos_personalizados['+i+'][cantidad]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="1" required />
+                                    <input type="number" min="1" x-model="p.cantidad" :name="'productos['+i+'][cantidad]'" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" placeholder="1" required />
                                 </td>
                                 <td class="px-3 py-2 font-semibold text-gray-700" x-text="'S/ ' + ((Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0)).toFixed(2)"></td>
+                                <td class="px-3 py-2">
+                                    <div class="flex gap-1">
+                                        <input type="file" :id="'pp_archivos_'+i" :name="'productos_archivos['+i+'][]'" multiple accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar" @change="onRowArchivosChange(i, $event)" class="hidden" />
+                                        <label :for="'pp_archivos_'+i" class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 hover:border-[#d1be8a] hover:text-[#5a4314]">
+                                            <svg class="mr-1 h-3.5 w-3.5" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                            Subir
+                                        </label>
+                                        <button type="button" @click="modalIndex = i" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 hover:border-[#d1be8a] hover:text-[#5a4314]">
+                                            <svg class="mr-1 h-3.5 w-3.5" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            Ver detalle
+                                        </button>
+                                    </div>
+                                </td>
                                 <td class="px-3 py-2">
                                     <button type="button" @click="eliminar(i)" x-show="productos.length > 1" class="btn-icon bg-red-600 hover:bg-red-700" title="Eliminar">
                                         <img src="{{ asset('icons/eliminar-desactivar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
@@ -216,156 +246,177 @@
             </div>
             <div class="mt-2 flex items-center justify-between">
                 <button type="button" @click="agregar()" class="rounded-lg border border-[#d1be8a] px-3 py-1.5 text-xs font-medium text-[#5a4314] hover:bg-[#fff5dd]">+ Agregar producto</button>
-                <p class="text-xs font-semibold text-gray-700">Total productos: <span class="text-amber-800" x-text="'S/ ' + totalGeneral.toFixed(2)"></span></p>
+                <p class="text-xs font-semibold text-gray-700">Total productos: <span class="text-amber-800" x-text="'S/ ' + totalProd().toFixed(2)"></span></p>
             </div>
-            @error('productos_personalizados') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+            @error('productos') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+
+            <div x-show="modalIndex >= 0" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @click.self="modalIndex = -1">
+                    <div class="mx-4 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-gray-700">Disenos - Producto <span x-text="modalIndex + 1"></span></h3>
+                            <button type="button" @click="modalIndex = -1" class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">&times;</button>
+                        </div>
+                        <div class="max-h-80 space-y-2 overflow-y-auto">
+                            <template x-for="(archivo, fi) in (rowArchivos[modalIndex] || [])" :key="fi">
+                                <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50">
+                                    <div class="flex min-w-0 flex-1 items-center gap-2">
+                                        <svg class="h-5 w-5 flex-shrink-0 text-amber-600" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        <span class="cursor-pointer truncate text-sm text-amber-800 hover:text-amber-950" x-text="archivo.name" @click="abrirVistaPrevia(archivo)" title="Vista previa"></span>
+                                    </div>
+                                    <div class="flex flex-shrink-0 gap-1">
+                                        <button type="button" @click="abrirVistaPrevia(archivo)" class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-amber-700" title="Vista previa">
+                                            <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        <button type="button" @click="eliminarArchivoRow(modalIndex, fi)" class="flex h-7 w-7 items-center justify-center rounded-md text-red-400 hover:bg-red-50 hover:text-red-600" title="Eliminar">
+                                            <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <p x-show="!(rowArchivos[modalIndex] || []).length" class="py-6 text-center text-sm text-gray-400">No hay archivos subidos para este producto.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-4">
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Resumen de Montos</h3>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
+                    <span class="text-amber-800" id="monto-total-val">S/ 0.00</span>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
+                    <span class="text-amber-800" id="adelanto-val">S/ 0.00</span>
+                    <p class="mt-2 text-xs text-gray-500">Saldo pendiente: S/ <span class="font-semibold" id="saldo-val">0.00</span></p>
+                </div>
+            </div>
         </div>
 
-        <section class="mt-4 rounded-xl border border-gray-200 bg-white p-3">
-            <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Modelo / Diseno</h4>
-        <div x-data="{
-            files: [],
-            previewFile: null,
-            previewUrl: null,
-            onFileChange(e) {
-                this.files = Array.from(e.target.files || []).map(f => ({ file: f, name: f.name, size: f.size, type: f.type }));
-            },
-            removeFile(i) {
-                const input = this.$refs.fileInput;
-                const dt = new DataTransfer();
-                const arr = Array.from(input.files);
-                arr.splice(i, 1);
-                arr.forEach(f => dt.items.add(f));
-                input.files = dt.files;
-                this.files = Array.from(input.files).map(f => ({ file: f, name: f.name, size: f.size, type: f.type }));
-            },
-            abrirVistaPrevia(file) {
-                if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
-                this.previewFile = file;
-                this.previewUrl = URL.createObjectURL(file.file);
-            },
-            cerrarVistaPrevia() {
-                if (this.previewUrl) { URL.revokeObjectURL(this.previewUrl); this.previewUrl = null; }
-                this.previewFile = null;
-            },
-            esImagen(file) {
-                return ['image/jpeg','image/png','image/svg+xml','image/gif','image/webp'].includes(file.type);
-            },
-            esPdf(file) {
-                return file.type === 'application/pdf';
-            }
-        }">
-            <input
-                id="archivos_modelo"
-                x-ref="fileInput"
-                name="archivos_modelo[]"
-                type="file"
-                multiple
-                accept=".cdr,.pdf,.jpg,.jpeg,.png,.ai,.eps,.svg,.dxf,.dwg,.step,.stp,.3dm,.stl,.obj,.fbx,.zip,.rar"
-                @change="onFileChange($event)"
-                class="hidden"
-            />
-            <div class="grid gap-4" style="grid-template-columns: 2fr 3fr; min-height: 200px;">
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                    <label for="archivos_modelo" class="flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
-                        <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-                        </svg>
-                        <p class="text-sm font-medium">Elegir archivos</p>
-                        <p class="mt-1 text-xs">CDR, PDF, JPG, PNG, AI, EPS y mas</p>
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-4">
+            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Forma de Pago</h3>
+            <div class="space-y-3">
+                <div class="flex gap-6">
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input type="radio" name="tipo_pago" value="dos_partes"
+                               class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                               @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'dos_partes')>
+                        <span class="text-sm text-gray-700">En 2 Partes (50% + 50%)</span>
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input type="radio" name="tipo_pago" value="contado"
+                               class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                               @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'contado')>
+                        <span class="text-sm text-gray-700">Contado (100%)</span>
                     </label>
                 </div>
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 flex flex-col h-full min-h-0">
-                    <p class="mb-2 shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos seleccionados <span class="font-normal text-gray-400">(max 10)</span></p>
-                    <div class="flex-1 overflow-y-auto space-y-1 min-h-0">
-                        <template x-for="(file, i) in files" :key="i">
-                            <div class="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
-                                <span class="cursor-pointer truncate text-gray-700 hover:text-amber-700" x-text="file.name" @click="abrirVistaPrevia(file)"></span>
-                                <button type="button" @click="removeFile(i)" class="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-red-500 hover:bg-red-100 hover:text-red-700" title="Quitar archivo">
-                                    <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                            </div>
-                        </template>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-600">Metodo de pago</label>
+                    <div class="flex flex-wrap gap-3">
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="metodo_pago" value="efectivo"
+                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                   @change="metodoPago = 'efectivo'"
+                                   @checked(old('metodo_pago', 'efectivo') === 'efectivo')>
+                            <span class="text-sm text-gray-700">Efectivo</span>
+                        </label>
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="metodo_pago" value="yape"
+                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                   @change="metodoPago = 'yape'"
+                                   @checked(old('metodo_pago', 'efectivo') === 'yape')>
+                            <span class="text-sm text-gray-700">Yape</span>
+                        </label>
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="metodo_pago" value="plin"
+                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                   @change="metodoPago = 'plin'"
+                                   @checked(old('metodo_pago', 'efectivo') === 'plin')>
+                            <span class="text-sm text-gray-700">Plin</span>
+                        </label>
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="metodo_pago" value="tarjeta"
+                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                   @change="metodoPago = 'tarjeta'"
+                                   @checked(old('metodo_pago', 'efectivo') === 'tarjeta')>
+                            <span class="text-sm text-gray-700">Tarjeta</span>
+                        </label>
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input type="radio" name="metodo_pago" value="transferencia"
+                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                   @change="metodoPago = 'transferencia'"
+                                   @checked(old('metodo_pago', 'efectivo') === 'transferencia')>
+                            <span class="text-sm text-gray-700">Transferencia</span>
+                        </label>
                     </div>
-                    <p x-show="files.length === 0" class="py-4 text-center text-sm text-gray-400">Ningun archivo seleccionado</p>
-                </div>
-            </div>
-
-            <template x-teleport="body">
-                <div x-show="previewFile" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="cerrarVistaPrevia()" x-cloak>
-                    <div class="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl">
-                        <button type="button" @click="cerrarVistaPrevia()" class="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-600 shadow hover:bg-white hover:text-gray-900">
-                            <svg class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                        <template x-if="previewFile && esImagen(previewFile)">
-                            <img :src="previewUrl" class="max-h-[80vh] w-full rounded-xl object-contain" />
-                        </template>
-                        <template x-if="previewFile && esPdf(previewFile)">
-                            <iframe :src="previewUrl" class="h-[80vh] w-full rounded-xl"></iframe>
-                        </template>
-                        <template x-if="previewFile && !esImagen(previewFile) && !esPdf(previewFile)">
-                            <div class="flex flex-col items-center justify-center py-16 text-center">
-                                <svg class="mb-4 h-16 w-16 text-gray-300" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <p class="text-lg font-medium text-gray-700" x-text="previewFile.name"></p>
-                                <p class="mt-1 text-sm text-gray-500">Tipo: <span class="font-medium" x-text="previewFile.type || 'Desconocido'"></span></p>
-                                <p class="text-sm text-gray-500">Tamano: <span class="font-medium" x-text="(previewFile.size / 1024).toFixed(1) + ' KB'"></span></p>
-                                <p class="mt-4 text-xs text-gray-400">Vista previa no disponible para este tipo de archivo</p>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-        </div>
-        <p class="mt-2 text-xs text-gray-500">Sube hasta 10 archivos.</p>
-        @error('archivos_modelo') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-        @error('archivos_modelo.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-
-            @if(isset($pedido) && $pedido->exists)
-                <div class="mt-4">
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos subidos</p>
-                    @if($pedido->archivosDiseno->isNotEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($pedido->archivosDiseno as $archivo)
-                                <a href="{{ asset('storage/' . $archivo->archivo_path) }}" target="_blank" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
-                                    {{ $archivo->nombre_original }}
-                                </a>
-                            @endforeach
+                    <div id="vuelto-section" style="display: none;" class="mt-2 grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="monto-recibido" class="mb-1 block text-sm font-medium text-gray-600">Monto recibido</label>
+                            <input type="number" step="0.01" min="0" name="monto_recibido" id="monto-recibido"
+                                   class="block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900"
+                                   placeholder="0.00">
                         </div>
-                    @else
-                        <p class="text-sm text-gray-500">Sin archivos de diseno.</p>
-                    @endif
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-600">Vuelto</label>
+                            <p class="mt-2 text-lg font-bold text-emerald-700" id="vuelto-val">S/ 0.00</p>
+                            <input type="hidden" name="vuelto" id="vuelto-input" value="0">
+                        </div>
+                    </div>
                 </div>
-            @endif
-        </div>
-    </section>
-
-        <div class="grid gap-4 md:grid-cols-2 mt-4">
-            <div>
-                <label for="estado" class="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-                <select id="estado" name="estado" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
-                    @foreach ($estados as $valor => $etiqueta)
-                        <option value="{{ $valor }}" @selected(old('estado', $pedido->estado ?? 'registrado') === $valor)>{{ $etiqueta }}</option>
-                    @endforeach
-                </select>
-                @error('estado') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="monto_total" class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
-                <input id="monto_total" x-model="monto" name="monto_total" type="number" step="0.01" min="0" value="{{ old('monto_total', $pedido->monto_total ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
-                @error('monto_total') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label for="monto_adelanto" class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
-                <input id="monto_adelanto" x-model="adelanto" name="monto_adelanto" type="number" step="0.01" min="0.01" value="{{ old('monto_adelanto', $pedido->monto_adelanto ?? '') }}" required readonly class="block w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-700" placeholder="0.00" />
-                <p class="mt-2 text-xs text-gray-500">El adelanto es automatico (50% del total). Saldo pendiente: <span class="font-semibold" x-text="'S/ ' + Math.max(0, Number(monto || 0) - Number(adelanto || 0)).toFixed(2)"></span></p>
-                @error('monto_adelanto') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
 
-    </section>
+        <script>
+            (function() {
+                function calcularVuelto(adelanto) {
+                    var rec = document.getElementById('monto-recibido');
+                    var vEl = document.getElementById('vuelto-val');
+                    var vIn = document.getElementById('vuelto-input');
+                    if (!rec || !vEl || !vIn) return;
+                    var recibido = Number(rec.value) || 0;
+                    var vuelto = Math.max(0, recibido - adelanto);
+                    vEl.textContent = 'S/ ' + vuelto.toFixed(2);
+                    vIn.value = vuelto.toFixed(2);
+                }
+                function actualizarMontos() {
+                    var t = 0;
+                    (window._prodData || []).forEach(function(p) {
+                        t += (Number(p.precio_unitario) || 0) * (Number(p.cantidad) || 0);
+                    });
+                    var radio = document.querySelector('input[name="tipo_pago"]:checked');
+                    var esContado = radio && radio.value === 'contado';
+                    var adelanto = esContado ? t : t * 0.5;
+                    var saldo = t - adelanto;
+                    var el1 = document.getElementById('monto-total-val');
+                    var el2 = document.getElementById('adelanto-val');
+                    var el3 = document.getElementById('saldo-val');
+                    if (el1) el1.textContent = 'S/ ' + t.toFixed(2);
+                    if (el2) el2.textContent = 'S/ ' + adelanto.toFixed(2);
+                    if (el3) el3.textContent = saldo.toFixed(2);
+                    calcularVuelto(adelanto);
+                }
+                function toggleVueltoSection() {
+                    var sel = document.querySelector('input[name="metodo_pago"]:checked');
+                    var section = document.getElementById('vuelto-section');
+                    if (!section) return;
+                    section.style.display = sel && sel.value === 'efectivo' ? '' : 'none';
+                }
+                document.addEventListener('input', actualizarMontos);
+                document.querySelectorAll('input[name="metodo_pago"]').forEach(function(r) {
+                    r.addEventListener('change', function() { actualizarMontos(); toggleVueltoSection(); });
+                });
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() { actualizarMontos(); toggleVueltoSection(); });
+                } else {
+                    actualizarMontos();
+                    toggleVueltoSection();
+                }
+            })();
+        </script>
 
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos de Entrega</h3>
         <div class="grid gap-4 md:grid-cols-2">
             <div>
@@ -429,7 +480,7 @@
         </div>
     </section>
 
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Orden de Compra (Opcional)</h3>
         <div class="space-y-4">
             <div x-data="{ archivosSeleccionados: null }">
@@ -478,7 +529,7 @@
         </div>
     </section>
 
-    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+    <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Observaciones</h3>
         <div>
             <label for="observaciones" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
