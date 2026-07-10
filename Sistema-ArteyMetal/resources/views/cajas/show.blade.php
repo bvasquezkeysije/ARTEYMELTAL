@@ -33,12 +33,20 @@
                     <p class="mt-1 text-gray-900">S/ {{ number_format($cajaApertura->total_ventas, 2) }}</p>
                 </div>
                 <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
+                    <p class="mt-1 text-gray-900">{{ $cantidadVentas }} ventas</p>
+                </div>
+                <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo</p>
                     <p class="mt-1 text-emerald-700 font-medium">S/ {{ number_format($totalEfectivoVentas, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Digital</p>
                     <p class="mt-1 text-sky-700 font-medium">S/ {{ number_format($totalDigitalVentas, 2) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
+                    <p class="mt-1 text-amber-700 font-medium">S/ {{ number_format($totalVuelto, 2) }}</p>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto final</p>
