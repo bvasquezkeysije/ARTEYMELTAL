@@ -291,9 +291,11 @@
                 >
                     <img src="{{ asset('icons/gestionar-categorias.png') }}" alt="Categorias" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
+                @if(in_array(auth()->user()->rol?->nombre, ['administrador', 'almacenero'], true))
                 <a href="{{ route('productos.create') }}" class="btn-icon" style="background-color:#09090f;color:white" title="Nuevo producto">
                     <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />
                 </a>
+                @endif
             </div>
 
             <form x-show="filtrosAbiertos" x-transition method="GET" action="{{ route('productos.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
