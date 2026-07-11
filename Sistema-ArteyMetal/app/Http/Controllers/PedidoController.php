@@ -24,17 +24,22 @@ class PedidoController extends Controller
 
     public function index()
     {
-        $cajaAperturaId = session('pedido_caja_apertura_id');
+        $scope = request('scope', 'mis_pedidos');
 
-        if (! $cajaAperturaId) {
-            return $this->redirectToCajaSelection();
-        }
+        $caja = null;
+        $cajasAbiertas = collect();
+        $sinCaja = false;
 
-        $caja = CajaApertura::find($cajaAperturaId);
+        if ($scope !== 'todas') {
+            $cajaAperturaId = session('pedido_caja_apertura_id');
 
-        if (! $caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
-            session()->forget('pedido_caja_apertura_id');
-            return $this->redirectToCajaSelection();
+            if ($cajaAperturaId) {
+                $caja = CajaApertura::find($cajaAperturaId);
+                if (!$caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
+                    session()->forget('pedido_caja_apertura_id');
+                    $caja = null;
+                }
+            }
         }
 
         $busqueda = request('q');
@@ -43,11 +48,16 @@ class PedidoController extends Controller
 
         $pedidos = Pedido::query()
             ->with('cliente', 'productos.archivos')
+            ->when($scope === 'mis_pedidos', function ($query) {
+                $query->where('usuario_id', auth()->id());
+            })
             ->when($busqueda, function ($query) use ($busqueda) {
-                $query->where('codigo', 'like', "%{$busqueda}%")
-                    ->orWhere('nombre_cliente', 'like', "%{$busqueda}%")
-                    ->orWhere('tipo_producto', 'like', "%{$busqueda}%")
-                    ->orWhere('estado', 'like', "%{$busqueda}%");
+                $query->where(function ($q) use ($busqueda) {
+                    $q->where('codigo', 'like', "%{$busqueda}%")
+                        ->orWhere('nombre_cliente', 'like', "%{$busqueda}%")
+                        ->orWhere('tipo_producto', 'like', "%{$busqueda}%")
+                        ->orWhere('estado', 'like', "%{$busqueda}%");
+                });
             })
             ->when($filtroEstado, function ($query) use ($filtroEstado) {
                 $query->where('estado', $filtroEstado);
@@ -59,7 +69,7 @@ class PedidoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion', 'caja') + ['cajasAbiertas' => collect(), 'sinCaja' => false]);
+        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion', 'caja', 'cajasAbiertas', 'sinCaja', 'scope'));
     }
 
     public function create()
@@ -234,6 +244,7 @@ class PedidoController extends Controller
                 'caja' => null,
                 'cajasAbiertas' => collect(),
                 'sinCaja' => true,
+                'scope' => 'mis_pedidos',
             ]);
         }
 
@@ -244,6 +255,7 @@ class PedidoController extends Controller
             'filtroPersonalizacion' => '',
             'caja' => null,
             'cajasAbiertas' => $cajasAbiertas,
+            'scope' => 'mis_pedidos',
         ]);
     }
 

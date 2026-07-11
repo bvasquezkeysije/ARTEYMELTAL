@@ -18,9 +18,38 @@ class VentaController extends Controller
     )
     {
     }
-
     public function index()
     {
+        $scope = request('scope', 'mi_caja');
+
+        if ($scope === 'todas') {
+            $busqueda = request('q');
+            $tipo = request('tipo');
+
+            $ventas = Venta::query()
+                ->with(['pedido', 'detalles', 'comprobante'])
+                ->where(function ($q) use ($busqueda) {
+                    $q->when($busqueda, function ($query) use ($busqueda) {
+                        $query->where('codigo', 'like', "%{$busqueda}%")
+                            ->orWhere('cliente_nombre', 'like', "%{$busqueda}%")
+                            ->orWhere('tipo_venta', 'like', "%{$busqueda}%");
+                    });
+                })
+                ->when($tipo, function ($query) use ($tipo) {
+                    $query->where('tipo_venta', $tipo);
+                })
+                ->orderByDesc('id')
+                ->paginate(12)
+                ->withQueryString();
+
+            return view('ventas.index', compact('ventas', 'busqueda', 'tipo') + [
+                'caja' => null,
+                'cajasAbiertas' => collect(),
+                'sinCaja' => false,
+                'scope' => 'todas',
+            ]);
+        }
+
         $cajaAperturaId = session('caja_apertura_id');
 
         if (! $cajaAperturaId) {
@@ -54,7 +83,11 @@ class VentaController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja') + ['cajasAbiertas' => collect(), 'sinCaja' => false]);
+        return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja') + [
+            'cajasAbiertas' => collect(),
+            'sinCaja' => false,
+            'scope' => 'mi_caja',
+        ]);
     }
 
     private function redirectToCajaSelection()
@@ -73,7 +106,7 @@ class VentaController extends Controller
                 'tipo' => '',
                 'caja' => null,
                 'cajasAbiertas' => collect(),
-                'sinCaja' => true,
+                'sinCaja' => true, 'scope' => 'mi_caja',
             ]);
         }
 
@@ -82,7 +115,7 @@ class VentaController extends Controller
             'busqueda' => '',
             'tipo' => '',
             'caja' => null,
-            'cajasAbiertas' => $cajasAbiertas,
+            'cajasAbiertas' => $cajasAbiertas, 'scope' => 'mi_caja',
         ]);
     }
 
