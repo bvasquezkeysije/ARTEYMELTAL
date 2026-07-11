@@ -298,3 +298,5 @@ Todos los íconos están en `public/icons/` como archivos `.ico` o `.png`:
 - Los iconos sobre fondos oscuros usan `brightness-0 invert` (ej: buscar.ico sobre fondo azul, tacho sobre fondo rojo).
 - **Todos los botones en una misma fila deben tener el mismo alto.** No mezclar `btn-icon` (40px) con botones de altura diferente (ej: `h-[46px]`). Si hay un botón con texto en la fila, los botones de icono deben usar la misma altura manualmente (ej: `h-[46px] w-[46px]`) en vez de `btn-icon`.
 - **Ícono `ver-detalle.ico`** es el estándar para acciones de "Ver detalle" / "Ver fotos" / "Ver información" en todos los módulos. No usar SVGs inline ni otros iconos para esta acción.
+- **Cierre de modales**: toda × de cierre debe usar `btn-icon-sm bg-red-600 hover:bg-red-700` + icono `cerrar.ico`. No usar `<span>&times;</span>` ni estilos grises.
+- **Simetría en pares de botones**: cuando dos botones están lado a lado y uno tiene texto condicional (`x-show`), usar `:class` con `invisible` para mantener ambos con la misma altura, en vez de eliminar el elemento del DOM.

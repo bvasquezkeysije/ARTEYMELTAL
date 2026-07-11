@@ -535,7 +535,9 @@
                     <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
                         <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
                             <h3 class="text-base font-semibold text-[#2a2419]">Derivar pedido</h3>
-                            <button type="button" @click="modalDerivar = false" class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">&times;</button>
+                            <button type="button" @click="modalDerivar = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </button>
                         </div>
                         <div class="space-y-3 p-5">
                             <p class="text-sm text-gray-600" x-text="'Selecciona el destino para el pedido ' + (derivarData?.codigo || '')"></p>
@@ -549,7 +551,7 @@
                                         :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
                                         <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Diseño</span>
-                                        <span class="text-xs text-amber-200" x-show="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">Ya derivado</span>
+                                        <span class="text-xs text-amber-200" :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'invisible'">Ya derivado</span>
                                     </button>
                                 </form>
                                 <form method="POST" x-bind:action="derivarData?.derivar_url">
@@ -561,7 +563,7 @@
                                         :disabled="derivarData?.estado_raw !== 'registrado'">
                                         <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Producción</span>
-                                        <span class="text-xs text-gray-500" x-show="derivarData?.estado_raw !== 'registrado'">Ya derivado</span>
+                                        <span class="text-xs text-gray-500" :class="derivarData?.estado_raw !== 'registrado' ? '' : 'invisible'">Ya derivado</span>
                                     </button>
                                 </form>
                             </div>
