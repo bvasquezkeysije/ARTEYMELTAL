@@ -77,14 +77,14 @@ class PedidoController extends Controller
         $cajaAperturaId = session('pedido_caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('pedidos.index');
+            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('pedido_caja_apertura_id');
-            return redirect()->route('pedidos.index');
+            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
         }
 
         $clientes = Cliente::orderBy('nombre_completo')->get();
@@ -99,14 +99,14 @@ class PedidoController extends Controller
         $cajaAperturaId = session('pedido_caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('pedidos.index');
+            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('pedido_caja_apertura_id');
-            return redirect()->route('pedidos.index');
+            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
         }
 
         $datos = $this->validarPedido($request);
