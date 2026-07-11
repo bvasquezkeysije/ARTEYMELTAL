@@ -32,6 +32,8 @@ class SecuritySeeder extends Seeder
             ['nombre' => 'Gestionar almacen', 'slug' => 'almacen.gestionar'],
             ['nombre' => 'Ver caja', 'slug' => 'caja.ver'],
             ['nombre' => 'Gestionar caja', 'slug' => 'caja.gestionar'],
+            ['nombre' => 'Ver diseno', 'slug' => 'diseno.ver'],
+            ['nombre' => 'Gestionar diseno', 'slug' => 'diseno.gestionar'],
         ];
 
         foreach ($permisos as $permiso) {
@@ -90,6 +92,8 @@ class SecuritySeeder extends Seeder
                 'clientes.ver',
                 'productos.ver',
                 'reportes.ver',
+                'diseno.ver',
+                'diseno.gestionar',
             ])
         );
 
@@ -108,6 +112,8 @@ class SecuritySeeder extends Seeder
                 'clientes.ver',
                 'productos.ver',
                 'reportes.ver',
+                'diseno.ver',
+                'diseno.gestionar',
             ])
         );
 
