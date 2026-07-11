@@ -34,6 +34,10 @@ class SecuritySeeder extends Seeder
             ['nombre' => 'Gestionar caja', 'slug' => 'caja.gestionar'],
             ['nombre' => 'Ver diseno', 'slug' => 'diseno.ver'],
             ['nombre' => 'Gestionar diseno', 'slug' => 'diseno.gestionar'],
+            ['nombre' => 'Ver produccion', 'slug' => 'produccion.ver'],
+            ['nombre' => 'Gestionar produccion', 'slug' => 'produccion.gestionar'],
+            ['nombre' => 'Ver repartidor', 'slug' => 'repartidor.ver'],
+            ['nombre' => 'Gestionar repartidor', 'slug' => 'repartidor.gestionar'],
         ];
 
         foreach ($permisos as $permiso) {
@@ -112,8 +116,8 @@ class SecuritySeeder extends Seeder
                 'clientes.ver',
                 'productos.ver',
                 'reportes.ver',
-                'diseno.ver',
-                'diseno.gestionar',
+                'produccion.ver',
+                'produccion.gestionar',
             ])
         );
 
@@ -126,6 +130,8 @@ class SecuritySeeder extends Seeder
         );
         $rolRepartidor->permisos()->sync(
             $this->idsPermisos($permisosPorSlug, [
+                'repartidor.ver',
+                'repartidor.gestionar',
                 'dashboard.ver',
                 'pedidos.ver',
                 'clientes.ver',
