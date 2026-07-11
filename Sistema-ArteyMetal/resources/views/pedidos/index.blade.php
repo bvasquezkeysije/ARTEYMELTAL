@@ -551,7 +551,7 @@
                                         :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
                                         <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Diseño</span>
-                                        <span class="text-xs text-amber-200" :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="text-xs text-amber-100" :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'invisible'">Ya derivado</span>
                                     </button>
                                 </form>
                                 <form method="POST" x-bind:action="derivarData?.derivar_url">
@@ -563,7 +563,7 @@
                                         :disabled="derivarData?.estado_raw !== 'registrado'">
                                         <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Producción</span>
-                                        <span class="text-xs text-gray-500" :class="derivarData?.estado_raw !== 'registrado' ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="text-xs text-emerald-100" :class="derivarData?.estado_raw !== 'registrado' ? '' : 'invisible'">Ya derivado</span>
                                     </button>
                                 </form>
                             </div>
