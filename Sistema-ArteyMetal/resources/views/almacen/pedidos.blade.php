@@ -291,35 +291,61 @@
             </div>
         </div>
 
-        <div x-show="mostrarExito" x-cloak x-transition
-            class="fixed bottom-6 right-6 z-[60] max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-xl">
-            <div class="flex items-start gap-3">
-                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                    <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <div x-show="mostrarExito" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+            x-on:keydown.escape.window="mostrarExito = false"
+            x-on:click.self="mostrarExito = false">
+            <div x-show="mostrarExito" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                        <svg class="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-[#2d2b24]">Operacion exitosa</p>
+                        <p class="mt-1 text-sm text-[#4a4026]" x-text="mensajeExito"></p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-sm font-semibold text-emerald-800">Operacion exitosa</p>
-                    <p class="mt-1 text-sm text-emerald-700" x-text="mensajeExito"></p>
+                <div class="mt-5 flex justify-end">
+                    <button x-on:click="mostrarExito = false" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                    </button>
                 </div>
-                <button x-on:click="mostrarExito = false" class="ml-2 flex-shrink-0 text-emerald-400 hover:text-emerald-600">
-                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
-                </button>
             </div>
         </div>
 
-        <div x-show="mostrarError" x-cloak x-transition
-            class="fixed bottom-6 right-6 z-[60] max-w-sm rounded-2xl border border-red-200 bg-red-50 p-4 shadow-xl">
-            <div class="flex items-start gap-3">
-                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <div x-show="mostrarError" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+            x-on:keydown.escape.window="mostrarError = false"
+            x-on:click.self="mostrarError = false">
+            <div x-show="mostrarError" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-[#2d2b24]">Error</p>
+                        <p class="mt-1 text-sm text-[#4a4026]" x-text="mensajeError"></p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-sm font-semibold text-red-800">Error</p>
-                    <p class="mt-1 text-sm text-red-700" x-text="mensajeError"></p>
+                <div class="mt-5 flex justify-end">
+                    <button x-on:click="mostrarError = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                    </button>
                 </div>
-                <button x-on:click="mostrarError = false" class="ml-2 flex-shrink-0 text-red-400 hover:text-red-600">
-                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
-                </button>
             </div>
         </div>
     </div>
@@ -447,14 +473,12 @@
                     this.mensajeExito = msg;
                     this.mostrarExito = true;
                     this.mostrarError = false;
-                    setTimeout(() => { this.mostrarExito = false; }, 4000);
                 },
 
                 error(msg) {
                     this.mensajeError = msg;
                     this.mostrarError = true;
                     this.mostrarExito = false;
-                    setTimeout(() => { this.mostrarError = false; }, 4000);
                 }
             }
         }
