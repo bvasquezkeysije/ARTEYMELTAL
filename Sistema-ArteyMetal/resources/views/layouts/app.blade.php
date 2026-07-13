@@ -273,7 +273,6 @@
                                                     </template>
                                                 </div>
                                             </template>
-                                            </div>
                                         </div>
                                         <a href="{{ route('notificaciones.index') }}" class="block border-t border-[#f0ede3] px-4 py-2.5 text-center text-xs font-medium text-[#7a5b25] hover:bg-[#fffbee]">Ver todas las notificaciones</a>
                                     </div>
