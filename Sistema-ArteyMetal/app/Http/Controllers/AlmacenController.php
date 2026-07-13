@@ -299,6 +299,14 @@ class AlmacenController extends Controller
             return back()->with('ok', 'El pedido debe estar listo para recoger.');
         }
 
+        if (($pedido->estado_pago ?? 'pendiente_adelanto') !== 'pagado_completo') {
+            $mensaje = 'No se puede entregar el pedido. El pago no esta completo. Estado actual: ' . ($pedido->estado_pago ?? 'pendiente_adelanto');
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => $mensaje]);
+            }
+            return back()->with('error', $mensaje);
+        }
+
         DB::transaction(function () use ($pedido) {
             $pedido->load('productos');
 

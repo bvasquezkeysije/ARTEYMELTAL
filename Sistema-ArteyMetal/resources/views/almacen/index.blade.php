@@ -214,8 +214,8 @@
                                             class="btn-icon-sm bg-blue-600 hover:bg-blue-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                        <button x-on:click="abrirEntregar({{ $pedido->id }}, '{{ $pedido->codigo }}', '{{ $pedido->nombre_cliente }}', '{{ $pedido->cliente?->documento ?? '' }}', '{{ $pedido->cliente?->telefono ?? '' }}')" title="Entregar al cliente"
-                                            class="btn-icon-sm bg-amber-600 hover:bg-amber-700">
+                                        <button x-on:click="abrirEntregar({{ $pedido->id }}, '{{ $pedido->codigo }}', '{{ $pedido->nombre_cliente }}', '{{ $pedido->cliente?->documento ?? '' }}', '{{ $pedido->cliente?->telefono ?? '' }}', '{{ $pedido->estado_pago }}', {{ $pedido->monto_total }}, {{ $pedido->monto_saldo }})" title="Entregar al cliente"
+                                            @if(($pedido->estado_pago ?? '') !== 'pagado_completo') class="btn-icon-sm bg-gray-400 cursor-not-allowed" @else class="btn-icon-sm bg-amber-600 hover:bg-amber-700" @endif>
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         </button>
                                     </div>
@@ -444,6 +444,24 @@
                     </div>
                 </div>
 
+                <div class="mb-4 rounded-xl border p-3"
+                    :class="entregarEstadoPago === 'pagado_completo' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
+                    <p class="text-xs font-semibold uppercase tracking-wider"
+                        :class="entregarEstadoPago === 'pagado_completo' ? 'text-emerald-700' : 'text-red-700'">Estado del pago</p>
+                    <p class="mt-1 text-sm font-semibold"
+                        :class="entregarEstadoPago === 'pagado_completo' ? 'text-emerald-800' : 'text-red-800'"
+                        x-text="entregarEstadoPago === 'pagado_completo' ? 'Pagado completo' : (entregarEstadoPago === 'adelanto_pagado' ? 'Solo adelanto pagado' : 'Pendiente de pago')"></p>
+                    <template x-if="entregarEstadoPago !== 'pagado_completo'">
+                        <div>
+                            <p class="mt-1 text-xs text-red-600">Saldo pendiente: <span class="font-semibold" x-text="'S/ ' + Number(entregarSaldo).toFixed(2)"></span></p>
+                            <p class="mt-2 text-xs text-red-700 font-medium">No se puede entregar el pedido hasta que el pago este completo.</p>
+                        </div>
+                    </template>
+                    <template x-if="entregarEstadoPago === 'pagado_completo'">
+                        <p class="mt-1 text-xs text-emerald-600">Total: <span class="font-semibold" x-text="'S/ ' + Number(entregarMontoTotal).toFixed(2)"></span></p>
+                    </template>
+                </div>
+
                 <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-3">
                     <label class="flex items-start gap-2">
                         <input type="checkbox" x-model="entregarValidado" class="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
@@ -456,7 +474,7 @@
                         class="rounded-xl bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">
                         Cancelar
                     </button>
-                    <button type="button" x-on:click="confirmarEntregar()" :disabled="procesando || !entregarValidado"
+                    <button type="button" x-on:click="confirmarEntregar()" :disabled="procesando || !entregarValidado || entregarEstadoPago !== 'pagado_completo'"
                         class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
                         <span x-show="!procesando" class="flex items-center gap-2">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -522,6 +540,9 @@
                 entregarDocumento: '',
                 entregarTelefono: '',
                 entregarValidado: false,
+                entregarEstadoPago: '',
+                entregarMontoTotal: 0,
+                entregarSaldo: 0,
                 procesando: false,
                 mostrarExito: false,
                 mostrarError: false,
@@ -589,12 +610,15 @@
                     window.location.href = '{{ route("almacen.index") }}?' + params.toString();
                 },
 
-                abrirEntregar(id, codigo, cliente, documento, telefono) {
+                abrirEntregar(id, codigo, cliente, documento, telefono, estadoPago, montoTotal, saldo) {
                     this.entregarId = id;
                     this.entregarCodigo = codigo;
                     this.entregarCliente = cliente;
                     this.entregarDocumento = documento;
                     this.entregarTelefono = telefono;
+                    this.entregarEstadoPago = estadoPago;
+                    this.entregarMontoTotal = montoTotal;
+                    this.entregarSaldo = saldo;
                     this.entregarValidado = false;
                     this.modalEntregar = true;
                 },
