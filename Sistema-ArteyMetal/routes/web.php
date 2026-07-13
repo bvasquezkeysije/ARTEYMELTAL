@@ -144,6 +144,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
     });
     Route::middleware('permiso:repartidor.gestionar')->group(function () {
         Route::post('repartidor/{pedido}/recoger', [RepartidorController::class, 'recoger'])->whereNumber('pedido')->name('repartidor.recoger');
+        Route::post('repartidor/{pedido}/entregar-almacen', [RepartidorController::class, 'entregarAlmacen'])->whereNumber('pedido')->name('repartidor.entregar_almacen');
     });
 
     Route::middleware('permiso:reportes.ver')->group(function () {

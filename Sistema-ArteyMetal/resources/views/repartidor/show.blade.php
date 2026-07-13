@@ -43,6 +43,11 @@
         viewerOpen: false,
         viewerIndex: 0,
         files: {{Js::from($allFiles)}},
+        entregarData: null,
+        showSuccess: {{ session()->has('ok') ? 'true' : 'false' }},
+        successMessage: @js(session('ok', '')),
+        showError: false,
+        errorMessage: '',
         get total() { return this.files.length },
         get current() { return this.files[this.viewerIndex] },
         get esImagen() {
@@ -125,7 +130,7 @@
                 <div class="px-6 py-5">
                     <div class="mb-4 flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-[#2d2b24]">Archivos</h3>
-                        <button type="button" @@click="viewerOpen = true; viewerIndex = 0" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Ver todos los modelos">
+                        <button type="button" @click="viewerOpen = true; viewerIndex = 0" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Ver todos los modelos">
                             <img src="{{ asset('icons/VerModelo-Blanco.png') }}" alt="Ver modelos" class="h-4 w-4 object-contain">
                         </button>
                     </div>
@@ -209,18 +214,36 @@
                 </div>
             </div>
             @endif
+
+            @if($pedido->estado === 'en_transporte')
+            <div class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
+                <div class="px-6 py-5 flex justify-end">
+                    <button type="button"
+                        @click="entregarData = { id: {{ $pedido->id }}, codigo: '{{ $pedido->codigo }}', url: '{{ route('repartidor.entregar_almacen', $pedido) }}' }"
+                        class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-700">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m8-4v10l-8 4m0-10v10l8 4"/></svg>
+                        Entregar en almacen
+                    </button>
+                </div>
+            </div>
+            @endif
+
+            <div class="flex justify-end">
+                <a href="{{ route('repartidor.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Volver</a>
+            </div>
         </div>
 
+        {{-- Viewer --}}
         <div x-show="viewerOpen"
              x-on:keydown.escape.window="viewerOpen = false"
              x-on:keydown.left.window="viewerOpen && prev()"
              x-on:keydown.right.window="viewerOpen && next()"
              x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 fade-in">
-            <div @@click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+            <div @click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                 <div class="mb-3 flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-white/80">Modelos — {{ $pedido->codigo }}</h3>
-                    <button type="button" @@click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                         <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
@@ -230,7 +253,7 @@
                 <template x-if="total > 0">
                     <div>
                         <div class="relative flex items-center">
-                            <button x-show="viewerIndex > 0" @@click="prev()"
+                            <button x-show="viewerIndex > 0" @click="prev()"
                                     class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
@@ -246,7 +269,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <button x-show="viewerIndex < total - 1" @@click="next()"
+                            <button x-show="viewerIndex < total - 1" @click="next()"
                                     class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
@@ -260,7 +283,7 @@
                         </div>
                         <div class="mt-2 flex justify-center gap-1">
                             <template x-for="(_, i) in files" :key="i">
-                                <button @@click="viewerIndex = i"
+                                <button @click="viewerIndex = i"
                                         :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                         class="h-1.5 w-6 rounded-full transition-colors"></button>
                             </template>
@@ -269,5 +292,74 @@
                 </template>
             </div>
         </div>
+
+        {{-- Modal Entregar en Almacen --}}
+        <template x-teleport="body">
+            <div x-show="entregarData" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="entregarData = null"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-[#2a2419]">Entregar en almacen</h3>
+                            <button type="button" @click="entregarData = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </button>
+                        </div>
+                        <div class="p-5 text-center">
+                            <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                                <svg class="h-7 w-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m8-4v10l-8 4m0-10v10l8 4"/></svg>
+                            </div>
+                            <p class="text-sm text-gray-600">Entregar el pedido <strong x-text="entregarData?.codigo"></strong> en almacen y notificar al almacenero?</p>
+                            <div class="mt-5 flex justify-center gap-3">
+                                <button type="button" @click="entregarData = null" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Cancelar</button>
+                                <button type="button" @click="
+                                    fetch(entregarData.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({}) })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        entregarData = null;
+                                        if (d.ok) { successMessage = d.message; showSuccess = true; setTimeout(() => location.reload(), 1500); }
+                                        else { errorMessage = d.message; showError = true; }
+                                    })
+                                    .catch(() => { entregarData = null; errorMessage = 'Error de conexion.'; showError = true; })
+                                "
+                                class="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-700">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal Exito --}}
+        <template x-teleport="body">
+            <div x-show="showSuccess" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="successMessage"></h3>
+                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal Error --}}
+        <template x-teleport="body">
+            <div x-show="showError" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showError = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="errorMessage"></h3>
+                        <button type="button" @click="showError = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </x-app-layout>
