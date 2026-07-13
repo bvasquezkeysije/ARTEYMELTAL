@@ -11,6 +11,7 @@ class PedidoDisenoArchivo extends Model
 
     protected $fillable = [
         'pedido_id',
+        'pedido_producto_id',
         'archivo_path',
         'nombre_original',
         'mime_type',
@@ -20,5 +21,10 @@ class PedidoDisenoArchivo extends Model
     public function pedido(): BelongsTo
     {
         return $this->belongsTo(Pedido::class, 'pedido_id');
+    }
+
+    public function pedidoProducto(): BelongsTo
+    {
+        return $this->belongsTo(PedidoProducto::class, 'pedido_producto_id');
     }
 }

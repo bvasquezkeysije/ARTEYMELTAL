@@ -34,4 +34,9 @@ class PedidoProducto extends Model
     {
         return $this->hasMany(PedidoProductoArchivo::class, 'pedido_producto_id');
     }
+
+    public function archivosDiseno(): HasMany
+    {
+        return $this->hasMany(PedidoDisenoArchivo::class, 'pedido_producto_id');
+    }
 }

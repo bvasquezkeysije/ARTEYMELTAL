@@ -185,6 +185,7 @@
   },
   "active": "a1662bd86682e791",
   "lastOpenFiles": [
+    "Sistema-ArteyMetal/database/migrations/2026_07_13_000000_add_pedido_producto_id_to_pedido_diseno_archivos.php",
     "REGLAS DEL SISTEMA/Regla 11 - Tailwind JIT no genera clases en bindings dinamicos Alpine.md",
     "Sistema-ArteyMetal/app/Models/Caja.php",
     "Sistema-ArteyMetal/database/migrations/2026_07_12_010000_create_cajas_table.php",
@@ -212,7 +213,6 @@
     "PAF/Parte 10 - CASOS DE PRUEBA.md",
     "PAF/Parte 11 - MÉTRICAS DE CALIDAD Y TRAZABILIDAD.md",
     "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
-    "PAF/Parte 13 - REGISTRO Y SEGUIMIENTO DE DEFECTOS.md",
-    "PAF/Parte 14 - CRITERIOS DE FINALIZACIÓN Y SALIDA.md"
+    "PAF/Parte 13 - REGISTRO Y SEGUIMIENTO DE DEFECTOS.md"
   ]
 }
