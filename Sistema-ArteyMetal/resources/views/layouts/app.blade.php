@@ -30,6 +30,9 @@
                     height: 100dvh;
                 }
             }
+            .notif-scroll::-webkit-scrollbar { width: 5px; }
+            .notif-scroll::-webkit-scrollbar-track { background: transparent; }
+            .notif-scroll::-webkit-scrollbar-thumb { background: #d1be8a; border-radius: 10px; }
         </style>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -225,11 +228,10 @@
                             <div class="flex items-center gap-2">
                                 <div x-data="{ notifOpen: false, count: 0, items: [], polling: null }" x-init="
                                     window.timeAgo = function(d) { var s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s/60) + ' min'; if (s < 86400) return Math.floor(s/3600) + ' h'; return Math.floor(s/86400) + ' d'; };
-                                    function loadNotifs() { fetch('{{ route('notificaciones.unread') }}').then(function(r) { return r.json(); }).then(function(d) { count = d.count; items = d.notifications; }).catch(function() {}); }
+                                    var loadNotifs = function() { fetch('{{ route('notificaciones.unread') }}').then(function(r) { return r.json(); }).then(function(d) { count = d.count; items = d.notifications; }).catch(function() {}); };
                                     loadNotifs();
                                     polling = setInterval(loadNotifs, 10000);
                                     window.addEventListener('notificacion-enviada', loadNotifs);
-                                    window.addEventListener('beforeunload', function() { if(polling) clearInterval(polling); });
                                 " class="relative">
                                     <button type="button" @click="notifOpen = !notifOpen" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8cfb8] bg-[#fffdf7] text-[#7a5b25] hover:bg-[#fff7e7]">
                                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +253,6 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <style>.notif-scroll::-webkit-scrollbar { width: 5px; } .notif-scroll::-webkit-scrollbar-track { background: transparent; } .notif-scroll::-webkit-scrollbar-thumb { background: #d1be8a; border-radius: 10px; }</style>
                                         <div class="notif-scroll max-h-80 overflow-y-auto">
                                             <template x-for="item in items" :key="item.id">
                                                 <div :class="item.is_read ? 'bg-white' : 'bg-[#fffbf5]'" class="flex items-start gap-3 border-b border-[#f0ede3] px-4 py-3">
