@@ -541,21 +541,17 @@
                         </div>
                         <div class="space-y-3 p-5">
                             <p class="text-center text-sm text-gray-600" x-text="'Selecciona el destino para el pedido ' + (derivarData?.codigo || '')"></p>
-                            <div class="grid grid-cols-2 gap-3 items-stretch">
-                                @php
-                                    $dDisabled = 'derivarData?.estado_personalizacion_raw !== \'sin_iniciar\'';
-                                    $pDisabled = 'derivarData?.estado_raw !== \'registrado\'';
-                                @endphp
+                            <div class="grid grid-cols-2 gap-3 items-stretch" x-show="derivarData">
                                 <form method="POST" x-bind:action="derivarData?.derivar_url" class="contents">
                                     @csrf
                                     <input type="hidden" name="destino" value="diseno">
                                     <button type="submit"
                                         class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-amber-600 hover:bg-amber-700 border-0"
-                                        :class="{{ $dDisabled }} ? 'opacity-40 cursor-not-allowed' : ''"
-                                        :disabled="{{ $dDisabled }}">
+                                        :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
                                         <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Diseño</span>
-                                        <span class="min-h-[1rem] text-xs text-amber-100" :class="{{ $dDisabled }} ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="min-h-[1rem] text-xs text-amber-100" x-show="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">Ya derivado</span>
                                     </button>
                                 </form>
                                 <form method="POST" x-bind:action="derivarData?.derivar_url" class="contents">
@@ -563,11 +559,11 @@
                                     <input type="hidden" name="destino" value="produccion">
                                     <button type="submit"
                                         class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 border-0"
-                                        :class="{{ $pDisabled }} ? 'opacity-40 cursor-not-allowed' : ''"
-                                        :disabled="{{ $pDisabled }}">
+                                        :class="derivarData?.estado_raw !== 'registrado' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :disabled="derivarData?.estado_raw !== 'registrado'">
                                         <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Producción</span>
-                                        <span class="min-h-[1rem] text-xs text-emerald-100" :class="{{ $pDisabled }} ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="min-h-[1rem] text-xs text-emerald-100" x-show="derivarData?.estado_raw !== 'registrado'">Ya derivado</span>
                                     </button>
                                 </form>
                             </div>
