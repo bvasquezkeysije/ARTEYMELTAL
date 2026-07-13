@@ -159,13 +159,24 @@
         </div>
     </div>
 
-    {{-- Modal Ver Modelos (viewer de archivos de referencia) --}}
+    {{-- Modal Ver Modelos (viewer de archivos referencia + diseno) --}}
     @foreach($pedidos as $pedido)
         @php
-            $modelos = collect();
+            $modelosRef = collect();
             foreach ($pedido->productos as $pp) {
                 foreach ($pp->archivos as $a) {
-                    $modelos->push([
+                    $modelosRef->push([
+                        'url' => asset('storage/' . $a->archivo_path),
+                        'nombre' => $a->nombre_original,
+                        'mime' => $a->mime_type,
+                        'producto' => $pp->nombre,
+                    ]);
+                }
+            }
+            $modelosDis = collect();
+            foreach ($pedido->productos as $pp) {
+                foreach ($pp->archivosDiseno as $a) {
+                    $modelosDis->push([
                         'url' => asset('storage/' . $a->archivo_path),
                         'nombre' => $a->nombre_original,
                         'mime' => $a->mime_type,
@@ -177,14 +188,18 @@
 
         <div x-data="{
             open: false,
-            archivos: {{ Js::from($modelos->values()) }},
+            tab: 'ref',
+            ref: {{ Js::from($modelosRef->values()) }},
+            dis: {{ Js::from($modelosDis->values()) }},
             index: 0,
+            get archivos() { return this.tab === 'ref' ? this.ref : this.dis },
             get current() { return this.archivos[this.index] },
             get total() { return this.archivos.length },
             get esImagen() {
                 if (!this.current) return false;
                 return ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml','image/webp'].includes(this.current.mime);
             },
+            switchTab(t) { this.tab = t; this.index = 0; },
             prev() { if (this.index > 0) this.index-- },
             next() { if (this.index < this.total - 1) this.index++ }
         }"
@@ -197,15 +212,29 @@
              class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
             <div @@click.outside="open = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                 <div class="mb-3 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-white/80">Modelos de referencia — {{ $pedido->codigo }}</h3>
+                    <h3 class="text-sm font-semibold text-white/80">{{ $pedido->codigo }}</h3>
                     <button type="button" @@click="open = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                         <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
 
+                {{-- Tabs --}}
+                <div class="mb-3 flex gap-2">
+                    <button type="button" @@click="switchTab('ref')"
+                        :class="tab === 'ref' ? 'bg-amber-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
+                        Referencia <span x-show="ref.length > 0" x-text="'(' + ref.length + ')'" class="ml-1 opacity-70"></span>
+                    </button>
+                    <button type="button" @@click="switchTab('dis')"
+                        :class="tab === 'dis' ? 'bg-sky-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
+                        Diseno <span x-show="dis.length > 0" x-text="'(' + dis.length + ')'" class="ml-1 opacity-70"></span>
+                    </button>
+                </div>
+
                 <template x-if="total === 0">
                     <div class="flex h-64 items-center justify-center text-white/50">
-                        No hay archivos de referencia adjuntos.
+                        No hay archivos en esta seccion.
                     </div>
                 </template>
 
