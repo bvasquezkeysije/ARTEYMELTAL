@@ -24,7 +24,8 @@
         uploadModal: false,
         viewerOpen: false,
         viewerIndex: 0,
-        get viewerFiles() {
+        viewerTab: 'ref',
+        get viewerRef() {
             return {{Js::from(
                 $pedido->productos->flatMap(fn($p) => $p->archivos->map(fn($a) => [
                     'url' => asset('storage/' . $a->archivo_path),
@@ -34,12 +35,24 @@
                 ]))
             )}}
         },
+        get viewerDis() {
+            return {{Js::from(
+                $pedido->productos->flatMap(fn($p) => $p->archivosDiseno->map(fn($a) => [
+                    'url' => asset('storage/' . $a->archivo_path),
+                    'nombre' => $a->nombre_original,
+                    'mime' => $a->mime_type,
+                    'producto' => $p->nombre,
+                ]))
+            )}}
+        },
+        get viewerFiles() { return this.viewerTab === 'ref' ? this.viewerRef : this.viewerDis },
         get viewerTotal() { return this.viewerFiles.length },
         get currentFile() { return this.viewerFiles[this.viewerIndex] },
         get esImagen() {
             if (!this.currentFile) return false;
             return ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml','image/webp'].includes(this.currentFile.mime);
         },
+        switchViewerTab(t) { this.viewerTab = t; this.viewerIndex = 0; },
         prevFile() { if (this.viewerIndex > 0) this.viewerIndex-- },
         nextFile() { if (this.viewerIndex < this.viewerTotal - 1) this.viewerIndex++ }
     }">
@@ -163,14 +176,27 @@
              class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
             <div @@click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                 <div class="mb-3 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-white/80">Modelos de referencia</h3>
+                    <h3 class="text-sm font-semibold text-white/80">{{ $pedido->codigo }}</h3>
                     <button type="button" @@click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                         <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
 
+                <div class="mb-3 flex justify-center gap-2">
+                    <button type="button" @@click="switchViewerTab('ref')"
+                        :class="viewerTab === 'ref' ? 'bg-amber-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
+                        Referencia <span x-show="viewerRef.length > 0" x-text="'(' + viewerRef.length + ')'" class="ml-1 opacity-70"></span>
+                    </button>
+                    <button type="button" @@click="switchViewerTab('dis')"
+                        :class="viewerTab === 'dis' ? 'bg-sky-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
+                        Diseno <span x-show="viewerDis.length > 0" x-text="'(' + viewerDis.length + ')'" class="ml-1 opacity-70"></span>
+                    </button>
+                </div>
+
                 <template x-if="viewerTotal === 0">
-                    <div class="flex h-64 items-center justify-center text-white/50">No hay archivos de referencia.</div>
+                    <div class="flex h-64 items-center justify-center text-white/50">No hay archivos en esta seccion.</div>
                 </template>
 
                 <template x-if="viewerTotal > 0">
