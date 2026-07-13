@@ -128,7 +128,7 @@
                                         @endif
                                         @if($pedido->estado === 'listo_recoger')
                                             <button x-on:click="abrirEntregar({{ $pedido->id }}, '{{ $pedido->codigo }}', '{{ $pedido->estado_pago }}', {{ $pedido->monto_total }}, {{ $pedido->monto_saldo }})" title="Entregar al cliente"
-                                                @if(($pedido->estado_pago ?? '') !== 'pagado_completo') class="btn-icon-sm bg-gray-400 cursor-not-allowed" @else class="btn-icon-sm bg-amber-600 hover:bg-amber-700" @endif>
+                                                class="btn-icon-sm bg-amber-600 hover:bg-amber-700">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
                                             </button>
                                         @endif
