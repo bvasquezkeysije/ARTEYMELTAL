@@ -70,18 +70,14 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    @php $archivos = $pedido->archivosDiseno; @endphp
-                                    @if($archivos->isNotEmpty())
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach($archivos as $archivo)
-                                                <a href="{{ asset('storage/' . $archivo->archivo_path) }}" target="_blank"
-                                                   class="inline-flex items-center gap-1 rounded-md bg-[#f4ebd4] px-2 py-1 text-xs text-[#6a5122] hover:bg-[#e6daba]"
-                                                   title="{{ $archivo->nombre_original }}">
-                                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    {{ Str::limit($archivo->nombre_original, 20) }}
-                                                </a>
-                                            @endforeach
-                                        </div>
+                                    @php
+                                        $totalArchivos = $pedido->productos->flatMap->archivos->count();
+                                    @endphp
+                                    @if($totalArchivos > 0)
+                                        <span class="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            {{ $totalArchivos }} archivo{{ $totalArchivos > 1 ? 's' : '' }}
+                                        </span>
                                     @else
                                         <span class="text-xs text-[#999]">Sin archivos</span>
                                     @endif
