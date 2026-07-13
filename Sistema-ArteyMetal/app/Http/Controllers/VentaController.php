@@ -141,14 +141,14 @@ class VentaController extends Controller
         $cajaAperturaId = session('caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('ventas.index');
+            return $this->redirectToCajaSelection();
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('caja_apertura_id');
-            return redirect()->route('ventas.index');
+            return $this->redirectToCajaSelection();
         }
 
         $productos = Producto::query()
