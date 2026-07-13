@@ -12,6 +12,7 @@ class ProduccionController extends Controller
     public function index(Request $request)
     {
         $busqueda = $request->input('q', '');
+        $filtroEstado = $request->input('estado', '');
 
         $pedidos = Pedido::query()
             ->with('cliente', 'productos.archivos', 'archivosDiseno')
@@ -21,11 +22,12 @@ class ProduccionController extends Controller
                     ->orWhere('nombre_cliente', 'ilike', "%{$busqueda}%")
                     ->orWhereHas('productos', fn ($pp) => $pp->where('nombre', 'ilike', "%{$busqueda}%"));
             }))
+            ->when($filtroEstado, fn ($q) => $q->where('estado', $filtroEstado))
             ->orderByDesc('id')
             ->paginate(10)
-            ->appends(['q' => $busqueda]);
+            ->appends(['q' => $busqueda, 'estado' => $filtroEstado]);
 
-        return view('produccion.index', compact('pedidos', 'busqueda'));
+        return view('produccion.index', compact('pedidos', 'busqueda', 'filtroEstado'));
     }
 
     public function show(Pedido $pedido)
@@ -46,6 +48,9 @@ class ProduccionController extends Controller
         }
 
         if ($pedido->estado !== 'en_produccion') {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'El pedido ya fue iniciado o no esta en estado inicial.']);
+            }
             return back()->with('ok', 'El pedido ya fue iniciado o no esta en estado inicial.');
         }
 
@@ -59,6 +64,10 @@ class ProduccionController extends Controller
             actionUrl: route('pedidos.show', $pedido, false),
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Produccion iniciada.']);
+        }
+
         return back()->with('ok', 'Produccion iniciada.');
     }
 
@@ -71,6 +80,9 @@ class ProduccionController extends Controller
         }
 
         if ($pedido->estado !== 'produciendo') {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Debe iniciar la produccion primero.']);
+            }
             return back()->with('ok', 'Debe iniciar la produccion primero.');
         }
 
@@ -94,6 +106,10 @@ class ProduccionController extends Controller
             body: "El pedido {$pedido->codigo} ha sido marcado como listo para entrega.",
             actionUrl: route('pedidos.show', $pedido, false),
         );
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Repartidor notificado. El pedido esta listo para recoger.']);
+        }
 
         return back()->with('ok', 'Repartidor notificado. El pedido esta listo para recoger.');
     }
