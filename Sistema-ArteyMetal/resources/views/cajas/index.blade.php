@@ -193,7 +193,7 @@
         {{-- ============================================================ --}}
         <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="flex items-center justify-between border-b border-[#efe7d2] px-5 py-3">
-                <h2 class="text-sm font-semibold text-[#5a4a2a]">Historial de Cajas</h2>
+                <h2 class="text-sm font-semibold text-[#5a4a2a] text-center w-full uppercase">Historial de Cajas</h2>
             </div>
 
             {{-- Barra buscar + filtros --}}
