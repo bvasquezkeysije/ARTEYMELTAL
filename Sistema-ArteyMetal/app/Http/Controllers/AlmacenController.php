@@ -13,36 +13,38 @@ use Illuminate\View\View;
 
 class AlmacenController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $totalProductos = Producto::count();
-        $productosConStock = Producto::where('stock_actual', '>', 0)->count();
-        $productosSinStock = Producto::where('stock_actual', '=', 0)->count();
-        $stockBajo = Producto::where('stock_actual', '>', 0)->where('stock_actual', '<=', 5)->count();
-        $totalStock = Producto::sum('stock_actual');
+        $busquedaRepartidor = $request->input('q', '');
 
-        $entradasHoy = MovimientoAlmacen::whereDate('created_at', today())
-            ->where('tipo', 'entrada')
-            ->sum('cantidad');
-
-        $salidasHoy = MovimientoAlmacen::whereDate('created_at', today())
-            ->where('tipo', 'salida')
-            ->sum('cantidad');
-
-        $ultimosMovimientos = MovimientoAlmacen::with('producto', 'usuario')
+        $pedidosPendientes = Pedido::query()
+            ->with('cliente', 'productos')
+            ->where('estado', 'en_almacen')
+            ->when($busquedaRepartidor, fn ($q) => $q->where(function ($sub) use ($busquedaRepartidor) {
+                $sub->where('codigo', 'ilike', "%{$busquedaRepartidor}%")
+                    ->orWhere('nombre_cliente', 'ilike', "%{$busquedaRepartidor}%");
+            }))
             ->orderByDesc('id')
-            ->limit(10)
-            ->get();
+            ->paginate(10)
+            ->appends(['q' => $busquedaRepartidor]);
+
+        $totalStock = Producto::sum('stock_actual');
+        $entradasHoy = MovimientoAlmacen::whereDate('created_at', today())
+            ->where('tipo', 'entrada')->sum('cantidad');
+        $salidasHoy = MovimientoAlmacen::whereDate('created_at', today())
+            ->where('tipo', 'salida')->sum('cantidad');
+
+        $movimientos = MovimientoAlmacen::with('producto', 'usuario')
+            ->orderByDesc('id')
+            ->paginate(15);
 
         return view('almacen.index', compact(
-            'totalProductos',
-            'productosConStock',
-            'productosSinStock',
-            'stockBajo',
+            'pedidosPendientes',
+            'busquedaRepartidor',
             'totalStock',
             'entradasHoy',
             'salidasHoy',
-            'ultimosMovimientos'
+            'movimientos'
         ));
     }
 

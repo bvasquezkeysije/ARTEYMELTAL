@@ -3,13 +3,27 @@
         <span>Almacen</span>
     </x-slot>
 
-    <div class="space-y-5">
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl border border-[#e5dec8] bg-white p-5 shadow-sm">
-                <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Productos en almacen</p>
-                <p class="mt-2 text-3xl font-semibold text-[#1f1f1f]">{{ $totalProductos }}</p>
-                <p class="mt-1 text-sm text-[#666]">Total registrados</p>
-            </article>
+    <style>
+        [x-cloak] { display: none !important; }
+        .btn-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 2.25rem; height: 2.25rem; border-radius: 0.75rem;
+            flex-shrink: 0; color: #fff; transition: filter 0.15s;
+        }
+        .btn-icon:active { filter: brightness(0.85); }
+        .btn-icon:focus, .btn-icon:focus-visible { outline: 0 none !important; }
+        .btn-icon-sm {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 2rem; height: 2rem; border-radius: 0.5rem;
+            flex-shrink: 0; color: #fff; transition: filter 0.15s;
+        }
+        .btn-icon-sm:active { filter: brightness(0.85); }
+        .btn-icon-sm:focus, .btn-icon-sm:focus-visible { outline: 0 none !important; }
+    </style>
+
+    <div x-data="almacenIndex()" x-init="init()" class="space-y-6">
+
+        <section class="grid gap-4 sm:grid-cols-3">
             <article class="rounded-2xl border border-[#e5dec8] bg-white p-5 shadow-sm">
                 <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Stock total</p>
                 <p class="mt-2 text-3xl font-semibold text-[#1f1f1f]">{{ $totalStock }}</p>
@@ -27,40 +41,109 @@
             </article>
         </section>
 
-        <section class="grid gap-4 sm:grid-cols-3">
-            <article class="rounded-2xl border border-[#e5dec8] bg-white p-5 shadow-sm">
-                <p class="text-xs uppercase tracking-[0.2em] text-[#8a6a2e]">Con stock</p>
-                <p class="mt-2 text-2xl font-semibold text-[#1f1f1f]">{{ $productosConStock }}</p>
-                <p class="mt-1 text-sm text-[#666]">Productos disponibles</p>
-            </article>
-            <article class="rounded-2xl border border-[#e5dec8] bg-white p-5 shadow-sm">
-                <p class="text-xs uppercase tracking-[0.2em] text-amber-600">Stock bajo (<=5)</p>
-                <p class="mt-2 text-2xl font-semibold text-amber-700">{{ $stockBajo }}</p>
-                <p class="mt-1 text-sm text-[#666]">Por debajo del minimo</p>
-            </article>
-            <article class="rounded-2xl border border-[#e5dec8] bg-white p-5 shadow-sm">
-                <p class="text-xs uppercase tracking-[0.2em] text-red-600">Sin stock</p>
-                <p class="mt-2 text-2xl font-semibold text-red-700">{{ $productosSinStock }}</p>
-                <p class="mt-1 text-sm text-[#666]">Agotados</p>
-            </article>
+        <section class="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+            <div class="border-b border-amber-100 bg-amber-50 px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100">
+                        <svg class="h-4 w-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    </div>
+                    <h3 class="font-semibold text-amber-800">Pedidos pendientes del repartidor</h3>
+                    @if($pedidosPendientes->total() > 0)
+                        <span class="inline-flex items-center justify-center rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">{{ $pedidosPendientes->total() }}</span>
+                    @endif
+                </div>
+            </div>
+
+            <div class="border-b border-[#efeee9] bg-[#faf8f2] px-4 py-3">
+                <form class="flex gap-2" x-on:submit.prevent="buscarRepartidor()">
+                    <div class="flex-1 relative">
+                        <input x-model="qRepartidor" type="text" placeholder="Buscar por codigo o cliente..."
+                            class="w-full rounded-xl border border-[#d4cfc0] bg-white px-4 py-2.5 pr-10 text-sm text-[#2d2b24] placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
+                            x-on:keyup.enter="buscarRepartidor()">
+                    </div>
+                    <button type="button" x-on:click="buscarRepartidor()" title="Buscar"
+                        class="btn-icon bg-[#b9943d] hover:bg-[#a68535]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </button>
+                    @if($busquedaRepartidor !== '')
+                        <button type="button" x-on:click="qRepartidor = ''; buscarRepartidor()" title="Limpiar"
+                            class="btn-icon bg-[#d4534a] hover:bg-[#c0392b]">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    @endif
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Codigo</th>
+                            <th class="px-4 py-3 font-semibold">Cliente</th>
+                            <th class="px-4 py-3 font-semibold">Productos</th>
+                            <th class="px-4 py-3 font-semibold">Estado</th>
+                            <th class="px-4 py-3 font-semibold text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#efeee9]">
+                        @forelse($pedidosPendientes as $pedido)
+                            @php $cantTotal = $pedido->productos->sum('cantidad_recoge') ?: $pedido->productos->sum('cantidad'); @endphp
+                            <tr>
+                                <td class="px-4 py-3 font-medium text-[#2d2b24]">{{ $pedido->codigo }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->nombre_cliente }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">
+                                    @if($pedido->productos->count() > 1)
+                                        <div>
+                                            @foreach($pedido->productos as $i => $p)
+                                                <div>{{ $i + 1 }}. {{ $p->nombre }} ({{ $p->cantidad_recoge ?? $p->cantidad }})</div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        @php $first = $pedido->productos->first(); @endphp
+                                        {{ $first?->nombre ?? '-' }} ({{ $first?->cantidad_recoge ?? $first?->cantidad }})
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Esperando recepcion</span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <button x-on:click="verDetalle({{ $pedido->id }})" title="Ver detalle"
+                                            class="btn-icon-sm" style="background-color: #0891B2;">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        <button x-on:click="abrirRecibir({{ $pedido->id }}, '{{ $pedido->codigo }}', {{ $cantTotal }})" title="Confirmar recepcion en almacen"
+                                            class="btn-icon-sm" style="background-color: #059669;">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center">
+                                    <div class="flex flex-col items-center gap-2 text-[#9a8e78]">
+                                        <svg class="h-10 w-10 text-[#d4cfc0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
+                                        <p class="text-sm">No hay pedidos pendientes del repartidor</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if($pedidosPendientes->hasPages())
+                <div class="border-t border-[#efeee9] bg-[#faf8f2] px-4 py-3">
+                    {{ $pedidosPendientes->links('pagination.gold') }}
+                </div>
+            @endif
         </section>
 
-        <div class="flex flex-wrap gap-2">
-            @if(auth()->user()->tienePermiso('almacen.gestionar'))
-                <a href="{{ route('almacen.productos') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#09090f] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-125">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/></svg>
-                    Ver inventario
-                </a>
-                <a href="{{ route('almacen.movimientos') }}" class="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Historial de movimientos
-                </a>
-            @endif
-        </div>
-
         <section class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
-            <div class="border-b border-[#efeee9] bg-[#faf8f2] px-4 py-3">
-                <h3 class="font-semibold text-[#5a4a2a]">Ultimos movimientos</h3>
+            <div class="border-b border-[#efeee9] bg-[#faf8f2] px-4 py-3 flex items-center justify-between">
+                <h3 class="font-semibold text-[#5a4a2a]">Historial de entradas y salidas</h3>
+                <a href="{{ route('almacen.movimientos') }}" class="text-xs font-medium text-[#b9943d] hover:underline">Ver todo</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
@@ -69,14 +152,14 @@
                             <th class="px-4 py-2.5">Producto</th>
                             <th class="px-4 py-2.5">Tipo</th>
                             <th class="px-4 py-2.5 text-right">Cantidad</th>
-                            <th class="px-4 py-2.5 text-right">Stock resultante</th>
+                            <th class="px-4 py-2.5 text-right">Stock</th>
                             <th class="px-4 py-2.5">Concepto</th>
                             <th class="px-4 py-2.5">Registrado por</th>
                             <th class="px-4 py-2.5">Fecha</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#efeee9]">
-                        @forelse ($ultimosMovimientos as $mov)
+                        @forelse($movimientos as $mov)
                             <tr>
                                 <td class="px-4 py-2.5">
                                     <span class="font-medium text-[#2d2b24]">{{ $mov->producto?->codigo }}</span>
@@ -103,6 +186,229 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($movimientos->hasPages())
+                <div class="border-t border-[#efeee9] bg-[#faf8f2] px-4 py-3">
+                    {{ $movimientos->links('pagination.gold') }}
+                </div>
+            @endif
         </section>
+
+        <div x-show="modalDetalle" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            x-on:keydown.escape.window="modalDetalle = false"
+            x-on:click.self="modalDetalle = false">
+            <div x-show="modalDetalle" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-[#2d2b24]">Detalle del Pedido</h3>
+                    <button x-on:click="modalDetalle = false" class="text-[#9a8e78] hover:text-[#5a4a2a]">
+                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
+                    </button>
+                </div>
+                <template x-if="detallePedido">
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div><span class="font-semibold text-[#5a4a2a]">Codigo:</span> <span x-text="detallePedido.codigo" class="text-[#2d2b24]"></span></div>
+                            <div><span class="font-semibold text-[#5a4a2a]">Estado:</span> <span x-text="detallePedido.estado" class="text-[#2d2b24]"></span></div>
+                            <div><span class="font-semibold text-[#5a4a2a]">Cliente:</span> <span x-text="detallePedido.nombre_cliente" class="text-[#2d2b24]"></span></div>
+                            <div><span class="font-semibold text-[#5a4a2a]">Tipo:</span> <span x-text="detallePedido.tipo_producto" class="text-[#2d2b24]"></span></div>
+                            <div class="col-span-2"><span class="font-semibold text-[#5a4a2a]">Direccion:</span> <span x-text="detallePedido.direccion_entrega || 'No especificada'" class="text-[#2d2b24]"></span></div>
+                        </div>
+                        <div>
+                            <h4 class="mb-2 font-semibold text-[#5a4a2a]">Productos</h4>
+                            <table class="min-w-full text-xs">
+                                <thead class="bg-[#faf8f2]"><tr><th class="px-3 py-2 text-left">Producto</th><th class="px-3 py-2 text-right">Cant.</th><th class="px-3 py-2 text-right">Recoge</th></tr></thead>
+                                <tbody class="divide-y divide-[#efeee9]">
+                                    <template x-for="prod in detallePedido.productos" :key="prod.id">
+                                        <tr>
+                                            <td class="px-3 py-2" x-text="prod.nombre"></td>
+                                            <td class="px-3 py-2 text-right" x-text="prod.cantidad"></td>
+                                            <td class="px-3 py-2 text-right" x-text="prod.cantidad_recoge || prod.cantidad"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="modalRecibir" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            x-on:keydown.escape.window="modalRecibir = false"
+            x-on:click.self="modalRecibir = false">
+            <div x-show="modalRecibir" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="w-full max-w-md rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-[#2d2b24]">Confirmar recepcion en almacen</h3>
+                    <button x-on:click="modalRecibir = false" class="text-[#9a8e78] hover:text-[#5a4a2a]">
+                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
+                    </button>
+                </div>
+                <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
+                            <svg class="h-4 w-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-amber-800">Pedido <span x-text="recibirCodigo"></span></p>
+                            <p class="mt-1 text-sm text-amber-700">Se registrara la entrada de <strong x-text="recibirCantidad"></strong> unidades al stock del almacen.</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mb-4 text-sm text-[#4a4026]">Verifique que los productos fueron entregados correctamente por el repartidor.</p>
+                <div class="flex justify-end gap-2">
+                    <button x-on:click="modalRecibir = false"
+                        class="rounded-xl border border-[#d4cfc0] bg-white px-4 py-2 text-sm font-medium text-[#5a4a2a] hover:bg-[#f4ebd4]">
+                        Cancelar
+                    </button>
+                    <button x-on:click="confirmarRecibir()" :disabled="procesando"
+                        class="rounded-xl bg-[#059669] px-4 py-2 text-sm font-medium text-white hover:bg-[#047857] disabled:opacity-50">
+                        <span x-show="!procesando" class="flex items-center gap-2">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Confirmar recepcion
+                        </span>
+                        <span x-show="procesando" class="flex items-center gap-2">
+                            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            Procesando...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="mostrarExito" x-cloak x-transition
+            class="fixed bottom-6 right-6 z-[60] max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-xl">
+            <div class="flex items-start gap-3">
+                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                    <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-emerald-800">Operacion exitosa</p>
+                    <p class="mt-1 text-sm text-emerald-700" x-text="mensajeExito"></p>
+                </div>
+                <button x-on:click="mostrarExito = false" class="ml-2 flex-shrink-0 text-emerald-400 hover:text-emerald-600">
+                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
+                </button>
+            </div>
+        </div>
+
+        <div x-show="mostrarError" x-cloak x-transition
+            class="fixed bottom-6 right-6 z-[60] max-w-sm rounded-2xl border border-red-200 bg-red-50 p-4 shadow-xl">
+            <div class="flex items-start gap-3">
+                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-red-800">Error</p>
+                    <p class="mt-1 text-sm text-red-700" x-text="mensajeError"></p>
+                </div>
+                <button x-on:click="mostrarError = false" class="ml-2 flex-shrink-0 text-red-400 hover:text-red-600">
+                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
+                </button>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function almacenIndex() {
+            return {
+                qRepartidor: '{{ $busquedaRepartidor ?? "" }}',
+                modalDetalle: false,
+                modalRecibir: false,
+                detallePedido: null,
+                recibirId: null,
+                recibirCodigo: '',
+                recibirCantidad: 0,
+                procesando: false,
+                mostrarExito: false,
+                mostrarError: false,
+                mensajeExito: '',
+                mensajeError: '',
+
+                init() {},
+
+                buscarRepartidor() {
+                    const params = new URLSearchParams();
+                    if (this.qRepartidor) params.set('q', this.qRepartidor);
+                    window.location.href = '{{ route("almacen.index") }}?' + params.toString();
+                },
+
+                async verDetalle(pedidoId) {
+                    try {
+                        const resp = await fetch('/pedidos/' + pedidoId, {
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const data = await resp.json();
+                        this.detallePedido = data;
+                        this.modalDetalle = true;
+                    } catch (e) {
+                        this.error('No se pudo cargar el detalle del pedido.');
+                    }
+                },
+
+                abrirRecibir(id, codigo, cantidad) {
+                    this.recibirId = id;
+                    this.recibirCodigo = codigo;
+                    this.recibirCantidad = cantidad;
+                    this.modalRecibir = true;
+                },
+
+                async confirmarRecibir() {
+                    this.procesando = true;
+                    try {
+                        const resp = await fetch('/almacen/pedidos/' + this.recibirId + '/recibir', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await resp.json();
+                        this.modalRecibir = false;
+                        if (data.ok) {
+                            this.exito(data.message || 'Pedido recibido en almacen correctamente.');
+                            setTimeout(() => window.location.reload(), 1200);
+                        } else {
+                            this.error(data.message || 'No se pudo recibir el pedido.');
+                        }
+                    } catch (e) {
+                        this.modalRecibir = false;
+                        this.error('Error de conexion al recibir el pedido.');
+                    }
+                    this.procesando = false;
+                },
+
+                exito(msg) {
+                    this.mensajeExito = msg;
+                    this.mostrarExito = true;
+                    this.mostrarError = false;
+                    setTimeout(() => { this.mostrarExito = false; }, 4000);
+                },
+
+                error(msg) {
+                    this.mensajeError = msg;
+                    this.mostrarError = true;
+                    this.mostrarExito = false;
+                    setTimeout(() => { this.mostrarError = false; }, 4000);
+                }
+            }
+        }
+    </script>
 </x-app-layout>
