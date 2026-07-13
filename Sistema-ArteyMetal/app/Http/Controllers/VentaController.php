@@ -20,7 +20,7 @@ class VentaController extends Controller
     }
     public function index()
     {
-        $scope = request('scope', 'mi_caja');
+        $scope = request('scope', 'todas');
 
         if ($scope === 'todas') {
             $busqueda = request('q');
@@ -86,7 +86,7 @@ class VentaController extends Controller
         return view('ventas.index', compact('ventas', 'busqueda', 'tipo', 'caja') + [
             'cajasAbiertas' => collect(),
             'sinCaja' => false,
-            'scope' => 'mi_caja',
+            'scope' => 'todas',
         ]);
     }
 
@@ -106,7 +106,7 @@ class VentaController extends Controller
                 'tipo' => '',
                 'caja' => null,
                 'cajasAbiertas' => collect(),
-                'sinCaja' => true, 'scope' => 'mi_caja',
+                'sinCaja' => true, 'scope' => 'todas',
             ]);
         }
 
@@ -115,7 +115,7 @@ class VentaController extends Controller
             'busqueda' => '',
             'tipo' => '',
             'caja' => null,
-            'cajasAbiertas' => $cajasAbiertas, 'scope' => 'mi_caja',
+            'cajasAbiertas' => $cajasAbiertas, 'scope' => 'todas',
         ]);
     }
 
