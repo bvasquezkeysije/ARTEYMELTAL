@@ -6,6 +6,7 @@ use App\Models\MovimientoAlmacen;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
 use App\Models\Producto;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -51,8 +52,8 @@ class AlmacenController extends Controller
 
         if ($busqueda = $request->get('q')) {
             $query->where(function ($q) use ($busqueda) {
-                $q->where('codigo', 'like', "%{$busqueda}%")
-                    ->orWhere('nombre', 'like', "%{$busqueda}%");
+                $q->where('codigo', 'ilike', "%{$busqueda}%")
+                    ->orWhere('nombre', 'ilike', "%{$busqueda}%");
             });
         }
 
@@ -185,15 +186,24 @@ class AlmacenController extends Controller
             ->with('success', 'Salida registrada correctamente.');
     }
 
-    public function pedidosPendientes(): View
+    public function pedidosPendientes(Request $request): View
     {
+        $busqueda = $request->input('q', '');
+        $filtroEstado = $request->input('estado', '');
+
         $pedidos = Pedido::query()
             ->with('cliente', 'productos')
-            ->whereIn('estado', ['en_transporte', 'en_almacen', 'listo_recoger'])
+            ->whereIn('estado', ['en_almacen', 'listo_recoger', 'entregado'])
+            ->when($busqueda, fn ($q) => $q->where(function ($sub) use ($busqueda) {
+                $sub->where('codigo', 'ilike', "%{$busqueda}%")
+                    ->orWhere('nombre_cliente', 'ilike', "%{$busqueda}%");
+            }))
+            ->when($filtroEstado, fn ($q) => $q->where('estado', $filtroEstado))
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(10)
+            ->appends(['q' => $busqueda, 'estado' => $filtroEstado]);
 
-        return view('almacen.pedidos', compact('pedidos'));
+        return view('almacen.pedidos', compact('pedidos', 'busqueda', 'filtroEstado'));
     }
 
     public function recibirPedido(Request $request, Pedido $pedido)
@@ -204,11 +214,14 @@ class AlmacenController extends Controller
             abort(403, 'Solo el almacenero puede recibir pedidos.');
         }
 
-        if ($pedido->estado !== 'en_transporte') {
-            return back()->with('ok', 'El pedido debe estar en transporte.');
+        if ($pedido->estado !== 'en_almacen') {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'El pedido debe estar en almacen para recibirlo.']);
+            }
+            return back()->with('ok', 'El pedido debe estar en almacen para recibirlo.');
         }
 
-        DB::transaction(function () use ($pedido, $request) {
+        DB::transaction(function () use ($pedido) {
             $pedido->load('productos');
 
             foreach ($pedido->productos as $pp) {
@@ -237,8 +250,12 @@ class AlmacenController extends Controller
                 ]);
             }
 
-            $pedido->update(['estado' => 'en_almacen']);
+            $pedido->update(['estado' => 'listo_recoger']);
         });
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Pedido recibido en almacen correctamente.']);
+        }
 
         return redirect()->route('almacen.pedidos')->with('success', 'Pedido recibido en almacen correctamente.');
     }
@@ -252,7 +269,10 @@ class AlmacenController extends Controller
         }
 
         if ($pedido->estado !== 'listo_recoger') {
-            return back()->with('ok', 'El pedido debe estar autorizado para recoger.');
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'El pedido debe estar listo para recoger.']);
+            }
+            return back()->with('ok', 'El pedido debe estar listo para recoger.');
         }
 
         DB::transaction(function () use ($pedido) {
@@ -283,6 +303,10 @@ class AlmacenController extends Controller
 
             $pedido->update(['estado' => 'entregado']);
         });
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Pedido entregado al cliente correctamente.']);
+        }
 
         return redirect()->route('almacen.pedidos')->with('success', 'Pedido entregado al cliente correctamente.');
     }

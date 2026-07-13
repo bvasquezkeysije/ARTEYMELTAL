@@ -188,6 +188,23 @@ class PedidoController extends Controller
     {
         $pedido->load('cliente', 'archivosDiseno', 'archivosOrden', 'productos.archivos');
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'id' => $pedido->id,
+                'codigo' => $pedido->codigo,
+                'estado' => $pedido->estado,
+                'nombre_cliente' => $pedido->nombre_cliente,
+                'tipo_producto' => $pedido->tipo_producto,
+                'direccion_entrega' => $pedido->direccion_entrega,
+                'productos' => $pedido->productos->map(fn ($p) => [
+                    'id' => $p->id,
+                    'nombre' => $p->nombre,
+                    'cantidad' => $p->cantidad,
+                    'cantidad_recoge' => $p->cantidad_recoge,
+                ]),
+            ]);
+        }
+
         return view('pedidos.show', compact('pedido'));
     }
 
