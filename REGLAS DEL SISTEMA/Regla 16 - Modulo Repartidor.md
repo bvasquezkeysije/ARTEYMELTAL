@@ -12,24 +12,24 @@ Repartidor ve notificacion en campanita
 Repartidor entra a modulo Repartidor
     Ve pedidos con estado = listo_entrega o en_transporte
 
+    Barra de busqueda: por codigo o cliente
+    Filtro: Todos / Listo para recoger / En transporte
+
     Boton "Ver detalle" (cyan) -> Modal con info completa
       - Info cliente, tipo producto, direccion entrega
       - Tabla de productos con cantidades
       - Archivos de referencia y diseno
       - Viewer carrusel de modelos
 
-    Si estado = listo_entrega:
-      Seccion "Recoger pedido" con tabla editable
-      - Cada producto muestra cantidad pedida y campo "cantidad a recoger"
-      - Boton "Marcar recogido" (sky-600)
+    Boton "Recoger" (sky-600, solo si listo_entrega)
+      -> Modal con tabla editable de cantidades
       -> Cambia estado: listo_entrega -> en_transporte
 
-    Si estado = en_transporte:
-      Seccion "Entregar en almacen"
-      - Boton "Entregar en almacen" (amber-600)
+    Boton "Entregar en almacen" (amber-600, solo si en_transporte)
       -> Modal de confirmacion
+      -> POST AJAX a repartidor/{pedido}/entregar-almacen
       -> Cambia estado: en_transporte -> en_almacen
-      -> Notifica al almacenero
+      -> Notifica a TODOS los almaceneros
       -> Notifica al vendedor
 ```
 
@@ -42,9 +42,18 @@ Repartidor entra a modulo Repartidor
 
 ## Index - Estructura
 
-### Sin barra de busqueda
-El modulo repartidor NO tiene barra de busqueda ni filtros.
-Solo muestra la tabla con paginacion.
+### Barra de busqueda
+- Campo de texto "Buscar por codigo o cliente"
+- Busqueda ilike en: codigo, nombre_cliente
+- Boton azul (buscar.ico) para enviar
+- Boton celeste (filtros.ico) con dropdown de estados
+- Boton "Limpiar" condicional
+
+### Filtros
+- Todos
+- Listo para recoger (amber)
+- En transporte (sky)
+- Indicador ring cuando hay filtro activo
 
 ### Tabla - Columnas
 
@@ -52,41 +61,35 @@ Solo muestra la tabla con paginacion.
 |---------|-----------|
 | Codigo | Codigo unico del pedido |
 | Cliente | Nombre del cliente |
+| Productos | Lista de nombres |
 | Estado | Badge: Listo para recoger (amber) / En transporte (sky) |
-| Acciones | Boton "Ver detalle" (cyan) |
+| Acciones | Botones de accion |
+
+### Botones de accion por fila
+
+| Boton | Color | Visible cuando | Accion |
+|-------|-------|----------------|--------|
+| Ver detalle | Cyan (#0891B2) | Siempre | Modal detalle + viewer |
+| Recoger | Sky-600 | Solo si listo_entrega | Modal cantidades |
+| Entregar en almacen | Amber-600 | Solo si en_transporte | Modal confirmar AJAX |
 
 ## Show (detalle del pedido)
 
-### Info del pedido
-- Cliente, estado, tipo producto, tipo entrega
-- Detalle del trabajo
-- Direccion de entrega (si existe)
-
-### Tabla de productos
-- Columnas: #, Nombre, Descripcion, Cant. pedido, Cant. recoge
-- "Cant. recoge" solo se muestra si ya fue recogido
-
-### Archivos
-- Card "Modelo del cliente / referencia" (verde)
-- Card "Diseno del disenador" (amber)
-- Viewer carrusel con todos los archivos
-
-### Seccion "Recoger pedido" (solo si estado = listo_entrega)
-- Tabla editable con cantidad a recoger por producto
-- Campo numerico con min=1 y max=cantidad_pedido
-- Boton "Marcar recogido" (sky-600)
-- Usa formulario POST con redirect
-
-### Seccion "Entregar en almacen" (solo si estado = en_transporte)
-- Boton "Entregar en almacen" (amber-600)
-- Modal de confirmacion AJAX
-- Al confirmar: cambia a en_almacen + notifica
+- Info completa: cliente, estado, tipo producto, tipo entrega
+- Direccion de entrega
+- Tabla de productos con cantidades
+- Archivos de referencia y diseno
+- Viewer carrusel
+- Acciones segun estado:
+  - listo_entrega -> Formulario "Recoger pedido"
+  - en_transporte -> Boton "Entregar en almacen" (AJAX)
+- Boton "Volver"
 
 ## Rutas
 
 | Metodo | Ruta | Nombre | Accion |
 |--------|------|--------|--------|
-| GET | /repartidor | repartidor.index | Listado de pedidos |
+| GET | /repartidor | repartidor.index | Listado con busqueda/filtro |
 | GET | /repartidor/{pedido} | repartidor.show | Detalle del pedido |
 | POST | /repartidor/{pedido}/recoger | repartidor.recoger | Marcar como recogido |
 | POST | /repartidor/{pedido}/entregar-almacen | repartidor.entregar_almacen | Entregar en almacen |
@@ -97,13 +100,3 @@ Solo muestra la tabla con paginacion.
 |---------|-------------|------|--------|
 | Entregar en almacen | Todos los almaceneros | almacen | Pedido recibido en almacen |
 | Entregar en almacen | Vendedor del pedido | repartidor | Pedido entregado en almacen |
-
-## Diferencia con otros modulos
-
-| Aspecto | Repartidor | Produccion | Diseno |
-|---------|-----------|------------|--------|
-| Busqueda/Filtros | NO | SI | SI |
-| Subir archivos | NO | NO | SI |
-| Acciones por fila | 1 (ver detalle) | 3 | 5 |
-| Modales de confirmacion | 1 (entregar almacen) | 2 | 1 (notificar) |
-| Formulario editable | SI (cantidad a recoger) | NO | NO |
