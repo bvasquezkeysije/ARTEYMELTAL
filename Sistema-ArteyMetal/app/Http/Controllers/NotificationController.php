@@ -29,21 +29,26 @@ class NotificationController extends Controller
 
     public function unread(Request $request)
     {
-        $notifications = Notification::where('user_id', $request->user()->id)
-            ->where('is_read', false)
+        $all = Notification::where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
+            ->limit(50)
             ->get()
             ->map(fn ($n) => [
                 'id' => $n->id,
                 'title' => $n->title,
                 'body' => $n->body,
                 'action_url' => $n->action_url,
+                'is_read' => (bool) $n->is_read,
                 'created_at' => $n->created_at?->toIso601String(),
             ]);
 
+        $count = Notification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->count();
+
         return response()->json([
-            'count' => $notifications->count(),
-            'notifications' => $notifications,
+            'count' => $count,
+            'notifications' => $all,
         ]);
     }
 

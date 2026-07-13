@@ -223,7 +223,7 @@
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <div x-data="{ notifOpen: false, count: 0, items: [], polling: null }" x-init="
+                                <div x-data="{ notifOpen: false, count: 0, items: [], polling: null, timeAgo(d) { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s/60) + ' min'; if (s < 86400) return Math.floor(s/3600) + ' h'; return Math.floor(s/86400) + ' d'; } }" x-init="
                                     fetch('{{ route('notificaciones.unread') }}')
                                         .then(r => r.json())
                                         .then(d => { count = d.count; items = d.notifications; });
@@ -254,23 +254,26 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <div class="max-h-72 overflow-y-auto">
+                                        <style>.notif-scroll::-webkit-scrollbar { width: 5px; } .notif-scroll::-webkit-scrollbar-track { background: transparent; } .notif-scroll::-webkit-scrollbar-thumb { background: #d1be8a; border-radius: 10px; }</style>
+                                        <div class="notif-scroll max-h-80 overflow-y-auto">
                                             <template x-for="item in items" :key="item.id">
-                                                <div class="flex items-start gap-3 border-b border-[#f0ede3] px-4 py-3">
-                                                    <span class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#b9943d]/20 text-[#7a5b25]">
+                                                <div :class="item.is_read ? 'bg-white' : 'bg-[#fffbf5]'" class="flex items-start gap-3 border-b border-[#f0ede3] px-4 py-3">
+                                                    <span class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full" :class="item.is_read ? 'bg-gray-100 text-gray-400' : 'bg-[#b9943d]/20 text-[#7a5b25]'">
                                                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
                                                         </svg>
                                                     </span>
                                                     <div class="min-w-0 flex-1">
-                                                        <p class="text-xs font-medium text-[#3b2e11]" x-text="item.title"></p>
-                                                        <p class="text-[10px] text-gray-400" x-text="item.created_at ? new Date(item.created_at).toLocaleDateString() : ''"></p>
+                                                        <p class="text-xs font-medium" :class="item.is_read ? 'text-gray-500' : 'text-[#3b2e11]'" x-text="item.title"></p>
+                                                        <p class="mt-0.5 text-[10px] text-gray-400 line-clamp-2" x-text="item.body"></p>
+                                                        <p class="mt-0.5 text-[10px] text-gray-400" x-text="item.created_at ? timeAgo(item.created_at) : ''"></p>
                                                     </div>
                                                     <template x-if="item.action_url">
                                                         <a :href="item.action_url" class="shrink-0 rounded-lg border border-[#e3d7bb] px-2.5 py-1 text-[10px] font-medium text-[#7a5b25] hover:bg-[#fff5dd]">Ver</a>
                                                     </template>
                                                 </div>
                                             </template>
+                                            </div>
                                         </div>
                                         <a href="{{ route('notificaciones.index') }}" class="block border-t border-[#f0ede3] px-4 py-2.5 text-center text-xs font-medium text-[#7a5b25] hover:bg-[#fffbee]">Ver todas las notificaciones</a>
                                     </div>
