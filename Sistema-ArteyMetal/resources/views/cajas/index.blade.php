@@ -68,17 +68,27 @@
         {{-- ============================================================ --}}
         {{-- SECCION 1: TABLA DE CAJAS --}}
         {{-- ============================================================ --}}
-        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+        <div x-data="{ filtrosCajaAbiertos: false }" class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <form id="search-cajas-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1">
                     <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
                     <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
+                    <input type="hidden" name="cq_estado" value="{{ $filtroCajaEstado ?? '' }}" />
                     <input type="text" name="cq" value="{{ $busquedaCaja ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar caja por nombre..." />
                 </form>
                 <button type="submit" form="search-cajas-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
                     <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
-                @if(($busquedaCaja ?? '') !== '')
+                <button
+                    type="button"
+                    @click="filtrosCajaAbiertos = !filtrosCajaAbiertos"
+                    class="btn-icon bg-sky-500 hover:bg-sky-600"
+                    title="Filtrar"
+                    :class="{ 'is-active': filtrosCajaAbiertos || '{{ $filtroCajaEstado ?? '' }}' !== '' }"
+                >
+                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                @if(($busquedaCaja ?? '') !== '' || ($filtroCajaEstado ?? '') !== '')
                     <a href="{{ route('cajas.index', array_filter(['q' => $busqueda ?? null, 'estado' => $filtroEstado ?? null])) }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
                 @if(auth()->user()->tienePermiso('caja.gestionar'))
@@ -87,6 +97,21 @@
                     </button>
                 @endif
             </div>
+
+            <form x-show="filtrosCajaAbiertos" x-transition method="GET" action="{{ route('cajas.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
+                <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
+                <input type="hidden" name="cq" value="{{ $busquedaCaja ?? '' }}" />
+                <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
+                <div>
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Estado</label>
+                    <select name="cq_estado" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm">
+                        <option value="">Todas</option>
+                        <option value="abierta" @selected(($filtroCajaEstado ?? '') === 'abierta')>Abierta</option>
+                        <option value="cerrada" @selected(($filtroCajaEstado ?? '') === 'cerrada')>Cerrada</option>
+                    </select>
+                </div>
+                <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
+            </form>
         </div>
 
         <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
