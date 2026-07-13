@@ -375,7 +375,7 @@
                 <p class="mb-4 text-sm text-[#4a4026]">Verifique que los productos fueron entregados correctamente por el repartidor.</p>
                 <div class="flex justify-end gap-2">
                     <button type="button" x-on:click="modalRecibir = false"
-                        class="rounded-xl bg-[#6b7280] px-4 py-2 text-sm font-medium text-white hover:bg-[#4b5563]">
+                        class="rounded-xl bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">
                         Cancelar
                     </button>
                     <button type="button" x-on:click="confirmarRecibir()" :disabled="procesando"
@@ -444,11 +444,11 @@
 
                 <div class="flex justify-end gap-2">
                     <button type="button" x-on:click="modalEntregar = false"
-                        class="rounded-xl bg-[#6b7280] px-4 py-2 text-sm font-medium text-white hover:bg-[#4b5563]">
+                        class="rounded-xl bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">
                         Cancelar
                     </button>
                     <button type="button" x-on:click="confirmarEntregar()" :disabled="procesando || !entregarValidado"
-                        class="rounded-xl bg-[#d97706] px-4 py-2 text-sm font-medium text-white hover:bg-[#b45309] disabled:opacity-50">
+                        class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
                         <span x-show="!procesando" class="flex items-center gap-2">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Confirmar entrega
