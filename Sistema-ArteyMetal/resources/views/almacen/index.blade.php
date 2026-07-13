@@ -41,6 +41,26 @@
             </article>
         </section>
 
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <div class="flex-1 relative">
+                    <input x-model="qRepartidor" type="text" placeholder="Buscar pedido por codigo o cliente..."
+                        class="w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 pr-10 text-sm text-gray-900 placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
+                        x-on:keyup.enter="buscarRepartidor()">
+                </div>
+                <button type="button" x-on:click="buscarRepartidor()" title="Buscar"
+                    class="btn-icon bg-[#b9943d] hover:bg-[#a68535]">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+                @if($busquedaRepartidor !== '')
+                    <button type="button" x-on:click="qRepartidor = ''; buscarRepartidor()" title="Limpiar"
+                        class="btn-icon bg-[#d4534a] hover:bg-[#c0392b]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                @endif
+            </div>
+        </div>
+
         <section class="overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
             <div class="border-b border-amber-100 bg-amber-50 px-4 py-3 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -52,26 +72,6 @@
                         <span class="inline-flex items-center justify-center rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-800">{{ $pedidosPendientes->total() }}</span>
                     @endif
                 </div>
-            </div>
-
-            <div class="border-b border-[#efeee9] bg-[#faf8f2] px-4 py-3">
-                <form class="flex gap-2" x-on:submit.prevent="buscarRepartidor()">
-                    <div class="flex-1 relative">
-                        <input x-model="qRepartidor" type="text" placeholder="Buscar por codigo o cliente..."
-                            class="w-full rounded-xl border border-[#d4cfc0] bg-white px-4 py-2.5 pr-10 text-sm text-[#2d2b24] placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
-                            x-on:keyup.enter="buscarRepartidor()">
-                    </div>
-                    <button type="button" x-on:click="buscarRepartidor()" title="Buscar"
-                        class="btn-icon bg-[#b9943d] hover:bg-[#a68535]">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </button>
-                    @if($busquedaRepartidor !== '')
-                        <button type="button" x-on:click="qRepartidor = ''; buscarRepartidor()" title="Limpiar"
-                            class="btn-icon bg-[#d4534a] hover:bg-[#c0392b]">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    @endif
-                </form>
             </div>
 
             <div class="overflow-x-auto">
@@ -198,18 +198,18 @@
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
             x-on:keydown.escape.window="modalDetalle = false"
             x-on:click.self="modalDetalle = false">
             <div x-show="modalDetalle" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
+                class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Detalle del Pedido</h3>
-                    <button x-on:click="modalDetalle = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
-                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
+                    <button type="button" x-on:click="modalDetalle = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
                 <template x-if="detallePedido">
@@ -245,18 +245,18 @@
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
             x-on:keydown.escape.window="modalRecibir = false"
             x-on:click.self="modalRecibir = false">
             <div x-show="modalRecibir" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                class="w-full max-w-md rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Confirmar recepcion en almacen</h3>
-                    <button x-on:click="modalRecibir = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
-                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
+                    <button type="button" x-on:click="modalRecibir = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
                 <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-4">
@@ -272,11 +272,11 @@
                 </div>
                 <p class="mb-4 text-sm text-[#4a4026]">Verifique que los productos fueron entregados correctamente por el repartidor.</p>
                 <div class="flex justify-end gap-2">
-                    <button x-on:click="modalRecibir = false"
+                    <button type="button" x-on:click="modalRecibir = false"
                         class="rounded-xl border border-[#d4cfc0] bg-white px-4 py-2 text-sm font-medium text-[#5a4a2a] hover:bg-[#f4ebd4]">
                         Cancelar
                     </button>
-                    <button x-on:click="confirmarRecibir()" :disabled="procesando"
+                    <button type="button" x-on:click="confirmarRecibir()" :disabled="procesando"
                         class="rounded-xl bg-[#059669] px-4 py-2 text-sm font-medium text-white hover:bg-[#047857] disabled:opacity-50">
                         <span x-show="!procesando" class="flex items-center gap-2">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
