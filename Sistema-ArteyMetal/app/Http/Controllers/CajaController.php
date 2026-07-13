@@ -11,6 +11,9 @@ class CajaController extends Controller
 {
     public function index()
     {
+        $busqueda = request('q');
+        $filtroEstado = request('estado');
+
         $aperturas = CajaApertura::query()
             ->with('usuario', 'caja')
             ->withCount('ventas')
@@ -18,12 +21,24 @@ class CajaController extends Controller
             ->withSum('ventas', 'monto_efectivo')
             ->withSum('ventas', 'monto_digital')
             ->withSum('ventas', 'vuelto')
+            ->when($busqueda, function ($query) use ($busqueda) {
+                $query->where(function ($q) use ($busqueda) {
+                    $q->where('nombre', 'like', "%{$busqueda}%")
+                        ->orWhereHas('usuario', function ($uq) use ($busqueda) {
+                            $uq->where('name', 'like', "%{$busqueda}%");
+                        });
+                });
+            })
+            ->when($filtroEstado !== null && $filtroEstado !== '', function ($query) use ($filtroEstado) {
+                $query->where('estado', $filtroEstado);
+            })
             ->orderBy('id', 'desc')
-            ->paginate(20);
+            ->paginate(12)
+            ->withQueryString();
 
         $cajasDisponibles = Caja::where('activa', true)->get();
 
-        return view('cajas.index', compact('aperturas', 'cajasDisponibles'));
+        return view('cajas.index', compact('aperturas', 'cajasDisponibles', 'busqueda', 'filtroEstado'));
     }
 
     public function store(Request $request)

@@ -7,22 +7,39 @@
         .btn-icon:focus-visible,
         .btn-icon:focus,
         .btn-icon-sm:focus-visible,
-        .btn-icon-sm:focus { outline: 0 none !important; }
+        .btn-icon-sm:focus {
+            outline: 0 none !important;
+        }
         .btn-icon:active,
-        .btn-icon-sm:active { filter: brightness(0.85); }
+        .btn-icon-sm:active {
+            filter: brightness(0.85);
+        }
         .btn-icon {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 2.5rem; height: 2.5rem; border-radius: 0.75rem;
-            flex-shrink: 0; color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .btn-icon.is-active {
+            filter: brightness(0.8);
         }
         .btn-icon-sm {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 2rem; height: 2rem; border-radius: 0.5rem;
-            flex-shrink: 0; color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            flex-shrink: 0;
+            color: #fff;
         }
     </style>
 
-    <div x-data="{ modalAbrir: false, cerrarId: null, montoCerrar: {}, detalleCaja: null, showSuccess: {{ session()->has('success') ? 'true' : 'false' }} }" class="space-y-5">
+    <div x-data="{ modalAbrir: false, cerrarId: null, detalleCaja: null, showSuccess: {{ session()->has('success') ? 'true' : 'false' }}, filtrosAbiertos: false }" class="space-y-5">
         <div x-show="showSuccess" style="display: none;">
             <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
             <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -39,29 +56,71 @@
             <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ $errors->first() }}</div>
         @endif
 
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-800">Historial de caja</h2>
-            <button type="button" @click="modalAbrir = true" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#262626]">Abrir caja</button>
+        {{-- Barra superior: buscar + filtros + abrir caja --}}
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+                    <form id="search-caja-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1">
+                        <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
+                        <input type="text" name="q" value="{{ $busqueda ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por caja o usuario" />
+                    </form>
+                </div>
+                <button type="submit" form="search-caja-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                <button
+                    type="button"
+                    @click="filtrosAbiertos = !filtrosAbiertos"
+                    class="btn-icon bg-sky-500 hover:bg-sky-600"
+                    title="Filtrar"
+                    :class="{ 'is-active': filtrosAbiertos || '{{ $filtroEstado ?? '' }}' !== '' }"
+                >
+                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                @if(($busqueda ?? '') !== '' || ($filtroEstado ?? '') !== '')
+                    <a href="{{ route('cajas.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                @endif
+                @if(auth()->user()->tienePermiso('caja.gestionar'))
+                    <button type="button" @click="modalAbrir = true" class="btn-icon" style="background-color:#09090f;color:white" title="Abrir caja">
+                        <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />
+                    </button>
+                @endif
+            </div>
+
+            {{-- Filtros --}}
+            <form x-show="filtrosAbiertos" x-transition method="GET" action="{{ route('cajas.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
+                <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
+                <div>
+                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Estado</label>
+                    <select name="estado" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm">
+                        <option value="">Todos</option>
+                        <option value="abierta" @selected(($filtroEstado ?? '') === 'abierta')>Abierta</option>
+                        <option value="cerrada" @selected(($filtroEstado ?? '') === 'cerrada')>Cerrada</option>
+                    </select>
+                </div>
+                <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
+            </form>
         </div>
 
-        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+        {{-- Tabla historial de cajas --}}
+        <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="border-b border-gray-200 text-xs uppercase tracking-[0.15em] text-gray-500">
-                            <th class="px-4 py-3 font-medium">Caja</th>
-                            <th class="px-4 py-3 font-medium">Usuario</th>
-                            <th class="px-4 py-3 font-medium">Apertura</th>
-                            <th class="px-4 py-3 font-medium">Inicial</th>
-                            <th class="px-4 py-3 font-medium">Cierre</th>
-                            <th class="px-4 py-3 font-medium">Efectivo Final</th>
-                            <th class="px-4 py-3 font-medium">N° Ventas</th>
-                            <th class="px-4 py-3 font-medium">Efectivo</th>
-                            <th class="px-4 py-3 font-medium">Digital</th>
-                            <th class="px-4 py-3 font-medium">Vuelto</th>
-                            <th class="px-4 py-3 font-medium">Total final</th>
-                            <th class="px-4 py-3 font-medium">Estado</th>
-                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Caja</th>
+                            <th class="px-4 py-3 font-semibold">Usuario</th>
+                            <th class="px-4 py-3 font-semibold">Apertura</th>
+                            <th class="px-4 py-3 font-semibold">Inicial</th>
+                            <th class="px-4 py-3 font-semibold">Cierre</th>
+                            <th class="px-4 py-3 font-semibold">Efectivo Final</th>
+                            <th class="px-4 py-3 font-semibold">N° Ventas</th>
+                            <th class="px-4 py-3 font-semibold">Efectivo</th>
+                            <th class="px-4 py-3 font-semibold">Digital</th>
+                            <th class="px-4 py-3 font-semibold">Vuelto</th>
+                            <th class="px-4 py-3 font-semibold">Total final</th>
+                            <th class="px-4 py-3 font-semibold">Estado</th>
+                            <th class="px-4 py-3 text-right font-semibold">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,7 +133,7 @@
                                 $totalFinal = $finalEfectivo + $totalDigital;
                             @endphp
                             <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                <td class="px-4 py-3"><span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</span></td>
+                                <td class="px-4 py-3"><span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $apertura->caja->nombre ?? $apertura->nombre ?? 'Caja #'.$apertura->id }}</span></td>
                                 <td class="px-4 py-3 text-gray-900">{{ $apertura->usuario?->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</td>
                                 <td class="px-4 py-3 text-gray-900">S/ {{ number_format($apertura->monto_inicial, 2) }}</td>
@@ -97,7 +156,7 @@
                                         @php
                                         $detalleData = [
                                             'id' => $apertura->id,
-                                            'nombre' => $apertura->nombre ?? 'Caja #'.$apertura->id,
+                                            'nombre' => $apertura->caja->nombre ?? $apertura->nombre ?? 'Caja #'.$apertura->id,
                                             'usuario' => $apertura->usuario?->name ?? '-',
                                             'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
                                             'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
@@ -120,7 +179,7 @@
                                         >
                                             <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
                                         </button>
-                                        @if ($apertura->estado === 'abierta')
+                                        @if ($apertura->estado === 'abierta' && auth()->user()->tienePermiso('caja.gestionar'))
                                             <button type="button" @click="cerrarId = {{ $apertura->id }}" class="btn-icon-sm bg-rose-600 hover:bg-rose-700" title="Cerrar caja">
                                                 <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                                             </button>
@@ -130,14 +189,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
+                                <td colspan="13" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             @if ($aperturas->hasPages())
-                <div class="border-t border-gray-200 px-4 py-3">{{ $aperturas->links() }}</div>
+                <div class="border-t border-[#efe7d2] px-4 py-3">{{ $aperturas->links() }}</div>
             @endif
         </div>
 
@@ -197,7 +256,7 @@
                     <form method="POST" action="{{ route('cajas.cerrar', $apertura) }}" class="p-5 space-y-4">
                         @csrf
                         <div>
-                            <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
+                            <p class="text-sm text-gray-600">Caja: <strong>{{ $apertura->caja->nombre ?? $apertura->nombre ?? 'Caja #'.$apertura->id }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Abrió: <strong>{{ $apertura->usuario?->name ?? '-' }}</strong></p>
                             <p class="mt-1 text-sm text-gray-600">Apertura: <strong>{{ $apertura->fecha_apertura->format('d/m/Y H:i') }}</strong></p>
                         </div>
@@ -232,7 +291,7 @@
                             <label for="obs_cerrar_{{ $apertura->id }}" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>
                             <textarea id="obs_cerrar_{{ $apertura->id }}" name="observaciones" rows="2" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Opcional"></textarea>
                         </div>
-                        <button type="submit" class="w-full rounded-xl bg-rose-600 px-4 py/3 text-sm font-semibold text-white hover:bg-rose-700">Cerrar caja</button>
+                        <button type="submit" class="w-full rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white hover:bg-rose-700">Cerrar caja</button>
                     </form>
                 </div>
             </div>
@@ -251,7 +310,7 @@
                 </div>
                 <div class="grid gap-4 p-5 md:grid-cols-2">
                     <div>
-                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">Caja</p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Caja</p>
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.nombre"></p>
                     </div>
                     <div>
@@ -260,7 +319,7 @@
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Apertura</p>
-                        <p  class="mt-1 text-gray-900" x-text="detalleCaja?.apertura"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.apertura"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Cierre</p>
@@ -271,11 +330,11 @@
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.inicial"></p>
                     </div>
                     <div>
-                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo Final</p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo Final</p>
                         <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.efectivo_final"></p>
                     </div>
                     <div>
-                        <p  class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
+                        <p class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
                         <p class="mt-1 text-gray-900" x-text="detalleCaja?.ventas_count"></p>
                     </div>
                     <div>
@@ -292,7 +351,7 @@
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
-                        <p  class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
                     </div>
                     <div class="md:col-span-2">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
