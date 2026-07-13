@@ -50,7 +50,7 @@
                     </div>
                     @endif
                     <form id="search-form" method="GET" action="{{ route('pedidos.index') }}" class="flex min-w-0 flex-1">
-                        <input type="hidden" name="scope" value="{{ $scope ?? 'mis_pedidos' }}" />
+                        <input type="hidden" name="scope" value="{{ $scope ?? 'todas' }}" />
                         <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 text-sm text-gray-900 h-10" placeholder="Buscar por codigo, cliente, producto o estado" />
                     </form>
                 </div>
@@ -62,7 +62,7 @@
                     @click="filtrosAbiertos = !filtrosAbiertos"
                     class="btn-icon bg-sky-500 hover:bg-sky-600"
                     title="Filtrar"
-                    :class="{ 'is-active': filtrosAbiertos || '{{ $filtroEstado ?? '' }}' !== '' || '{{ $scope ?? 'mis_pedidos' }}' !== 'mis_pedidos' }"
+                    :class="{ 'is-active': filtrosAbiertos || '{{ $filtroEstado ?? '' }}' !== '' || '{{ $scope ?? 'todas' }}' !== 'todas' }"
                 >
                     <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
@@ -104,8 +104,8 @@
                 <div>
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Mostrar</label>
                     <select name="scope" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <option value="mis_pedidos" @selected(($scope ?? 'mis_pedidos') === 'mis_pedidos')>Mis pedidos</option>
-                        <option value="todas" @selected(($scope ?? 'mis_pedidos') === 'todas')>Todas</option>
+                        <option value="mis_pedidos" @selected(($scope ?? 'todas') === 'mis_pedidos')>Mis pedidos</option>
+                        <option value="todas" @selected(($scope ?? 'todas') === 'todas')>Todas</option>
                     </select>
                 </div>
                 <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>

@@ -24,22 +24,19 @@ class PedidoController extends Controller
 
     public function index()
     {
-        $scope = request('scope', 'mis_pedidos');
+        $scope = request('scope', 'todas');
 
-        $caja = null;
-        $cajasAbiertas = collect();
-        $sinCaja = false;
+        $cajaAperturaId = session('pedido_caja_apertura_id');
 
-        if ($scope !== 'todas') {
-            $cajaAperturaId = session('pedido_caja_apertura_id');
+        if (! $cajaAperturaId) {
+            return $this->redirectToCajaSelection();
+        }
 
-            if ($cajaAperturaId) {
-                $caja = CajaApertura::find($cajaAperturaId);
-                if (!$caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
-                    session()->forget('pedido_caja_apertura_id');
-                    $caja = null;
-                }
-            }
+        $caja = CajaApertura::find($cajaAperturaId);
+
+        if (! $caja || $caja->estado !== 'abierta' || $caja->usuario_id !== auth()->id()) {
+            session()->forget('pedido_caja_apertura_id');
+            return $this->redirectToCajaSelection();
         }
 
         $busqueda = request('q');
@@ -69,7 +66,7 @@ class PedidoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion', 'caja', 'cajasAbiertas', 'sinCaja', 'scope'));
+        return view('pedidos.index', compact('pedidos', 'busqueda', 'filtroEstado', 'filtroPersonalizacion', 'caja', 'scope'));
     }
 
     public function create()
@@ -77,14 +74,14 @@ class PedidoController extends Controller
         $cajaAperturaId = session('pedido_caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
+            return $this->redirectToCajaSelection();
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('pedido_caja_apertura_id');
-            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
+            return $this->redirectToCajaSelection();
         }
 
         $clientes = Cliente::orderBy('nombre_completo')->get();
@@ -99,14 +96,14 @@ class PedidoController extends Controller
         $cajaAperturaId = session('pedido_caja_apertura_id');
 
         if (! $cajaAperturaId) {
-            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
+            return $this->redirectToCajaSelection();
         }
 
         $cajaAbierta = CajaApertura::find($cajaAperturaId);
 
         if (! $cajaAbierta || $cajaAbierta->estado !== 'abierta' || $cajaAbierta->usuario_id !== auth()->id()) {
             session()->forget('pedido_caja_apertura_id');
-            return redirect()->route('pedidos.index', ['scope' => request('scope', 'mis_pedidos')])->with('ok', 'Debes seleccionar una caja antes de crear un pedido.');
+            return $this->redirectToCajaSelection();
         }
 
         $datos = $this->validarPedido($request);
@@ -244,7 +241,7 @@ class PedidoController extends Controller
                 'caja' => null,
                 'cajasAbiertas' => collect(),
                 'sinCaja' => true,
-                'scope' => 'mis_pedidos',
+                'scope' => 'todas',
             ]);
         }
 
@@ -255,7 +252,7 @@ class PedidoController extends Controller
             'filtroPersonalizacion' => '',
             'caja' => null,
             'cajasAbiertas' => $cajasAbiertas,
-            'scope' => 'mis_pedidos',
+            'scope' => 'todas',
         ]);
     }
 
