@@ -462,22 +462,7 @@
                         <p class="mt-1 text-xs text-[#999]">Max 10MB por archivo. Formatos: cdr, pdf, png, jpg, svg, ai, eps, psd, webp</p>
                     </div>
 
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-[#2d2b24]">Accion</label>
-                        <div class="flex gap-3">
-                            <label class="flex items-center gap-2 rounded-lg border border-[#d5d0c0] px-4 py-2.5 cursor-pointer has-[:checked]:border-amber-600 has-[:checked]:bg-amber-50">
-                                <input type="radio" name="estado_personalizacion" value="en_diseno" checked
-                                       class="text-amber-600 accent-amber-600">
-                                <span class="text-sm font-medium text-[#2d2b24]">Solo subir archivos</span>
-                            </label>
-                            <label class="flex items-center gap-2 rounded-lg border border-[#d5d0c0] px-4 py-2.5 cursor-pointer has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50">
-                                <input type="radio" name="estado_personalizacion" value="en_revision"
-                                       class="text-sky-600 accent-sky-600">
-                                <span class="text-sm font-medium text-[#2d2b24]">Subir y notificar</span>
-                            </label>
-                        </div>
-                        <p class="mt-1 text-xs text-[#999]">"Subir y notificar" envia el pedido a revision.</p>
-                    </div>
+                    <input type="hidden" name="estado_personalizacion" value="en_diseno">
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @@click="open = false"
