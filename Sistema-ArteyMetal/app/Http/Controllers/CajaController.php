@@ -13,10 +13,13 @@ class CajaController extends Controller
     {
         $busqueda = request('q');
         $filtroEstado = request('estado');
+        $busquedaCaja = request('cq');
 
         $cajas = Caja::with(['aperturas' => function ($query) {
             $query->latest()->limit(1);
-        }])->get();
+        }])->when($busquedaCaja, function ($query) use ($busquedaCaja) {
+            $query->where('nombre', 'like', "%{$busquedaCaja}%");
+        })->get();
 
         $aperturas = CajaApertura::query()
             ->with('usuario', 'caja')
@@ -40,7 +43,7 @@ class CajaController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('cajas.index', compact('cajas', 'aperturas', 'busqueda', 'filtroEstado'));
+        return view('cajas.index', compact('cajas', 'aperturas', 'busqueda', 'filtroEstado', 'busquedaCaja'));
     }
 
     public function store(Request $request)
