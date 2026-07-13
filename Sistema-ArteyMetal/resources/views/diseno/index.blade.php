@@ -640,7 +640,7 @@
                                 }).then(r => r.json().then(d => ({ ok: r.ok, body: d })))
                                   .then(({ ok, body }) => {
                                       open = false;
-                                      if (ok && body.ok) { notifMsg = body.message; notifExito = true; }
+                                      if (ok && body.ok) { notifMsg = body.message; notifExito = true; window.dispatchEvent(new Event('notificacion-enviada')); }
                                       else { notifMsg = body.message || 'Error al enviar notificacion.'; notifError = true; }
                                   })
                                   .catch(() => { open = false; notifMsg = 'Error de conexion.'; notifError = true; })

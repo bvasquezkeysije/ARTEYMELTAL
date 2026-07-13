@@ -224,14 +224,10 @@
 
                             <div class="flex items-center gap-2">
                                 <div x-data="{ notifOpen: false, count: 0, items: [], polling: null, timeAgo(d) { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 60) return s + 's'; if (s < 3600) return Math.floor(s/60) + ' min'; if (s < 86400) return Math.floor(s/3600) + ' h'; return Math.floor(s/86400) + ' d'; } }" x-init="
-                                    fetch('{{ route('notificaciones.unread') }}')
-                                        .then(r => r.json())
-                                        .then(d => { count = d.count; items = d.notifications; });
-                                    polling = setInterval(() => {
-                                        fetch('{{ route('notificaciones.unread') }}')
-                                            .then(r => r.json())
-                                            .then(d => { count = d.count; items = d.notifications; });
-                                    }, 30000);
+                                    function loadNotifs() { fetch('{{ route('notificaciones.unread') }}').then(r => r.json()).then(d => { count = d.count; items = d.notifications; }); }
+                                    loadNotifs();
+                                    polling = setInterval(loadNotifs, 30000);
+                                    window.addEventListener('notificacion-enviada', loadNotifs);
                                     window.addEventListener('beforeunload', () => { if(polling) clearInterval(polling); });
                                 " class="relative">
                                     <button type="button" @click="notifOpen = !notifOpen" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d8cfb8] bg-[#fffdf7] text-[#7a5b25] hover:bg-[#fff7e7]">
