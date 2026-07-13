@@ -219,7 +219,7 @@
                 </div>
 
                 {{-- Tabs --}}
-                <div class="mb-3 flex gap-2">
+                <div class="mb-3 flex justify-center gap-2">
                     <button type="button" @@click="switchTab('ref')"
                         :class="tab === 'ref' ? 'bg-amber-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
                         class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
