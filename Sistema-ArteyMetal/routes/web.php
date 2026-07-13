@@ -115,6 +115,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::middleware('permiso:caja.gestionar')->group(function () {
         Route::post('caja', [CajaController::class, 'store'])->name('cajas.store');
         Route::post('caja/{cajaApertura}/cerrar', [CajaController::class, 'cerrar'])->whereNumber('cajaApertura')->name('cajas.cerrar');
+        Route::put('caja/{caja}', [CajaController::class, 'update'])->name('cajas.update');
+        Route::delete('caja/{caja}', [CajaController::class, 'destroy'])->name('cajas.destroy');
     });
 
     Route::middleware('permiso:diseno.ver')->group(function () {

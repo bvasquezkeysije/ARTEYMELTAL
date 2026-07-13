@@ -39,7 +39,16 @@
         }
     </style>
 
-    <div x-data="{ modalAbrir: false, cerrarId: null, detalleCaja: null, showSuccess: {{ session()->has('success') ? 'true' : 'false' }}, filtrosAbiertos: false }" class="space-y-5">
+    <div x-data="{
+        modalAbrir: false,
+        cerrarId: null,
+        editarCaja: null,
+        eliminarCajaId: null,
+        detalleApertura: null,
+        showSuccess: {{ session()->has('success') ? 'true' : 'false' }},
+        filtrosAbiertos: false
+    }" class="space-y-5">
+        {{-- Mensaje success --}}
         <div x-show="showSuccess" style="display: none;">
             <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
             <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -56,54 +65,139 @@
             <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ $errors->first() }}</div>
         @endif
 
-        {{-- Barra superior: buscar + filtros + abrir caja --}}
-        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
-            <div class="flex items-center gap-2">
-                <div class="flex min-w-0 flex-1 items-center gap-3">
-                    <form id="search-caja-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1">
-                        <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
-                        <input type="text" name="q" value="{{ $busqueda ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por caja o usuario" />
-                    </form>
-                </div>
-                <button type="submit" form="search-caja-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
-                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
-                </button>
-                <button
-                    type="button"
-                    @click="filtrosAbiertos = !filtrosAbiertos"
-                    class="btn-icon bg-sky-500 hover:bg-sky-600"
-                    title="Filtrar"
-                    :class="{ 'is-active': filtrosAbiertos || '{{ $filtroEstado ?? '' }}' !== '' }"
-                >
-                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
-                </button>
-                @if(($busqueda ?? '') !== '' || ($filtroEstado ?? '') !== '')
-                    <a href="{{ route('cajas.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
-                @endif
+        {{-- ============================================================ --}}
+        {{-- SECCION 1: TABLA DE CAJAS --}}
+        {{-- ============================================================ --}}
+        <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
+            <div class="flex items-center justify-between border-b border-[#efe7d2] px-5 py-3">
+                <h2 class="text-sm font-semibold text-[#5a4a2a]">Cajas</h2>
                 @if(auth()->user()->tienePermiso('caja.gestionar'))
                     <button type="button" @click="modalAbrir = true" class="btn-icon" style="background-color:#09090f;color:white" title="Abrir caja">
                         <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />
                     </button>
                 @endif
             </div>
-
-            {{-- Filtros --}}
-            <form x-show="filtrosAbiertos" x-transition method="GET" action="{{ route('cajas.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
-                <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
-                <div>
-                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Estado</label>
-                    <select name="estado" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm">
-                        <option value="">Todos</option>
-                        <option value="abierta" @selected(($filtroEstado ?? '') === 'abierta')>Abierta</option>
-                        <option value="cerrada" @selected(($filtroEstado ?? '') === 'cerrada')>Cerrada</option>
-                    </select>
-                </div>
-                <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
-            </form>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Caja</th>
+                            <th class="px-4 py-3 font-semibold">Estado</th>
+                            <th class="px-4 py-3 text-right font-semibold">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($cajas as $caja)
+                            @php
+                                $ultimaApertura = $caja->aperturas->first();
+                                $estaAbierta = $ultimaApertura && $ultimaApertura->estado === 'abierta';
+                            @endphp
+                            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                                <td class="px-4 py-3">
+                                    <span class="rounded-lg bg-[#f4ebd4] px-2.5 py-1 text-xs font-semibold text-[#6a5122]">{{ $caja->nombre }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if ($estaAbierta)
+                                        <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
+                                    @else
+                                        <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        {{-- Abrir / Cerrar --}}
+                                        @if(auth()->user()->tienePermiso('caja.gestionar'))
+                                            @if (!$estaAbierta)
+                                                <button type="button" @click="modalAbrir = true; $refs.selCajaId.value = {{ $caja->id }}" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Abrir caja">
+                                                    <img src="{{ asset('icons/nuevo.ico') }}" alt="Abrir" class="h-4 w-4 object-contain pointer-events-none" />
+                                                </button>
+                                            @else
+                                                <button type="button" @click="cerrarId = {{ $ultimaApertura->id }}" class="btn-icon-sm bg-rose-600 hover:bg-rose-700" title="Cerrar caja">
+                                                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                                                </button>
+                                            @endif
+                                            {{-- Editar --}}
+                                            <button
+                                                type="button"
+                                                @click="editarCaja = { id: {{ $caja->id }}, nombre: '{{ $caja->nombre }}', activa: {{ $caja->activa ? 'true' : 'false' }} }"
+                                                class="btn-icon-sm bg-amber-400 hover:bg-amber-500"
+                                                title="Editar caja"
+                                            >
+                                                <img src="{{ asset('icons/editar.ico') }}" alt="Editar" class="h-4 w-4 object-contain pointer-events-none" />
+                                            </button>
+                                            {{-- Eliminar --}}
+                                            @if (!$estaAbierta)
+                                                <button
+                                                    type="button"
+                                                    @click="eliminarCajaId = {{ $caja->id }}"
+                                                    class="btn-icon-sm bg-red-600 hover:bg-red-700"
+                                                    title="Eliminar caja"
+                                                >
+                                                    <img src="{{ asset('icons/eliminar.ico') }}" alt="Eliminar" class="h-4 w-4 object-contain pointer-events-none" />
+                                                </button>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">No hay cajas registradas.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        {{-- Tabla historial de cajas --}}
+        {{-- ============================================================ --}}
+        {{-- SECCION 2: HISTORIAL DE CAJAS --}}
+        {{-- ============================================================ --}}
         <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
+            <div class="flex items-center justify-between border-b border-[#efe7d2] px-5 py-3">
+                <h2 class="text-sm font-semibold text-[#5a4a2a]">Historial de Cajas</h2>
+            </div>
+
+            {{-- Barra buscar + filtros --}}
+            <div class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                    <form id="search-historial-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1">
+                        <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
+                        <input type="text" name="q" value="{{ $busqueda ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por caja o usuario" />
+                    </form>
+                    <button type="submit" form="search-historial-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
+                        <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
+                    </button>
+                    <button
+                        type="button"
+                        @click="filtrosAbiertos = !filtrosAbiertos"
+                        class="btn-icon bg-sky-500 hover:bg-sky-600"
+                        title="Filtrar"
+                        :class="{ 'is-active': filtrosAbiertos || '{{ $filtroEstado ?? '' }}' !== '' }"
+                    >
+                        <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
+                    </button>
+                    @if(($busqueda ?? '') !== '' || ($filtroEstado ?? '') !== '')
+                        <a href="{{ route('cajas.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                    @endif
+                </div>
+
+                {{-- Filtros --}}
+                <form x-show="filtrosAbiertos" x-transition method="GET" action="{{ route('cajas.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
+                    <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
+                    <div>
+                        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Estado</label>
+                        <select name="estado" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm">
+                            <option value="">Todos</option>
+                            <option value="abierta" @selected(($filtroEstado ?? '') === 'abierta')>Abierta</option>
+                            <option value="cerrada" @selected(($filtroEstado ?? '') === 'cerrada')>Cerrada</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>
+                </form>
+            </div>
+
+            {{-- Tabla historial --}}
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
@@ -152,44 +246,37 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        @php
-                                        $detalleData = [
-                                            'id' => $apertura->id,
-                                            'nombre' => $apertura->caja->nombre ?? $apertura->nombre ?? 'Caja #'.$apertura->id,
-                                            'usuario' => $apertura->usuario?->name ?? '-',
-                                            'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
-                                            'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
-                                            'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
-                                            'efectivo' => 'S/ '.number_format($totalEfectivo, 2),
-                                            'digital' => 'S/ '.number_format($totalDigital, 2),
-                                            'vuelto' => '-S/ '.number_format($totalVuelto, 2),
-                                            'efectivo_final' => 'S/ '.number_format($finalEfectivo, 2),
-                                            'total_final' => 'S/ '.number_format($totalFinal, 2),
-                                            'ventas_count' => $apertura->ventas_count ?? 0,
-                                            'estado' => $apertura->estado,
-                                            'observaciones' => $apertura->observaciones,
-                                        ];
-                                        @endphp
-                                        <button
-                                            type="button"
-                                            @click="detalleCaja = @js($detalleData)"
-                                            class="btn-icon-sm" style="background-color:#0891B2"
-                                            title="Ver detalle"
-                                        >
-                                            <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
-                                        </button>
-                                        @if ($apertura->estado === 'abierta' && auth()->user()->tienePermiso('caja.gestionar'))
-                                            <button type="button" @click="cerrarId = {{ $apertura->id }}" class="btn-icon-sm bg-rose-600 hover:bg-rose-700" title="Cerrar caja">
-                                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
-                                            </button>
-                                        @endif
-                                    </div>
+                                    @php
+                                    $detalleData = [
+                                        'id' => $apertura->id,
+                                        'nombre' => $apertura->caja->nombre ?? $apertura->nombre ?? 'Caja #'.$apertura->id,
+                                        'usuario' => $apertura->usuario?->name ?? '-',
+                                        'apertura' => $apertura->fecha_apertura->format('d/m/Y H:i'),
+                                        'cierre' => $apertura->fecha_cierre?->format('d/m/Y H:i') ?? '—',
+                                        'inicial' => 'S/ '.number_format($apertura->monto_inicial, 2),
+                                        'efectivo' => 'S/ '.number_format($totalEfectivo, 2),
+                                        'digital' => 'S/ '.number_format($totalDigital, 2),
+                                        'vuelto' => '-S/ '.number_format($totalVuelto, 2),
+                                        'efectivo_final' => 'S/ '.number_format($finalEfectivo, 2),
+                                        'total_final' => 'S/ '.number_format($totalFinal, 2),
+                                        'ventas_count' => $apertura->ventas_count ?? 0,
+                                        'estado' => $apertura->estado,
+                                        'observaciones' => $apertura->observaciones,
+                                    ];
+                                    @endphp
+                                    <button
+                                        type="button"
+                                        @click="detalleApertura = @js($detalleData)"
+                                        class="btn-icon-sm" style="background-color:#0891B2"
+                                        title="Ver detalle"
+                                    >
+                                        <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-4 w-4 object-contain pointer-events-none" />
+                                    </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="13" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros de caja.</td>
+                                <td colspan="13" class="px-4 py-8 text-center text-sm text-gray-500">No hay registros en el historial.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -199,6 +286,10 @@
                 <div class="border-t border-[#efe7d2] px-4 py-3">{{ $aperturas->links() }}</div>
             @endif
         </div>
+
+        {{-- ============================================================ --}}
+        {{-- MODALES --}}
+        {{-- ============================================================ --}}
 
         {{-- Modal abrir caja --}}
         <div x-show="modalAbrir" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="modalAbrir = false"></div>
@@ -214,10 +305,13 @@
                     @csrf
                     <div>
                         <label for="caja_id" class="mb-2 block text-sm font-medium text-gray-700">Seleccionar caja</label>
-                        <select id="caja_id" name="caja_id" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                        <select id="caja_id" name="caja_id" x-ref="selCajaId" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
                             <option value="">Seleccione una caja</option>
-                            @foreach ($cajasDisponibles as $caja)
-                                <option value="{{ $caja->id }}">{{ $caja->nombre }}</option>
+                            @foreach ($cajas as $caja)
+                                @php $ultima = $caja->aperturas->first(); @endphp
+                                @if (!$ultima || $ultima->estado !== 'abierta')
+                                    <option value="{{ $caja->id }}">{{ $caja->nombre }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -234,7 +328,63 @@
             </div>
         </div>
 
-        {{-- Modales cerrar caja --}}
+        {{-- Modal editar caja --}}
+        <div x-show="editarCaja" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="editarCaja = null"></div>
+        <div x-show="editarCaja" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+            <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                    <h3 class="text-base font-semibold text-gray-800">Editar caja</h3>
+                    <button type="button" @click="editarCaja = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+                <form method="POST" :action="'{{ url('caja') }}/' + editarCaja?.id" class="p-5 space-y-4">
+                    @csrf
+                    @method('PUT')
+                    <div>
+                        <label for="editar_nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre</label>
+                        <input id="editar_nombre" name="nombre" type="text" required :value="editarCaja?.nombre" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="mb-0 text-sm font-medium text-gray-700">Activa</label>
+                        <button type="button" @click="editarCaja.activa = !editarCaja.activa" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" :class="editarCaja?.activa ? 'bg-emerald-500' : 'bg-gray-300'">
+                            <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="editarCaja?.activa ? 'translate-x-6' : 'translate-x-1'"></span>
+                        </button>
+                        <input type="hidden" name="activa" :value="editarCaja?.activa ? '1' : '0'" />
+                    </div>
+                    <button type="submit" class="w-full rounded-xl bg-[#111] px-4 py-3 text-sm font-semibold text-white hover:bg-[#262626]">Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Modal confirmar eliminar caja --}}
+        <div x-show="eliminarCajaId" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="eliminarCajaId = null"></div>
+        <div x-show="eliminarCajaId" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+            <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                    <h3 class="text-base font-semibold text-gray-800">Eliminar caja</h3>
+                    <button type="button" @click="eliminarCajaId = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                    </button>
+                </div>
+                <div class="p-5 space-y-4 text-center">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+                        <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-7 w-7 object-contain pointer-events-none" />
+                    </div>
+                    <p class="text-sm text-gray-700">¿Estás seguro de eliminar esta caja? Esta acción no se puede deshacer.</p>
+                    <div class="flex gap-3">
+                        <button type="button" @click="eliminarCajaId = null" class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <form method="POST" :action="'{{ url('caja') }}/' + eliminarCajaId" class="flex-1">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal cerrar caja --}}
         @foreach ($aperturas as $apertura)
             @if ($apertura->estado === 'abierta')
             <div x-show="cerrarId === {{ $apertura->id }}" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="cerrarId = null"></div>
@@ -298,75 +448,75 @@
             @endif
         @endforeach
 
-        {{-- Modal ver detalle --}}
-        <div x-show="detalleCaja" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="detalleCaja = null"></div>
-        <div x-show="detalleCaja" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+        {{-- Modal ver detalle historial --}}
+        <div x-show="detalleApertura" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="detalleApertura = null"></div>
+        <div x-show="detalleApertura" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
             <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
                 <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
-                    <h3 class="text-base font-semibold text-gray-800">Detalle de caja</h3>
-                    <button type="button" @click="detalleCaja = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <h3 class="text-base font-semibold text-gray-800">Detalle de apertura</h3>
+                    <button type="button" @click="detalleApertura = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                         <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
                     </button>
                 </div>
                 <div class="grid gap-4 p-5 md:grid-cols-2">
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Caja</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.nombre"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.nombre"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Usuario</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.usuario"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.usuario"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Apertura</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.apertura"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.apertura"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Cierre</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.cierre"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.cierre"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Monto inicial</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.inicial"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.inicial"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo Final</p>
-                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.efectivo_final"></p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleApertura?.efectivo_final"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">N° Ventas</p>
-                        <p class="mt-1 text-gray-900" x-text="detalleCaja?.ventas_count"></p>
+                        <p class="mt-1 text-gray-900" x-text="detalleApertura?.ventas_count"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Efectivo</p>
-                        <p class="mt-1 text-emerald-700 font-medium" x-text="detalleCaja?.efectivo"></p>
+                        <p class="mt-1 text-emerald-700 font-medium" x-text="detalleApertura?.efectivo"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Digital</p>
-                        <p class="mt-1 text-sky-700 font-medium" x-text="detalleCaja?.digital"></p>
+                        <p class="mt-1 text-sky-700 font-medium" x-text="detalleApertura?.digital"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Vuelto</p>
-                        <p class="mt-1 text-red-600 font-medium" x-text="detalleCaja?.vuelto"></p>
+                        <p class="mt-1 text-red-600 font-medium" x-text="detalleApertura?.vuelto"></p>
                     </div>
                     <div>
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Total final</p>
-                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleCaja?.total_final"></p>
+                        <p class="mt-1 text-gray-900 font-semibold" x-text="detalleApertura?.total_final"></p>
                     </div>
                     <div class="md:col-span-2">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Estado</p>
                         <p class="mt-1">
-                            <template x-if="detalleCaja?.estado === 'abierta'">
+                            <template x-if="detalleApertura?.estado === 'abierta'">
                                 <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Abierta</span>
                             </template>
-                            <template x-if="detalleCaja?.estado !== 'abierta'">
+                            <template x-if="detalleApertura?.estado !== 'abierta'">
                                 <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Cerrada</span>
                             </template>
                         </p>
                     </div>
-                    <div class="md:col-span-2" x-show="detalleCaja?.observaciones">
+                    <div class="md:col-span-2" x-show="detalleApertura?.observaciones">
                         <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Observaciones</p>
-                        <p class="mt-1 text-gray-700" x-text="detalleCaja?.observaciones"></p>
+                        <p class="mt-1 text-gray-700" x-text="detalleApertura?.observaciones"></p>
                     </div>
                 </div>
             </div>

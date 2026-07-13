@@ -14,6 +14,10 @@ class CajaController extends Controller
         $busqueda = request('q');
         $filtroEstado = request('estado');
 
+        $cajas = Caja::with(['aperturas' => function ($query) {
+            $query->latest()->limit(1);
+        }])->get();
+
         $aperturas = CajaApertura::query()
             ->with('usuario', 'caja')
             ->withCount('ventas')
@@ -36,9 +40,7 @@ class CajaController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $cajasDisponibles = Caja::where('activa', true)->get();
-
-        return view('cajas.index', compact('aperturas', 'cajasDisponibles', 'busqueda', 'filtroEstado'));
+        return view('cajas.index', compact('cajas', 'aperturas', 'busqueda', 'filtroEstado'));
     }
 
     public function store(Request $request)
@@ -116,5 +118,30 @@ class CajaController extends Controller
             'totalVuelto',
             'cantidadVentas',
         ));
+    }
+
+    public function update(Request $request, Caja $caja)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:100|unique:cajas,nombre,' . $caja->id,
+            'activa' => 'required|boolean',
+        ]);
+
+        $caja->update($request->only('nombre', 'activa'));
+
+        return redirect()->route('cajas.index')->with('success', 'Caja actualizada correctamente.');
+    }
+
+    public function destroy(Caja $caja)
+    {
+        $tieneAperturas = $caja->aperturas()->exists();
+
+        if ($tieneAperturas) {
+            return back()->withErrors(['caja' => 'No se puede eliminar una caja que tiene registros de apertura.']);
+        }
+
+        $caja->delete();
+
+        return redirect()->route('cajas.index')->with('success', 'Caja eliminada correctamente.');
     }
 }
