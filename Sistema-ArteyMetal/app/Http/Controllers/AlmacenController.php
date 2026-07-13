@@ -90,6 +90,14 @@ class AlmacenController extends Controller
     {
         $query = MovimientoAlmacen::with('producto', 'usuario');
 
+        if ($busqueda = $request->get('q')) {
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('concepto', 'ilike', "%{$busqueda}%")
+                    ->orWhereHas('producto', fn ($sub) => $sub->where('nombre', 'ilike', "%{$busqueda}%")
+                        ->orWhere('codigo', 'ilike', "%{$busqueda}%"));
+            });
+        }
+
         if ($tipo = $request->get('tipo')) {
             $query->where('tipo', $tipo);
         }
