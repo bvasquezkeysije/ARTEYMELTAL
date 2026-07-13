@@ -46,7 +46,8 @@
         eliminarCajaId: null,
         detalleApertura: null,
         showSuccess: {{ session()->has('success') ? 'true' : 'false' }},
-        filtrosAbiertos: false
+        filtrosAbiertos: false,
+        montoInicial: ''
     }" class="space-y-5">
         {{-- Mensaje success --}}
         <div x-show="showSuccess" style="display: none;">
@@ -146,7 +147,7 @@
                                         {{-- Abrir / Cerrar --}}
                                         @if(auth()->user()->tienePermiso('caja.gestionar'))
                                             @if (!$estaAbierta)
-                                                <button type="button" @click="modalAbrir = true; $refs.selCajaId.value = {{ $caja->id }}" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Abrir caja">
+                                                <button type="button" @click="montoInicial = {{ $caja->ultimo_monto_final ?? 'null' }} ?? ''; modalAbrir = true; $nextTick(() => { $refs.selCajaId.value = {{ $caja->id }} })" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Abrir caja">
                                                     <img src="{{ asset('icons/nuevo.ico') }}" alt="Abrir" class="h-4 w-4 object-contain pointer-events-none" />
                                                 </button>
                                             @else
@@ -343,19 +344,21 @@
                     @csrf
                     <div>
                         <label for="caja_id" class="mb-2 block text-sm font-medium text-gray-700">Seleccionar caja</label>
-                        <select id="caja_id" name="caja_id" x-ref="selCajaId" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                        <select id="caja_id" name="caja_id" x-ref="selCajaId" required
+                            @change="montoInicial = $el.options[$el.selectedIndex]?.dataset.monto || ''"
+                            class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
                             <option value="">Seleccione una caja</option>
                             @foreach ($cajas as $caja)
                                 @php $ultima = $caja->aperturas->first(); @endphp
                                 @if (!$ultima || $ultima->estado !== 'abierta')
-                                    <option value="{{ $caja->id }}">{{ $caja->nombre }}</option>
+                                    <option value="{{ $caja->id }}" data-monto="{{ $caja->ultimo_monto_final ?? '' }}">{{ $caja->nombre }}</option>
                                 @endif
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="monto_inicial" class="mb-2 block text-sm font-medium text-gray-700">Monto inicial</label>
-                        <input id="monto_inicial" name="monto_inicial" type="number" step="0.01" min="0" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
+                        <input id="monto_inicial" name="monto_inicial" type="number" step="0.01" min="0" required x-model="montoInicial" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
                     </div>
                     <div>
                         <label for="obs_abrir" class="mb-2 block text-sm font-medium text-gray-700">Observaciones</label>

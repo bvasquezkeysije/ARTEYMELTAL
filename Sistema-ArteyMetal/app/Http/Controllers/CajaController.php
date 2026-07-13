@@ -17,10 +17,16 @@ class CajaController extends Controller
         $filtroCajaEstado = request('cq_estado');
 
         $cajas = Caja::with(['aperturas' => function ($query) {
-            $query->latest()->limit(1);
+            $query->latest()->limit(2);
         }])->when($busquedaCaja, function ($query) use ($busquedaCaja) {
             $query->where('nombre', 'like', "%{$busquedaCaja}%");
-        })->get();
+        })->get()->map(function ($caja) {
+            $ultimaAbierta = $caja->aperturas->firstWhere('estado', 'abierta');
+            $ultimoCierre = $caja->aperturas->firstWhere('estado', 'cerrada');
+            $caja->ultima_apertura = $ultimaAbierta;
+            $caja->ultimo_monto_final = $ultimoCierre?->monto_final;
+            return $caja;
+        });
 
         if ($filtroCajaEstado !== null && $filtroCajaEstado !== '') {
             $cajas = $cajas->filter(function ($caja) use ($filtroCajaEstado) {
