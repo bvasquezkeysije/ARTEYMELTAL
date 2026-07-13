@@ -547,11 +547,11 @@
                                     <input type="hidden" name="destino" value="diseno">
                                     <button type="submit"
                                         class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-amber-600 hover:bg-amber-700 border-0"
-                                        :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :style="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? 'opacity: 0.4; cursor: not-allowed' : ''"
                                         :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
                                         <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Diseño</span>
-                                        <span class="min-h-[1rem] text-xs text-amber-100" :class="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="min-h-[1rem] text-xs text-amber-100" :style="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'visibility: hidden'">Ya derivado</span>
                                     </button>
                                 </form>
                                 <form method="POST" x-bind:action="derivarData?.derivar_url" class="contents">
@@ -559,11 +559,11 @@
                                     <input type="hidden" name="destino" value="produccion">
                                     <button type="submit"
                                         class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 border-0"
-                                        :class="derivarData?.estado_raw !== 'registrado' ? 'opacity-40 cursor-not-allowed' : ''"
+                                        :style="derivarData?.estado_raw !== 'registrado' ? 'opacity: 0.4; cursor: not-allowed' : ''"
                                         :disabled="derivarData?.estado_raw !== 'registrado'">
                                         <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
                                         <span>A Producción</span>
-                                        <span class="min-h-[1rem] text-xs text-emerald-100" :class="derivarData?.estado_raw !== 'registrado' ? '' : 'invisible'">Ya derivado</span>
+                                        <span class="min-h-[1rem] text-xs text-emerald-100" :style="derivarData?.estado_raw !== 'registrado' ? '' : 'visibility: hidden'">Ya derivado</span>
                                     </button>
                                 </form>
                             </div>

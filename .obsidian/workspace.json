@@ -1,0 +1,217 @@
+{
+  "main": {
+    "id": "b670fd972ea245ac",
+    "type": "split",
+    "children": [
+      {
+        "id": "cd6147de2ae67d52",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a1662bd86682e791",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Regla 10 - Modulos por rol"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "cdf92e24d1673f89",
+    "type": "split",
+    "children": [
+      {
+        "id": "d017ca3d8cfb91cd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e330af2c92a4a1a5",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "e44fb6e1ed7007d8",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "ddf52ae0e5d06811",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "c3a8cd99a7ca9431",
+    "type": "split",
+    "children": [
+      {
+        "id": "d814025070daa17e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "997160df8f470f74",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes de Regla 10 - Modulos por rol"
+            }
+          },
+          {
+            "id": "f763b6e75e885704",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes de Regla 10 - Modulos por rol"
+            }
+          },
+          {
+            "id": "9664a2eb85d067c2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "7d7fca9e89441d55",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "f2af4e8b67a77aff",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema de Regla 10 - Modulos por rol"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "a1662bd86682e791",
+  "lastOpenFiles": [
+    "Sistema-ArteyMetal/app/Models/Caja.php",
+    "Sistema-ArteyMetal/database/migrations/2026_07_12_010000_create_cajas_table.php",
+    "PAF/Parte 1- INTRODUCCIÓN.md",
+    "REGLAS/Regla 9 - Punto de restauracion antes de commit.md",
+    "REGLAS DEL SISTEMA/Regla 9 - Punto de restauracion antes de commit.md",
+    "REGLAS DEL SISTEMA/Regla 8 - Flujo completo de produccion.md",
+    "REGLAS DEL SISTEMA/Regla 7 - Filtrado de Ventas y Pedidos.md",
+    "REGLAS DEL SISTEMA/Regla 6 - Detalle de Venta.md",
+    "REGLAS DEL SISTEMA/Regla 5 - Sincronia de Pedidos con Caja.md",
+    "REGLAS DEL SISTEMA/Regla 4 - Sincronia de Ventas con Caja.md",
+    "REGLAS DEL SISTEMA/Regla 3 - Para la logica de caja.md",
+    "REGLAS DEL SISTEMA/Regla 2 - Para la logica de ventas.md",
+    "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+    "REGLAS DEL SISTEMA/Regla 1 - Para nodales emergentes.md",
+    "REGLAS DEL SISTEMA",
+    "PAF/Parte 2 - DATOS GENERALES DEL PROYECTO.md",
+    "PAF/Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
+    "PAF/Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
+    "PAF/Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+    "PAF/Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
+    "PAF/Parte 7 - ESTRATEGIA Y TIPOS DE PRUEBA.md",
+    "PAF/Parte 8 - RECONOCIMIENTO DE RECURSOS Y ARQUITECTURA DE SOFTWARE.md",
+    "PAF/Parte 9 - ESTIMACIÓN Y CRONOGRAMA DE PRUEBAS.md",
+    "PAF/Parte 10 - CASOS DE PRUEBA.md",
+    "PAF/Parte 11 - MÉTRICAS DE CALIDAD Y TRAZABILIDAD.md",
+    "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
+    "PAF/Parte 13 - REGISTRO Y SEGUIMIENTO DE DEFECTOS.md",
+    "PAF/Parte 14 - CRITERIOS DE FINALIZACIÓN Y SALIDA.md"
+  ]
+}
