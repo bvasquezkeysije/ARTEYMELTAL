@@ -570,6 +570,17 @@ class PedidoController extends Controller
             }
             $pedido->update(['estado' => 'en_produccion']);
             $mensaje = 'Pedido derivado a Produccion correctamente.';
+
+            $orfebres = User::whereHas('rol', fn ($q) => $q->whereIn('nombre', ['administrador', 'orfebre']))->get();
+            foreach ($orfebres as $orfebre) {
+                NotificationController::create(
+                    userId: $orfebre->id,
+                    type: 'produccion',
+                    title: 'Nuevo pedido para produccion',
+                    body: "El pedido {$pedido->codigo} de {$pedido->nombre_cliente} ha sido derivado a produccion.",
+                    actionUrl: route('pedidos.show', $pedido, false),
+                );
+            }
         }
 
         return redirect()->route('pedidos.index')->with('ok', $mensaje);
