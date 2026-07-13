@@ -51,7 +51,7 @@
                     @endif
 
                     <form id="search-form" method="GET" action="{{ route('ventas.index') }}" class="flex min-w-0 flex-1">
-                        <input type="hidden" name="scope" value="{{ $scope ?? 'mi_caja' }}" />
+                        <input type="hidden" name="scope" value="{{ $scope ?? 'todas' }}" />
                         <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar por codigo, cliente o tipo" />
                     </form>
                 </div>
@@ -63,12 +63,12 @@
                     @click="filtrosAbiertos = !filtrosAbiertos"
                     class="btn-icon bg-sky-500 hover:bg-sky-600"
                     title="Filtrar"
-                    :class="{ 'is-active': filtrosAbiertos || '{{ $tipo ?? '' }}' !== '' || '{{ $scope ?? 'mi_caja' }}' !== 'mi_caja' }"
+                    :class="{ 'is-active': filtrosAbiertos || '{{ $tipo ?? '' }}' !== '' || '{{ $scope ?? 'todas' }}' !== 'todas' }"
                 >
                     <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
                 @if($tipo || $busqueda)
-                    <a href="{{ route('ventas.index', ['scope' => $scope ?? 'mi_caja']) }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                    <a href="{{ route('ventas.index', ['scope' => $scope ?? 'todas']) }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
                 <form method="POST" action="{{ route('ventas.cambiar_caja') }}" class="inline">
                     @csrf
@@ -98,8 +98,8 @@
                 <div>
                     <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-600">Mostrar</label>
                     <select name="scope" class="rounded-xl border border-[#d1be8a] bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <option value="mi_caja" @selected(($scope ?? 'mi_caja') === 'mi_caja')>Mi caja</option>
-                        <option value="todas" @selected(($scope ?? 'mi_caja') === 'todas')>Todas</option>
+                        <option value="mi_caja" @selected(($scope ?? 'todas') === 'mi_caja')>Mi caja</option>
+                        <option value="todas" @selected(($scope ?? 'todas') === 'todas')>Todas</option>
                     </select>
                 </div>
                 <button type="submit" class="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Filtrar</button>

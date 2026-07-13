@@ -20,7 +20,7 @@ class VentaController extends Controller
     }
     public function index()
     {
-        $scope = request('scope', 'mi_caja');
+        $scope = request('scope', 'todas');
         $cajaAperturaId = session('caja_apertura_id');
 
         if (! $cajaAperturaId) {
@@ -79,7 +79,7 @@ class VentaController extends Controller
                 'tipo' => '',
                 'caja' => null,
                 'cajasAbiertas' => collect(),
-                'sinCaja' => true, 'scope' => 'mi_caja',
+                'sinCaja' => true, 'scope' => 'todas',
             ]);
         }
 
@@ -88,7 +88,7 @@ class VentaController extends Controller
             'busqueda' => '',
             'tipo' => '',
             'caja' => null,
-            'cajasAbiertas' => $cajasAbiertas, 'scope' => 'mi_caja',
+            'cajasAbiertas' => $cajasAbiertas, 'scope' => 'todas',
         ]);
     }
 
