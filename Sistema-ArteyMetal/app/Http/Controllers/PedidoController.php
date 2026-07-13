@@ -12,6 +12,7 @@ use App\Models\Venta;
 use App\Models\VentaDetalle;
 use App\Models\PedidoProducto;
 use App\Models\PedidoProductoArchivo;
+use App\Models\User;
 use App\Services\ComprobanteVentaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -551,6 +552,17 @@ class PedidoController extends Controller
             }
             $pedido->update(['estado_personalizacion' => 'en_diseno']);
             $mensaje = 'Pedido derivado a Diseno correctamente.';
+
+            $disenadores = User::whereHas('rol', fn ($q) => $q->whereIn('nombre', ['administrador', 'disenador']))->get();
+            foreach ($disenadores as $disenador) {
+                NotificationController::create(
+                    userId: $disenador->id,
+                    type: 'diseno',
+                    title: 'Nuevo pedido para diseno',
+                    body: "El pedido {$pedido->codigo} de {$pedido->nombre_cliente} ha sido derivado a diseno.",
+                    actionUrl: route('diseno.show', $pedido, false),
+                );
+            }
         } else {
             $permitidos = ['registrado'];
             if (! in_array($pedido->estado, $permitidos, true)) {
