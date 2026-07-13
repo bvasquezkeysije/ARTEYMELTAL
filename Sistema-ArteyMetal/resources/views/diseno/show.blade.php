@@ -82,11 +82,6 @@
                 </div>
             </div>
 
-            <div class="mt-5">
-                <p class="text-xs font-semibold uppercase tracking-wider text-[#6a5122]">Detalle del trabajo</p>
-                <p class="mt-1 text-[#2d2b24]">{{ $pedido->detalle_trabajo ?: '-' }}</p>
-            </div>
-
             @if($pedido->observaciones_personalizacion)
                 <div class="mt-4">
                     <p class="text-xs font-semibold uppercase tracking-wider text-[#6a5122]">Observaciones</p>
