@@ -23,7 +23,7 @@
         }
     </style>
 
-    <div x-data="{ modalPersonalizacion: @js($errors->any()) }" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div x-data="{ modalPersonalizacion: @js($errors->any()), modalDerivar: false, derivarData: null }" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         @if (session('ok'))
             <div class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('ok') }}</div>
         @endif
@@ -266,6 +266,17 @@
                 @endif
                 @if(in_array($rol, ['administrador', 'vendedor'], true))
                     <a href="{{ route('pedidos.edit', $pedido) }}" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Editar pedido</a>
+                    <button type="button"
+                        @click="derivarData = @js([
+                            'codigo' => $pedido->codigo,
+                            'derivar_url' => route('pedidos.derivar', $pedido),
+                            'estado_personalizacion_raw' => $pedido->estado_personalizacion ?? 'sin_iniciar',
+                            'estado_raw' => $pedido->estado,
+                        ]); modalDerivar = true"
+                        class="rounded-xl px-4 py-2.5 text-sm font-medium text-white hover:brightness-110"
+                        style="background-color:#7c3aed">
+                        Derivar
+                    </button>
                 @endif
             @endif
             @if($rol === 'repartidor' && $pedido->estado === 'listo_entrega')
@@ -287,6 +298,49 @@
                 </form>
             @endif
             <a href="{{ route('pedidos.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Volver</a>
+        </div>
+
+        <div x-show="modalDerivar" style="display: none;">
+            <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="modalDerivar = false"></div>
+            <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                        <h3 class="text-base font-semibold text-[#2a2419]">Derivar pedido</h3>
+                        <button type="button" @click="modalDerivar = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                            <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                        </button>
+                    </div>
+                    <div class="space-y-3 p-5">
+                        <p class="text-center text-sm text-gray-600" x-text="'Selecciona el destino para el pedido ' + (derivarData?.codigo || '')"></p>
+                        <div class="grid grid-cols-2 gap-3 items-stretch" x-show="derivarData">
+                            <form method="POST" x-bind:action="derivarData?.derivar_url" class="contents">
+                                @csrf
+                                <input type="hidden" name="destino" value="diseno">
+                                <button type="submit"
+                                    class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-amber-600 hover:bg-amber-700 border-0"
+                                    :style="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? 'opacity: 0.4; cursor: not-allowed' : ''"
+                                    :disabled="derivarData?.estado_personalizacion_raw !== 'sin_iniciar'">
+                                    <img src="{{ asset('icons/Disenos-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
+                                    <span>A Diseño</span>
+                                    <span class="min-h-[1rem] text-xs text-amber-100" :style="derivarData?.estado_personalizacion_raw !== 'sin_iniciar' ? '' : 'visibility: hidden'">Ya derivado</span>
+                                </button>
+                            </form>
+                            <form method="POST" x-bind:action="derivarData?.derivar_url" class="contents">
+                                @csrf
+                                <input type="hidden" name="destino" value="produccion">
+                                <button type="submit"
+                                    class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 border-0"
+                                    :style="derivarData?.estado_raw !== 'registrado' ? 'opacity: 0.4; cursor: not-allowed' : ''"
+                                    :disabled="derivarData?.estado_raw !== 'registrado'">
+                                    <img src="{{ asset('icons/Produccion-Blanco.png') }}" class="h-8 w-8 object-contain" alt="">
+                                    <span>A Producción</span>
+                                    <span class="min-h-[1rem] text-xs text-emerald-100" :style="derivarData?.estado_raw !== 'registrado' ? '' : 'visibility: hidden'">Ya derivado</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div x-show="modalPersonalizacion" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" style="display: none;" @click="modalPersonalizacion = false"></div>

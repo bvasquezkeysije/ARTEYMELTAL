@@ -19,7 +19,55 @@
         .btn-icon-sm:focus-visible { outline: 0 none !important; }
     </style>
 
-    <div class="space-y-3">
+    <div x-data="{
+        filtrosAbiertos: false,
+        iniciarData: null,
+        notificarData: null,
+        showSuccess: {{ session()->has('ok') ? 'true' : 'false' }},
+        successMessage: @js(session('ok', '')),
+        showError: false,
+        errorMessage: ''
+    }" class="space-y-3">
+
+        {{-- Barra de busqueda + filtros --}}
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <form id="produccion-search-form" method="GET" action="{{ route('produccion.index') }}" class="flex min-w-0 flex-1">
+                    @if($filtroEstado)
+                        <input type="hidden" name="estado" value="{{ $filtroEstado }}" />
+                    @endif
+                    <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 text-sm text-gray-900 h-10" placeholder="Buscar por codigo, cliente o producto" />
+                </form>
+                <button type="submit" form="produccion-search-form" class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0" title="Buscar">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                <button type="button" @click="filtrosAbiertos = !filtrosAbiertos"
+                    class="h-10 w-10 rounded-xl bg-sky-500 hover:bg-sky-600 flex items-center justify-center shrink-0"
+                    title="Filtrar"
+                    :style="(filtrosAbiertos || '{{ $filtroEstado }}' !== '') ? 'box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0ea5e9' : ''">
+                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                @if($busqueda || $filtroEstado)
+                    <a href="{{ route('produccion.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                @endif
+            </div>
+            <form x-show="filtrosAbiertos" x-transition method="GET" action="{{ route('produccion.index') }}" class="mt-4 flex flex-wrap items-end gap-4 border-t border-[#efe7d2] pt-4">
+                @if($busqueda)
+                    <input type="hidden" name="q" value="{{ $busqueda }}" />
+                @endif
+                <div>
+                    <label class="mb-1 block text-xs font-medium text-gray-500">Estado</label>
+                    <select name="estado" class="rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-3 py-2 text-sm text-gray-900">
+                        <option value="">Todos</option>
+                        <option value="en_produccion" @selected($filtroEstado === 'en_produccion')>En produccion</option>
+                        <option value="produciendo" @selected($filtroEstado === 'produciendo')>Produciendo</option>
+                    </select>
+                </div>
+                <button type="submit" class="rounded-xl bg-[#111] px-4 py-2 text-sm font-medium text-white hover:bg-[#262626]">Aplicar</button>
+            </form>
+        </div>
+
+        {{-- Tabla --}}
         <div class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
@@ -75,9 +123,23 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <button type="button" @@click="$dispatch('open-detalle-{{ $pedido->id }}')" class="btn-icon-sm" style="background-color:#0891B2" title="Ver detalle">
+                                        <button type="button" @click="$dispatch('open-detalle-{{ $pedido->id }}')" class="btn-icon-sm" style="background-color:#0891B2" title="Ver detalle">
                                             <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver detalle" class="h-4 w-4 object-contain pointer-events-none">
                                         </button>
+                                        @if($pedido->estado === 'en_produccion')
+                                            <button type="button"
+                                                @click="iniciarData = { id: {{ $pedido->id }}, codigo: '{{ $pedido->codigo }}', url: '{{ route('produccion.iniciar', $pedido) }}' }"
+                                                class="btn-icon-sm bg-sky-600 hover:bg-sky-700" title="Iniciar produccion">
+                                                <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            </button>
+                                        @endif
+                                        @if($pedido->estado === 'produciendo')
+                                            <button type="button"
+                                                @click="notificarData = { id: {{ $pedido->id }}, codigo: '{{ $pedido->codigo }}', url: '{{ route('produccion.notificar', $pedido) }}' }"
+                                                class="btn-icon-sm bg-amber-600 hover:bg-amber-700" title="Notificar repartidor">
+                                                <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -93,8 +155,115 @@
         <div class="px-1">
             {{ $pedidos->links() }}
         </div>
+
+        {{-- Modal confirmar iniciar produccion --}}
+        <template x-teleport="body">
+            <div x-show="iniciarData" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="iniciarData = null"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-[#2a2419]">Iniciar produccion</h3>
+                            <button type="button" @click="iniciarData = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </button>
+                        </div>
+                        <div class="p-5 text-center">
+                            <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-sky-100">
+                                <svg class="h-7 w-7 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-sm text-gray-600">Deseas iniciar la produccion del pedido <strong x-text="iniciarData?.codigo"></strong>?</p>
+                            <div class="mt-5 flex justify-center gap-3">
+                                <button type="button" @click="iniciarData = null" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Cancelar</button>
+                                <button type="button" @click="
+                                    fetch(iniciarData.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({}) })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        iniciarData = null;
+                                        if (d.ok) { successMessage = d.message; showSuccess = true; setTimeout(() => location.reload(), 1500); }
+                                        else { errorMessage = d.message; showError = true; }
+                                    })
+                                    .catch(() => { iniciarData = null; errorMessage = 'Error de conexion.'; showError = true; })
+                                "
+                                class="rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-700">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal confirmar notificar repartidor --}}
+        <template x-teleport="body">
+            <div x-show="notificarData" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="notificarData = null"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+                            <h3 class="text-base font-semibold text-[#2a2419]">Notificar repartidor</h3>
+                            <button type="button" @click="notificarData = null" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                                <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none" />
+                            </button>
+                        </div>
+                        <div class="p-5 text-center">
+                            <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                                <svg class="h-7 w-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            </div>
+                            <p class="text-sm text-gray-600">Marcar el pedido <strong x-text="notificarData?.codigo"></strong> como listo y notificar al repartidor para que lo recoja?</p>
+                            <div class="mt-5 flex justify-center gap-3">
+                                <button type="button" @click="notificarData = null" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Cancelar</button>
+                                <button type="button" @click="
+                                    fetch(notificarData.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify({}) })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        notificarData = null;
+                                        if (d.ok) { successMessage = d.message; showSuccess = true; setTimeout(() => location.reload(), 1500); }
+                                        else { errorMessage = d.message; showError = true; }
+                                    })
+                                    .catch(() => { notificarData = null; errorMessage = 'Error de conexion.'; showError = true; })
+                                "
+                                class="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-700">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal exito --}}
+        <template x-teleport="body">
+            <div x-show="showSuccess" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="successMessage"></h3>
+                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {{-- Modal error --}}
+        <template x-teleport="body">
+            <div x-show="showError" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showError = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="errorMessage"></h3>
+                        <button type="button" @click="showError = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 
+    {{-- Detalle + Viewer por cada pedido --}}
     @foreach($pedidos as $pedido)
         @php
             $refs = $pedido->productos->flatMap(function ($p) {
@@ -138,14 +307,14 @@
              x-on:keydown.escape.window="open = false"
              x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div @@click.outside="open = false" class="mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl">
+            <div @click.outside="open = false" class="mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl">
                 <div class="flex items-center justify-between border-b border-[#e5dec8] px-6 py-4">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Produccion — {{ $pedido->codigo }}</h3>
                     <div class="flex items-center gap-2">
-                        <button type="button" @@click="viewerOpen = true; viewerIndex = 0" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Ver modelos">
+                        <button type="button" @click="viewerOpen = true; viewerIndex = 0" class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700" title="Ver modelos">
                             <img src="{{ asset('icons/VerModelo-Blanco.png') }}" alt="Ver modelos" class="h-4 w-4 object-contain pointer-events-none">
                         </button>
-                        <button type="button" @@click="open = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <button type="button" @click="open = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                             <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                         </button>
                     </div>
@@ -253,22 +422,20 @@
 
                     <div class="mt-6 flex justify-end gap-3 border-t border-[#e5dec8] pt-4">
                         @if($pedido->estado === 'en_produccion')
-                        <form action="{{ route('produccion.iniciar', $pedido) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">
+                            <button type="button"
+                                @click="open = false; iniciarData = { id: {{ $pedido->id }}, codigo: '{{ $pedido->codigo }}', url: '{{ route('produccion.iniciar', $pedido) }}' }"
+                                class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Iniciar produccion
                             </button>
-                        </form>
                         @endif
                         @if($pedido->estado === 'produciendo')
-                        <form action="{{ route('produccion.notificar', $pedido) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
+                            <button type="button"
+                                @click="open = false; notificarData = { id: {{ $pedido->id }}, codigo: '{{ $pedido->codigo }}', url: '{{ route('produccion.notificar', $pedido) }}' }"
+                                class="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                                 Notificar repartidor
                             </button>
-                        </form>
                         @endif
                     </div>
                 </div>
@@ -280,10 +447,10 @@
                  x-on:keydown.right.window="viewerOpen && nextFile()"
                  x-cloak
                  class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
-                <div @@click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+                <div @click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                     <div class="mb-3 flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-white/80">Modelos — {{ $pedido->codigo }}</h3>
-                        <button type="button" @@click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                             <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                         </button>
                     </div>
@@ -293,7 +460,7 @@
                     <template x-if="viewerTotal > 0">
                         <div>
                             <div class="relative flex items-center">
-                                <button x-show="viewerIndex > 0" @@click="prevFile()"
+                                <button x-show="viewerIndex > 0" @click="prevFile()"
                                         class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
@@ -309,7 +476,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <button x-show="viewerIndex < viewerTotal - 1" @@click="nextFile()"
+                                <button x-show="viewerIndex < viewerTotal - 1" @click="nextFile()"
                                         class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
@@ -323,7 +490,7 @@
                             </div>
                             <div class="mt-2 flex justify-center gap-1">
                                 <template x-for="(_, i) in viewerFiles" :key="i">
-                                    <button @@click="viewerIndex = i"
+                                    <button @click="viewerIndex = i"
                                             :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                             class="h-1.5 w-6 rounded-full transition-colors"></button>
                                 </template>
