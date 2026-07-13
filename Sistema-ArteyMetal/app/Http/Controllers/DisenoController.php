@@ -9,15 +9,32 @@ use Illuminate\Support\Facades\Storage;
 
 class DisenoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $busqueda = $request->input('q', '');
+        $filtroEstado = $request->input('estado_personalizacion', '');
+
         $pedidos = Pedido::query()
             ->with('cliente', 'productos.archivos', 'productos.archivosDiseno')
-            ->whereIn('estado_personalizacion', ['en_diseno', 'en_revision'])
-            ->orderByDesc('id')
-            ->paginate(10);
+            ->whereIn('estado_personalizacion', ['en_diseno', 'en_revision']);
 
-        return view('diseno.index', compact('pedidos'));
+        if ($busqueda) {
+            $pedidos->where(function ($q) use ($busqueda) {
+                $q->where('codigo', 'ilike', "%{$busqueda}%")
+                  ->orWhere('nombre_cliente', 'ilike', "%{$busqueda}%")
+                  ->orWhereHas('productos', function ($q2) use ($busqueda) {
+                      $q2->where('nombre', 'ilike', "%{$busqueda}%");
+                  });
+            });
+        }
+
+        if ($filtroEstado && in_array($filtroEstado, ['en_diseno', 'en_revision'])) {
+            $pedidos->where('estado_personalizacion', $filtroEstado);
+        }
+
+        $pedidos = $pedidos->orderByDesc('id')->paginate(10)->withQueryString();
+
+        return view('diseno.index', compact('pedidos', 'busqueda', 'filtroEstado'));
     }
 
     public function show(Pedido $pedido)

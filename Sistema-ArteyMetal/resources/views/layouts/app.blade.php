@@ -119,9 +119,9 @@
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('diseno.ver'))
-                                <a href="{{ route('diseno.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Diseno" class="{{ request()->routeIs('diseno.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                <a href="{{ route('diseno.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Diseños" class="{{ request()->routeIs('diseno.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <img src="{{ asset('icons/Disenos-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Diseno</span>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Diseños</span>
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('produccion.ver'))

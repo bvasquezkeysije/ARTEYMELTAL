@@ -1,6 +1,35 @@
 <x-app-layout>
     <x-slot name="header">
-        <span>Diseno</span>
+        <div class="flex flex-wrap items-center gap-3">
+            <span>Diseños</span>
+            <form id="diseno-search-form" method="GET" action="{{ route('diseno.index') }}" class="flex min-w-0 flex-1">
+                <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 text-sm text-gray-900 h-10" placeholder="Buscar por codigo, cliente o producto" />
+            </form>
+            <button type="submit" form="diseno-search-form" class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0" title="Buscar">
+                <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
+            </button>
+            <div x-data="{ filtrosAbiertos: false }" class="relative">
+                <button type="button" @click="filtrosAbiertos = !filtrosAbiertos"
+                    class="h-10 w-10 rounded-xl bg-sky-500 hover:bg-sky-600 flex items-center justify-center shrink-0 {{ $filtroEstado ? 'ring-2 ring-sky-400' : '' }}" title="Filtrar">
+                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                <div x-show="filtrosAbiertos" x-cloak @click.outside="filtrosAbiertos = false"
+                     class="absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-[#e5dec8] bg-white p-3 shadow-lg">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6a5122]">Estado de personalizacion</p>
+                    <div class="space-y-1">
+                        <a href="{{ route('diseno.index', array_filter(['q' => $busqueda])) }}"
+                           class="block rounded-lg px-3 py-1.5 text-sm {{ !$filtroEstado ? 'bg-amber-100 text-amber-800 font-medium' : 'text-[#555] hover:bg-[#f5f3ed]' }}">Todos</a>
+                        <a href="{{ route('diseno.index', array_filter(['q' => $busqueda, 'estado_personalizacion' => 'en_diseno'])) }}"
+                           class="block rounded-lg px-3 py-1.5 text-sm {{ $filtroEstado === 'en_diseno' ? 'bg-amber-100 text-amber-800 font-medium' : 'text-[#555] hover:bg-[#f5f3ed]' }}">En diseño</a>
+                        <a href="{{ route('diseno.index', array_filter(['q' => $busqueda, 'estado_personalizacion' => 'en_revision'])) }}"
+                           class="block rounded-lg px-3 py-1.5 text-sm {{ $filtroEstado === 'en_revision' ? 'bg-sky-100 text-sky-800 font-medium' : 'text-[#555] hover:bg-[#f5f3ed]' }}">En revisión</a>
+                    </div>
+                </div>
+            </div>
+            @if($busqueda || $filtroEstado)
+                <a href="{{ route('diseno.index') }}" class="h-10 rounded-xl border border-[#d1be8a] px-3 text-sm text-[#5a4314] hover:bg-[#fff5dd] flex items-center shrink-0">Limpiar</a>
+            @endif
+        </div>
     </x-slot>
 
     <style>
