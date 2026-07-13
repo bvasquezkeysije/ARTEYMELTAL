@@ -5,20 +5,39 @@
 
     <style>
         [x-cloak] { display: none !important; }
+        .btn-icon:focus-visible,
+        .btn-icon:focus,
+        .btn-icon-sm:focus-visible,
+        .btn-icon-sm:focus {
+            outline: 0 none !important;
+        }
+        .btn-icon:active,
+        .btn-icon-sm:active {
+            filter: brightness(0.85);
+        }
         .btn-icon {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 2.25rem; height: 2.25rem; border-radius: 0.75rem;
-            flex-shrink: 0; color: #fff; transition: filter 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            flex-shrink: 0;
+            color: #fff;
         }
-        .btn-icon:active { filter: brightness(0.85); }
-        .btn-icon:focus, .btn-icon:focus-visible { outline: 0 none !important; }
+        .btn-icon.is-active {
+            filter: brightness(0.8);
+        }
         .btn-icon-sm {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 2rem; height: 2rem; border-radius: 0.5rem;
-            flex-shrink: 0; color: #fff; transition: filter 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            flex-shrink: 0;
+            color: #fff;
         }
-        .btn-icon-sm:active { filter: brightness(0.85); }
-        .btn-icon-sm:focus, .btn-icon-sm:focus-visible { outline: 0 none !important; }
     </style>
 
     <div x-data="almacenIndex()" x-init="init()" class="space-y-5">
@@ -49,7 +68,7 @@
                         x-on:keyup.enter="buscarRepartidor()">
                 </form>
                 <button type="button" x-on:click="buscarRepartidor()" title="Buscar"
-                    class="btn-icon bg-blue-600 hover:bg-blue-700">
+                    class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0">
                     <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none">
                 </button>
                 <button type="button" x-on:click="buscarRepartidor()" title="Filtrar"
