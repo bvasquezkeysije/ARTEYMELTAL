@@ -16,6 +16,7 @@ class AlmacenController extends Controller
     public function index(Request $request): View
     {
         $busquedaRepartidor = $request->input('q', '');
+        $busquedaEntrega = $request->input('qe', '');
 
         $pedidosPendientes = Pedido::query()
             ->with('cliente', 'productos')
@@ -27,6 +28,17 @@ class AlmacenController extends Controller
             ->orderByDesc('id')
             ->paginate(10)
             ->appends(['q' => $busquedaRepartidor]);
+
+        $pedidosEntrega = Pedido::query()
+            ->with('cliente', 'productos')
+            ->where('estado', 'listo_recoger')
+            ->when($busquedaEntrega, fn ($q) => $q->where(function ($sub) use ($busquedaEntrega) {
+                $sub->where('codigo', 'ilike', "%{$busquedaEntrega}%")
+                    ->orWhere('nombre_cliente', 'ilike', "%{$busquedaEntrega}%");
+            }))
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->appends(['qe' => $busquedaEntrega]);
 
         $totalStock = Producto::sum('stock_actual');
         $entradasHoy = MovimientoAlmacen::whereDate('created_at', today())
@@ -41,6 +53,8 @@ class AlmacenController extends Controller
         return view('almacen.index', compact(
             'pedidosPendientes',
             'busquedaRepartidor',
+            'pedidosEntrega',
+            'busquedaEntrega',
             'totalStock',
             'entradasHoy',
             'salidasHoy',

@@ -160,6 +160,88 @@
             @endif
         </section>
 
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <form class="flex min-w-0 flex-1" x-on:submit.prevent="buscarEntrega()">
+                    <input x-model="qEntrega" type="text" placeholder="Buscar pedido listo para entregar (codigo o cliente)..."
+                        class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900 placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
+                        x-on:keyup.enter="buscarEntrega()">
+                </form>
+                <button type="button" x-on:click="buscarEntrega()" title="Buscar"
+                    class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none">
+                </button>
+                @if($busquedaEntrega !== '')
+                    <a href="{{ route('almacen.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                @endif
+            </div>
+        </div>
+
+        <section class="overflow-hidden rounded-2xl border border-sky-200 bg-white shadow-sm">
+            <div class="border-b border-sky-100 bg-sky-50 px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100">
+                        <svg class="h-4 w-4 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <h3 class="font-semibold text-sky-800">Pedidos listos para entregar al cliente</h3>
+                    @if($pedidosEntrega->total() > 0)
+                        <span class="inline-flex items-center justify-center rounded-full bg-sky-200 px-2 py-0.5 text-xs font-bold text-sky-800">{{ $pedidosEntrega->total() }}</span>
+                    @endif
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Codigo</th>
+                            <th class="px-4 py-3 font-semibold">Cliente</th>
+                            <th class="px-4 py-3 font-semibold">Documento</th>
+                            <th class="px-4 py-3 font-semibold">Telefono</th>
+                            <th class="px-4 py-3 font-semibold text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#efeee9]">
+                        @forelse($pedidosEntrega as $pedido)
+                            <tr>
+                                <td class="px-4 py-3 font-medium text-[#2d2b24]">{{ $pedido->codigo }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->nombre_cliente }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->cliente?->documento ?? '-' }}</td>
+                                <td class="px-4 py-3 text-[#4a4026]">{{ $pedido->cliente?->telefono ?? '-' }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <button x-on:click="verDetalle({{ $pedido->id }})" title="Ver detalle"
+                                            class="btn-icon-sm" style="background-color: #0891B2;">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        <button x-on:click="abrirEntregar({{ $pedido->id }}, '{{ $pedido->codigo }}', '{{ $pedido->nombre_cliente }}', '{{ $pedido->cliente?->documento ?? '' }}', '{{ $pedido->cliente?->telefono ?? '' }}')" title="Entregar al cliente"
+                                            class="btn-icon-sm" style="background-color: #d97706;">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center">
+                                    <div class="flex flex-col items-center gap-2 text-[#9a8e78]">
+                                        <svg class="h-10 w-10 text-[#d4cfc0]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        <p class="text-sm">No hay pedidos listos para entregar</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if($pedidosEntrega->hasPages())
+                <div class="border-t border-[#efeee9] bg-[#faf8f2] px-4 py-3">
+                    {{ $pedidosEntrega->links('pagination.gold') }}
+                </div>
+            @endif
+        </section>
+
         <section class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="border-b border-[#efeee9] bg-[#faf8f2] px-4 py-3 flex items-center justify-between">
                 <h3 class="font-semibold text-[#5a4a2a]">Historial de entradas y salidas</h3>
@@ -311,6 +393,75 @@
             </div>
         </div>
 
+        <div x-show="modalEntregar" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            x-on:keydown.escape.window="modalEntregar = false"
+            x-on:click.self="modalEntregar = false">
+            <div x-show="modalEntregar" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-[#2d2b24]">Entregar al cliente</h3>
+                    <button type="button" x-on:click="modalEntregar = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                    </button>
+                </div>
+
+                <div class="mb-4 rounded-xl bg-sky-50 border border-sky-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-100">
+                            <svg class="h-4 w-4 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-sky-800">Pedido <span x-text="entregarCodigo"></span></p>
+                            <p class="mt-1 text-sm text-sky-700">Cliente: <strong x-text="entregarCliente"></strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 space-y-3">
+                    <div class="rounded-xl bg-[#faf8f2] border border-[#e5dec8] p-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-[#8a6a2e]">Documento del cliente</p>
+                        <p class="mt-1 text-sm font-medium text-[#2d2b24]" x-text="entregarDocumento || 'No registrado'"></p>
+                    </div>
+                    <div class="rounded-xl bg-[#faf8f2] border border-[#e5dec8] p-3">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-[#8a6a2e]">Telefono</p>
+                        <p class="mt-1 text-sm font-medium text-[#2d2b24]" x-text="entregarTelefono || 'No registrado'"></p>
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-3">
+                    <label class="flex items-start gap-2">
+                        <input type="checkbox" x-model="entregarValidado" class="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                        <span class="text-sm text-amber-800">Valido que el cliente se identifico correctamente con su documento y recibe el pedido.</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" x-on:click="modalEntregar = false"
+                        class="rounded-xl bg-[#6b7280] px-4 py-2 text-sm font-medium text-white hover:bg-[#4b5563]">
+                        Cancelar
+                    </button>
+                    <button type="button" x-on:click="confirmarEntregar()" :disabled="procesando || !entregarValidado"
+                        class="rounded-xl bg-[#d97706] px-4 py-2 text-sm font-medium text-white hover:bg-[#b45309] disabled:opacity-50">
+                        <span x-show="!procesando" class="flex items-center gap-2">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Confirmar entrega
+                        </span>
+                        <span x-show="procesando" class="flex items-center gap-2">
+                            <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            Procesando...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div x-show="mostrarExito" x-cloak x-transition
             class="fixed bottom-6 right-6 z-[60] max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-xl">
             <div class="flex items-start gap-3">
@@ -348,12 +499,20 @@
         function almacenIndex() {
             return {
                 qRepartidor: '{{ $busquedaRepartidor ?? "" }}',
+                qEntrega: '{{ $busquedaEntrega ?? "" }}',
                 modalDetalle: false,
                 modalRecibir: false,
+                modalEntregar: false,
                 detallePedido: null,
                 recibirId: null,
                 recibirCodigo: '',
                 recibirCantidad: 0,
+                entregarId: null,
+                entregarCodigo: '',
+                entregarCliente: '',
+                entregarDocumento: '',
+                entregarTelefono: '',
+                entregarValidado: false,
                 procesando: false,
                 mostrarExito: false,
                 mostrarError: false,
@@ -411,6 +570,49 @@
                     } catch (e) {
                         this.modalRecibir = false;
                         this.error('Error de conexion al recibir el pedido.');
+                    }
+                    this.procesando = false;
+                },
+
+                buscarEntrega() {
+                    const params = new URLSearchParams();
+                    if (this.qEntrega) params.set('qe', this.qEntrega);
+                    window.location.href = '{{ route("almacen.index") }}?' + params.toString();
+                },
+
+                abrirEntregar(id, codigo, cliente, documento, telefono) {
+                    this.entregarId = id;
+                    this.entregarCodigo = codigo;
+                    this.entregarCliente = cliente;
+                    this.entregarDocumento = documento;
+                    this.entregarTelefono = telefono;
+                    this.entregarValidado = false;
+                    this.modalEntregar = true;
+                },
+
+                async confirmarEntregar() {
+                    this.procesando = true;
+                    try {
+                        const resp = await fetch('/almacen/pedidos/' + this.entregarId + '/entregar-cliente', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await resp.json();
+                        this.modalEntregar = false;
+                        if (data.ok) {
+                            this.exito(data.message || 'Pedido entregado al cliente correctamente.');
+                            setTimeout(() => window.location.reload(), 1200);
+                        } else {
+                            this.error(data.message || 'No se pudo entregar el pedido.');
+                        }
+                    } catch (e) {
+                        this.modalEntregar = false;
+                        this.error('Error de conexion al entregar el pedido.');
                     }
                     this.procesando = false;
                 },
