@@ -43,20 +43,21 @@
 
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
-                <div class="flex-1 relative">
+                <form class="flex min-w-0 flex-1" x-on:submit.prevent="buscarRepartidor()">
                     <input x-model="qRepartidor" type="text" placeholder="Buscar pedido por codigo o cliente..."
-                        class="w-full rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 pr-10 text-sm text-gray-900 placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
+                        class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900 placeholder:text-[#9a8e78] focus:border-[#b9943d] focus:ring-1 focus:ring-[#b9943d]/40"
                         x-on:keyup.enter="buscarRepartidor()">
-                </div>
+                </form>
                 <button type="button" x-on:click="buscarRepartidor()" title="Buscar"
-                    class="btn-icon bg-[#b9943d] hover:bg-[#a68535]">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    class="btn-icon bg-blue-600 hover:bg-blue-700">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none">
+                </button>
+                <button type="button" x-on:click="buscarRepartidor()" title="Filtrar"
+                    class="btn-icon bg-sky-500 hover:bg-sky-600">
+                    <img src="{{ asset('icons/filtros.ico') }}" alt="Filtrar" class="h-5 w-5 object-contain pointer-events-none">
                 </button>
                 @if($busquedaRepartidor !== '')
-                    <button type="button" x-on:click="qRepartidor = ''; buscarRepartidor()" title="Limpiar"
-                        class="btn-icon bg-[#d4534a] hover:bg-[#c0392b]">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                    <a href="{{ route('almacen.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
             </div>
         </div>
@@ -209,7 +210,7 @@
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Detalle del Pedido</h3>
                     <button type="button" x-on:click="modalDetalle = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
                 <template x-if="detallePedido">
@@ -256,7 +257,7 @@
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Confirmar recepcion en almacen</h3>
                     <button type="button" x-on:click="modalRecibir = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
-                        <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
                 <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-4">
@@ -302,7 +303,7 @@
                     <p class="mt-1 text-sm text-emerald-700" x-text="mensajeExito"></p>
                 </div>
                 <button x-on:click="mostrarExito = false" class="ml-2 flex-shrink-0 text-emerald-400 hover:text-emerald-600">
-                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
+                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
                 </button>
             </div>
         </div>
@@ -318,7 +319,7 @@
                     <p class="mt-1 text-sm text-red-700" x-text="mensajeError"></p>
                 </div>
                 <button x-on:click="mostrarError = false" class="ml-2 flex-shrink-0 text-red-400 hover:text-red-600">
-                    <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
+                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4">
                 </button>
             </div>
         </div>
