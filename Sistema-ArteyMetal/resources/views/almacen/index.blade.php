@@ -293,7 +293,7 @@
                 <p class="mb-4 text-sm text-[#4a4026]">Verifique que los productos fueron entregados correctamente por el repartidor.</p>
                 <div class="flex justify-end gap-2">
                     <button type="button" x-on:click="modalRecibir = false"
-                        class="rounded-xl border border-[#d4cfc0] bg-white px-4 py-2 text-sm font-medium text-[#5a4a2a] hover:bg-[#f4ebd4]">
+                        class="rounded-xl bg-[#6b7280] px-4 py-2 text-sm font-medium text-white hover:bg-[#4b5563]">
                         Cancelar
                     </button>
                     <button type="button" x-on:click="confirmarRecibir()" :disabled="procesando"
