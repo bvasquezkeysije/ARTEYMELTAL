@@ -21,7 +21,7 @@
         .btn-icon-sm:focus, .btn-icon-sm:focus-visible { outline: 0 none !important; }
     </style>
 
-    <div x-data="almacenPedidos()" x-init="init()" class="space-y-4">
+    <div x-data="almacenPedidos()" x-init="init()" class="space-y-5">
 
         <div class="flex flex-col sm:flex-row gap-3">
             <div class="flex-1 flex gap-2">
@@ -163,12 +163,12 @@
                 class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Detalle del Pedido</h3>
-                    <button x-on:click="modalDetalle = false" class="text-[#9a8e78] hover:text-[#5a4a2a]">
+                    <button x-on:click="modalDetalle = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
                         <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
                     </button>
                 </div>
                 <template x-if="detallePedido">
-                    <div class="space-y-4">
+                    <div class="space-y-5">
                         <div class="grid grid-cols-2 gap-3 text-sm">
                             <div><span class="font-semibold text-[#5a4a2a]">Codigo:</span> <span x-text="detallePedido.codigo" class="text-[#2d2b24]"></span></div>
                             <div><span class="font-semibold text-[#5a4a2a]">Estado:</span> <span x-text="detallePedido.estado" class="text-[#2d2b24]"></span></div>
@@ -210,7 +210,7 @@
                 class="w-full max-w-md rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Recibir en Almacen</h3>
-                    <button x-on:click="modalRecibir = false" class="text-[#9a8e78] hover:text-[#5a4a2a]">
+                    <button x-on:click="modalRecibir = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
                         <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
                     </button>
                 </div>
@@ -248,7 +248,7 @@
                 class="w-full max-w-md rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-2xl">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-[#2d2b24]">Entregar al Cliente</h3>
-                    <button x-on:click="modalEntregar = false" class="text-[#9a8e78] hover:text-[#5a4a2a]">
+                    <button x-on:click="modalEntregar = false" class="btn-icon-sm bg-red-600 hover:bg-red-700">
                         <img src="{{ asset('iconos/cerrar.ico') }}" alt="Cerrar" class="h-5 w-5">
                     </button>
                 </div>
