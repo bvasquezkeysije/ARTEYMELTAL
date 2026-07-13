@@ -15,7 +15,7 @@ class DisenoController extends Controller
         $filtroEstado = $request->input('estado_personalizacion', '');
 
         $pedidos = Pedido::query()
-            ->with('cliente', 'productos.archivos', 'productos.archivosDiseno')
+            ->with('cliente', 'productos.archivos', 'archivosDiseno')
             ->whereIn('estado_personalizacion', ['en_diseno', 'en_revision']);
 
         if ($busqueda) {
@@ -39,7 +39,7 @@ class DisenoController extends Controller
 
     public function show(Pedido $pedido)
     {
-        $pedido->load('cliente', 'productos.archivos', 'productos.archivosDiseno');
+        $pedido->load('cliente', 'productos.archivos', 'archivosDiseno');
 
         return view('diseno.show', compact('pedido'));
     }

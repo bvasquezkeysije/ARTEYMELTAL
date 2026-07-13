@@ -89,7 +89,7 @@
                     <tbody class="divide-y divide-[#efeee9]">
                         @forelse($pedidos as $pedido)
                             @php
-                                $totalArchivosDiseno = $pedido->productos->flatMap->archivosDiseno->count();
+                                $totalArchivosDiseno = $pedido->archivosDiseno->count();
                             @endphp
                             <tr>
                                 <td class="px-4 py-3 font-medium text-[#2d2b24]">{{ $pedido->codigo }}</td>
