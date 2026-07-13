@@ -20,6 +20,20 @@
     </style>
 
     <div class="space-y-3">
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <form id="produccion-search-form" method="GET" action="{{ route('produccion.index') }}" class="flex min-w-0 flex-1">
+                    <input type="text" name="q" value="{{ $busqueda }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 text-sm text-gray-900 h-10" placeholder="Buscar por codigo, cliente o producto" />
+                </form>
+                <button type="submit" form="produccion-search-form" class="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center justify-center shrink-0" title="Buscar">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
+                </button>
+                @if($busqueda)
+                    <a href="{{ route('produccion.index') }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                @endif
+            </div>
+        </div>
+
         <div class="overflow-hidden rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
@@ -78,6 +92,22 @@
                                         <button type="button" @@click="$dispatch('open-detalle-{{ $pedido->id }}')" class="btn-icon-sm" style="background-color:#0891B2" title="Ver detalle">
                                             <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver detalle" class="h-4 w-4 object-contain pointer-events-none">
                                         </button>
+                                        @if($pedido->estado === 'en_produccion')
+                                            <form method="POST" action="{{ route('produccion.iniciar', $pedido) }}" onsubmit="return confirm('Iniciar produccion de este pedido?')">
+                                                @csrf
+                                                <button type="submit" class="btn-icon-sm bg-sky-600 hover:bg-sky-700" title="Iniciar produccion">
+                                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($pedido->estado === 'produciendo')
+                                            <form method="POST" action="{{ route('produccion.notificar', $pedido) }}" onsubmit="return confirm('Marcar como listo y notificar al repartidor?')">
+                                                @csrf
+                                                <button type="submit" class="btn-icon-sm bg-amber-600 hover:bg-amber-700" title="Notificar repartidor">
+                                                    <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

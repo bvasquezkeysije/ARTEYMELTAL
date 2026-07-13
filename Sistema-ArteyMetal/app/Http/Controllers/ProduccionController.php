@@ -9,15 +9,23 @@ use Illuminate\Http\Request;
 
 class ProduccionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $busqueda = $request->input('q', '');
+
         $pedidos = Pedido::query()
             ->with('cliente', 'productos.archivos', 'archivosDiseno')
             ->whereIn('estado', ['en_produccion', 'produciendo'])
+            ->when($busqueda, fn ($q) => $q->where(function ($sub) use ($busqueda) {
+                $sub->where('codigo', 'ilike', "%{$busqueda}%")
+                    ->orWhere('nombre_cliente', 'ilike', "%{$busqueda}%")
+                    ->orWhereHas('productos', fn ($pp) => $pp->where('nombre', 'ilike', "%{$busqueda}%"));
+            }))
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(10)
+            ->appends(['q' => $busqueda]);
 
-        return view('produccion.index', compact('pedidos'));
+        return view('produccion.index', compact('pedidos', 'busqueda'));
     }
 
     public function show(Pedido $pedido)
