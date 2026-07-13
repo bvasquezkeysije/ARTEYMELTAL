@@ -129,11 +129,11 @@
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         <button x-on:click="verDetalle({{ $pedido->id }})" title="Ver detalle"
-                                            class="btn-icon-sm" style="background-color: #0891B2;">
+                                            class="btn-icon-sm bg-cyan-600 hover:bg-cyan-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                         <button x-on:click="abrirRecibir({{ $pedido->id }}, '{{ $pedido->codigo }}', {{ $cantTotal }})" title="Confirmar recepcion en almacen"
-                                            class="btn-icon-sm" style="background-color: #059669;">
+                                            class="btn-icon-sm bg-emerald-600 hover:bg-emerald-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         </button>
                                     </div>
@@ -211,11 +211,11 @@
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         <button x-on:click="verDetalle({{ $pedido->id }})" title="Ver detalle"
-                                            class="btn-icon-sm" style="background-color: #0891B2;">
+                                            class="btn-icon-sm bg-cyan-600 hover:bg-cyan-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                         <button x-on:click="abrirEntregar({{ $pedido->id }}, '{{ $pedido->codigo }}', '{{ $pedido->nombre_cliente }}', '{{ $pedido->cliente?->documento ?? '' }}', '{{ $pedido->cliente?->telefono ?? '' }}')" title="Entregar al cliente"
-                                            class="btn-icon-sm" style="background-color: #d97706;">
+                                            class="btn-icon-sm bg-amber-600 hover:bg-amber-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         </button>
                                     </div>
