@@ -39,7 +39,7 @@ class NotificationController extends Controller
                 'body' => $n->body,
                 'action_url' => $n->action_url,
                 'is_read' => (bool) $n->is_read,
-                'created_at' => $n->created_at?->toIso601String(),
+                'created_at' => $n->created_at?->toIso8601String(),
             ]);
 
         $count = Notification::where('user_id', $request->user()->id)
