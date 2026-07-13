@@ -126,6 +126,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::middleware('permiso:diseno.gestionar')->group(function () {
         Route::put('diseno/{pedido}', [DisenoController::class, 'update'])->whereNumber('pedido')->name('diseno.update');
         Route::delete('diseno/archivo/{archivo}', [DisenoController::class, 'destroyArchivo'])->name('diseno.destroy_archivo');
+        Route::post('diseno/{pedido}/notificar', [DisenoController::class, 'notificar'])->name('diseno.notificar');
     });
 
     Route::middleware('permiso:produccion.ver')->group(function () {

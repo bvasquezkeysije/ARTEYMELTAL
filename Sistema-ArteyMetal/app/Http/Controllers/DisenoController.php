@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use App\Models\PedidoDisenoArchivo;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -97,5 +98,28 @@ class DisenoController extends Controller
         $archivo->delete();
 
         return redirect()->route('diseno.show', $pedido)->with('ok', 'Archivo eliminado correctamente.');
+    }
+
+    public function notificar(Pedido $pedido)
+    {
+        $rol = request()->user()->rol->nombre;
+
+        if (! in_array($rol, ['administrador', 'disenador'], true)) {
+            abort(403, 'No tienes permiso para notificar.');
+        }
+
+        $vendedores = User::whereHas('rol', fn ($q) => $q->whereIn('nombre', ['administrador', 'vendedor']))->get();
+
+        foreach ($vendedores as $vendedor) {
+            NotificationController::create(
+                $vendedor->id,
+                'diseno',
+                'Archivos de diseno listos',
+                'El pedido ' . $pedido->codigo . ' de ' . $pedido->nombre_cliente . ' tiene archivos de diseno para revisar.',
+                route('pedidos.show', $pedido)
+            );
+        }
+
+        return back()->with('ok', 'Vendedor(es) notificado(s) correctamente.');
     }
 }

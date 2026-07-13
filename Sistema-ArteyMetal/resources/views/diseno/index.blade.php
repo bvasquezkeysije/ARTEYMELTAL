@@ -89,7 +89,9 @@
                     <tbody class="divide-y divide-[#efeee9]">
                         @forelse($pedidos as $pedido)
                             @php
+                                $totalArchivosRef = $pedido->productos->flatMap->archivos->count();
                                 $totalArchivosDiseno = $pedido->archivosDiseno->count();
+                                $totalArchivos = $totalArchivosRef + $totalArchivosDiseno;
                             @endphp
                             <tr>
                                 <td class="px-4 py-3 font-medium text-[#2d2b24]">{{ $pedido->codigo }}</td>
@@ -115,10 +117,13 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if($totalArchivosDiseno > 0)
+                                    @if($totalArchivos > 0)
                                         <span class="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                            {{ $totalArchivosDiseno }} archivo{{ $totalArchivosDiseno > 1 ? 's' : '' }}
+                                            {{ $totalArchivos }} archivo{{ $totalArchivos > 1 ? 's' : '' }}
+                                            @if($totalArchivosRef > 0 && $totalArchivosDiseno > 0)
+                                                <span class="ml-1 text-[10px] text-amber-500">({{ $totalArchivosRef }} ref + {{ $totalArchivosDiseno }} dis)</span>
+                                            @endif
                                         </span>
                                     @else
                                         <span class="text-xs text-[#999]">Sin archivos</span>
@@ -135,11 +140,14 @@
                                         <button type="button" @@click="$dispatch('open-subir-{{ $pedido->id }}')" class="btn-icon-sm bg-amber-600 hover:bg-amber-700" title="Subir diseno">
                                             <img src="{{ asset('icons/Subir-Blanco.png') }}" alt="Subir diseno" class="h-4 w-4 object-contain pointer-events-none">
                                         </button>
-                                        @if($totalArchivosDiseno > 0)
+                                        @if($totalArchivos > 0)
                                         <button type="button" @@click="$dispatch('open-editar-{{ $pedido->id }}')" class="btn-icon-sm bg-purple-600 hover:bg-purple-700" title="Editar archivos">
                                             <img src="{{ asset('icons/editar.ico') }}" alt="Editar archivos" class="h-4 w-4 object-contain pointer-events-none">
                                         </button>
                                         @endif
+                                        <button type="button" @@click="$dispatch('open-notificar-{{ $pedido->id }}')" class="btn-icon-sm bg-amber-500 hover:bg-amber-600" title="Notificar al vendedor">
+                                            <svg class="h-4 w-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -556,5 +564,44 @@
             </div>
         </div>
     @endforeach
+
+    {{-- Modal Notificar al vendedor --}}
+    @foreach($pedidos as $pedido)
+        <div x-data="{ open: false }"
+             x-show="open"
+             x-on:open-notificar-{{ $pedido->id }}.window="open = true"
+             x-on:keydown.escape.window="open = false"
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div @@click.outside="open = false" class="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-[#2d2b24]">Notificar al vendedor</h3>
+                    <button type="button" @@click="open = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                    </button>
+                </div>
+
+                <p class="mb-2 text-sm text-[#555]">
+                    ¿Quieres notificar al vendedor que el pedido <strong>{{ $pedido->codigo }}</strong> tiene archivos listos para revisar?
+                </p>
+                <p class="mb-4 text-xs text-[#999]">Se enviara una notificacion al vendedor {{ $pedido->usuario->name ?? 'asignado' }}.</p>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" @@click="open = false"
+                            class="rounded-xl border border-[#d5d0c0] px-4 py-2 text-sm font-medium text-[#555] hover:bg-[#f5f3ed]">
+                        Cancelar
+                    </button>
+                    <form action="{{ route('diseno.notificar', $pedido) }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                                class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">
+                            Notificar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
     </div>
 </x-app-layout>
