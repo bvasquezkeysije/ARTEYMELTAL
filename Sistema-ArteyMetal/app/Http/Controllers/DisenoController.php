@@ -105,6 +105,9 @@ class DisenoController extends Controller
         $rol = request()->user()->rol->nombre;
 
         if (! in_array($rol, ['administrador', 'disenador'], true)) {
+            if (request()->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'No tienes permiso para notificar.'], 403);
+            }
             abort(403, 'No tienes permiso para notificar.');
         }
 
@@ -118,6 +121,10 @@ class DisenoController extends Controller
                 'El pedido ' . $pedido->codigo . ' de ' . $pedido->nombre_cliente . ' tiene archivos de diseno para revisar.',
                 route('pedidos.show', $pedido)
             );
+        }
+
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Notificacion enviada exitosamente.']);
         }
 
         return redirect()->route('diseno.index')->with('ok', 'Vendedor(es) notificado(s) correctamente.');

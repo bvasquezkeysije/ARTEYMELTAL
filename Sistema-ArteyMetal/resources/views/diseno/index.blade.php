@@ -608,7 +608,7 @@
 
     {{-- Modal Notificar al vendedor --}}
     @foreach($pedidos as $pedido)
-        <div x-data="{ open: false }"
+        <div x-data="{ open: false, notifExito: false, notifError: false, notifMsg: '' }"
              x-show="open"
              x-on:open-notificar-{{ $pedido->id }}.window="open = true"
              x-on:keydown.escape.window="open = false"
@@ -632,15 +632,52 @@
                             class="rounded-xl border border-[#d5d0c0] px-4 py-2 text-sm font-medium text-[#555] hover:bg-[#f5f3ed]">
                         Cancelar
                     </button>
-                    <form action="{{ route('diseno.notificar', $pedido) }}" method="POST">
-                        @csrf
-                        <button type="submit"
-                                class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">
-                            Notificar
-                        </button>
-                    </form>
+                    <button type="button"
+                            @@click="
+                                fetch('{{ route('diseno.notificar', $pedido) }}', {
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                                }).then(r => r.json().then(d => ({ ok: r.ok, body: d })))
+                                  .then(({ ok, body }) => {
+                                      open = false;
+                                      if (ok && body.ok) { notifMsg = body.message; notifExito = true; }
+                                      else { notifMsg = body.message || 'Error al enviar notificacion.'; notifError = true; }
+                                  })
+                                  .catch(() => { open = false; notifMsg = 'Error de conexion.'; notifError = true; })
+                            "
+                            class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">
+                        Notificar
+                    </button>
                 </div>
             </div>
+
+            {{-- Modal Exito --}}
+            <template x-if="notifExito">
+                <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div x-transition.opacity class="fixed inset-0 bg-black/50" @click="notifExito = false"></div>
+                    <div x-transition class="relative w-full max-w-md rounded-2xl bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="notifMsg"></h3>
+                        <button type="button" @click="notifExito = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </template>
+
+            {{-- Modal Error --}}
+            <template x-if="notifError">
+                <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div x-transition.opacity class="fixed inset-0 bg-black/50" @click="notifError = false"></div>
+                    <div x-transition class="relative w-full max-w-md rounded-2xl bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Error" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900" x-text="notifMsg"></h3>
+                        <button type="button" @click="notifError = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </template>
         </div>
     @endforeach
 
