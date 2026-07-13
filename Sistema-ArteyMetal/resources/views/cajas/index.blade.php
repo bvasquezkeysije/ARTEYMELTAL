@@ -68,26 +68,28 @@
         {{-- ============================================================ --}}
         {{-- SECCION 1: TABLA DE CAJAS --}}
         {{-- ============================================================ --}}
-        <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
-            <div class="flex items-center gap-2 border-b border-[#efe7d2] px-5 py-3">
-                <h2 class="text-sm font-semibold text-[#5a4a2a] shrink-0">Cajas</h2>
-                <form id="search-cajas-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1 ml-4">
+        <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <form id="search-cajas-form" method="GET" action="{{ route('cajas.index') }}" class="flex min-w-0 flex-1">
                     <input type="hidden" name="q" value="{{ $busqueda ?? '' }}" />
                     <input type="hidden" name="estado" value="{{ $filtroEstado ?? '' }}" />
-                    <input type="text" name="cq" value="{{ $busquedaCaja ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2 text-sm text-gray-900" placeholder="Buscar caja..." />
+                    <input type="text" name="cq" value="{{ $busquedaCaja ?? '' }}" class="min-w-0 flex-1 rounded-xl border border-[#d1be8a] bg-[#fffdf7] px-4 py-2.5 text-sm text-gray-900" placeholder="Buscar caja por nombre..." />
                 </form>
-                <button type="submit" form="search-cajas-form" class="btn-icon-sm bg-blue-600 hover:bg-blue-700" title="Buscar">
-                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-4 w-4 object-contain pointer-events-none" />
+                <button type="submit" form="search-cajas-form" class="btn-icon bg-blue-600 hover:bg-blue-700" title="Buscar">
+                    <img src="{{ asset('icons/buscar.ico') }}" alt="Buscar" class="h-5 w-5 object-contain pointer-events-none" />
                 </button>
                 @if(($busquedaCaja ?? '') !== '')
-                    <a href="{{ route('cajas.index', array_filter(['q' => $busqueda ?? null, 'estado' => $filtroEstado ?? null])) }}" class="shrink-0 rounded-lg border border-[#d1be8a] px-2 py-1.5 text-xs text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
+                    <a href="{{ route('cajas.index', array_filter(['q' => $busqueda ?? null, 'estado' => $filtroEstado ?? null])) }}" class="shrink-0 rounded-xl border border-[#d1be8a] px-3 py-2.5 text-sm text-[#5a4314] hover:bg-[#fff5dd]">Limpiar</a>
                 @endif
                 @if(auth()->user()->tienePermiso('caja.gestionar'))
-                    <button type="button" @click="modalAbrir = true" class="btn-icon-sm shrink-0" style="background-color:#09090f;color:white" title="Abrir caja">
-                        <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-4 w-4 object-contain pointer-events-none" />
+                    <button type="button" @click="modalAbrir = true" class="btn-icon" style="background-color:#09090f;color:white" title="Abrir caja">
+                        <img src="{{ asset('icons/nuevo.ico') }}" alt="Nuevo" class="h-5 w-5 object-contain pointer-events-none" />
                     </button>
                 @endif
             </div>
+        </div>
+
+        <div class="rounded-2xl border border-[#e5dec8] bg-white shadow-sm">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-[#faf8f2] text-left text-[#5a4a2a]">
