@@ -120,6 +120,6 @@ class DisenoController extends Controller
             );
         }
 
-        return back()->with('ok', 'Vendedor(es) notificado(s) correctamente.');
+        return redirect()->route('diseno.index')->with('ok', 'Vendedor(es) notificado(s) correctamente.');
     }
 }
