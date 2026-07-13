@@ -210,6 +210,7 @@ pendiente_adelanto → adelanto_pagado → pagado_completo
 **permiso_rol**: `rol_id` → `roles(id)`, `permiso_id` → `permisos(id)` (puente N:N)
 
 ### Otras tablas
+- `cajas` — Cajas predefinidas del sistema (id, nombre, activa). Seed: Caja 1, Caja 2, Caja 3.
 - `categorias_producto` — Catálogo de categorías (slug, nombre)
 - `comprobantes_venta` — Boletas/facturas electrónicas (venta_id, tipo, serie, correlativo, codigo)
 - `cobros` — Pagos recibidos (venta_id, tipo_cobro, monto, fecha)
@@ -238,10 +239,19 @@ Control de apertura y cierre de caja por turno de usuario.
 - Muestra tarjetas con cada caja abierta del usuario (ID, fecha, monto inicial)
 - Al hacer clic, redirige a `ventas.seleccionar_caja/{caja}` → guarda en sesión → redirect a ventas.index
 
+### Tabla `cajas`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | int8 PK | |
+| `nombre` | varchar(100) | Nombre de la caja (Caja 1, Caja 2, Caja 3) |
+| `activa` | bool | Si está disponible para usar |
+
 ### Tabla `caja_aperturas`
 | Columna | Tipo | Notas |
 |---------|------|-------|
 | `usuario_id` | FK → users | Quien abrió/cierra la caja |
+| `caja_id` | FK → cajas | Caja predefinida seleccionada |
+| `nombre` | varchar(100) | Nombre de la caja (copiado de cajas.nombre al abrir) |
 | `fecha_apertura` | timestamp | Inicio del turno |
 | `monto_inicial` | decimal(12,2) | Efectivo al abrir |
 | `fecha_cierre` | timestamp | NULL hasta cerrar |

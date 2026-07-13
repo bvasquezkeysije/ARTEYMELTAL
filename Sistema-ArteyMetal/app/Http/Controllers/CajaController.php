@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Caja;
 use App\Models\CajaApertura;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,7 @@ class CajaController extends Controller
     public function index()
     {
         $aperturas = CajaApertura::query()
-            ->with('usuario')
+            ->with('usuario', 'caja')
             ->withCount('ventas')
             ->withSum('ventas', 'monto_total')
             ->withSum('ventas', 'monto_efectivo')
@@ -20,20 +21,33 @@ class CajaController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(20);
 
-        return view('cajas.index', compact('aperturas'));
+        $cajasDisponibles = Caja::where('activa', true)->get();
+
+        return view('cajas.index', compact('aperturas', 'cajasDisponibles'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:100',
+            'caja_id' => 'required|exists:cajas,id',
             'monto_inicial' => 'required|numeric|min:0',
             'observaciones' => 'nullable|string|max:255',
         ]);
 
+        $caja = Caja::findOrFail($request->caja_id);
+
+        $existeAbierta = CajaApertura::where('caja_id', $caja->id)
+            ->where('estado', 'abierta')
+            ->exists();
+
+        if ($existeAbierta) {
+            return back()->withErrors(['caja_id' => 'Esta caja ya está abierta.']);
+        }
+
         CajaApertura::create([
             'usuario_id' => Auth::id(),
-            'nombre' => $request->nombre,
+            'caja_id' => $caja->id,
+            'nombre' => $caja->nombre,
             'monto_inicial' => $request->monto_inicial,
             'observaciones' => $request->observaciones,
             'estado' => 'abierta',

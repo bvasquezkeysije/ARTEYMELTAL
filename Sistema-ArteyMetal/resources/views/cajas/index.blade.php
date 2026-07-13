@@ -154,8 +154,13 @@
                 <form method="POST" action="{{ route('cajas.store') }}" class="p-5 space-y-4">
                     @csrf
                     <div>
-                        <label for="nombre" class="mb-2 block text-sm font-medium text-gray-700">Nombre de caja</label>
-                        <input id="nombre" name="nombre" type="text" maxlength="100" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ej: Caja Principal" />
+                        <label for="caja_id" class="mb-2 block text-sm font-medium text-gray-700">Seleccionar caja</label>
+                        <select id="caja_id" name="caja_id" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
+                            <option value="">Seleccione una caja</option>
+                            @foreach ($cajasDisponibles as $caja)
+                                <option value="{{ $caja->id }}">{{ $caja->nombre }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <label for="monto_inicial" class="mb-2 block text-sm font-medium text-gray-700">Monto inicial</label>
