@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <span>Repartidor</span>
+        <span>Repartos</span>
     </x-slot>
 
     <style>

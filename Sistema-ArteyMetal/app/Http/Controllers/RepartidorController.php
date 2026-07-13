@@ -19,8 +19,8 @@ class RepartidorController extends Controller
             ->with('cliente', 'productos')
             ->whereIn('estado', ['listo_entrega', 'en_transporte'])
             ->when($busqueda, fn ($q) => $q->where(function ($sub) use ($busqueda) {
-                $sub->where('codigo', 'ilike', %{$busqueda}%)
-                    ->orWhere('nombre_cliente', 'ilike', %{$busqueda}%);
+                $sub->where('codigo', 'ilike', "%{$busqueda}%")
+                    ->orWhere('nombre_cliente', 'ilike', "%{$busqueda}%");
             }))
             ->when($filtroEstado, fn ($q) => $q->where('estado', $filtroEstado))
             ->orderByDesc('id')
@@ -100,7 +100,7 @@ class RepartidorController extends Controller
                 userId: $almacenero->id,
                 type: 'almacen',
                 title: 'Pedido recibido en almacen',
-                body: El pedido {$pedido- de {$pedido- esta listo para recibir en almacen.,
+                body: "El pedido #{$pedido->codigo} de {$pedido->nombre_cliente} esta listo para recibir en almacen.",
                 actionUrl: route('almacen.pedidos', [], false),
             );
         }
@@ -109,7 +109,7 @@ class RepartidorController extends Controller
             userId: $pedido->usuario_id,
             type: 'repartidor',
             title: 'Pedido entregado en almacen',
-            body: El pedido {$pedido- ha sido entregado en almacen por el repartidor.,
+            body: "El pedido #{$pedido->codigo} ha sido entregado en almacen por el repartidor.",
             actionUrl: route('pedidos.show', $pedido, false),
         );
 

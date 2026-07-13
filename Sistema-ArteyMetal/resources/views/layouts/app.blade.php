@@ -134,9 +134,9 @@
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('repartidor.ver'))
-                                <a href="{{ route('repartidor.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Repartidor" class="{{ request()->routeIs('repartidor.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                <a href="{{ route('repartidor.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Repartos" class="{{ request()->routeIs('repartidor.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Repartidor</span>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Repartos</span>
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('ventas.ver'))

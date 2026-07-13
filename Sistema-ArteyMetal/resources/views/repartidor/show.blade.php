@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <span>Repartidor — {{ $pedido->codigo }}</span>
+        <span>Repartos — {{ $pedido->codigo }}</span>
     </x-slot>
 
     <style>
