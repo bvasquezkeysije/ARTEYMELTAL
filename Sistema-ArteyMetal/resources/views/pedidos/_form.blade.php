@@ -28,14 +28,26 @@
                 this.rowArchivos[i] = [...(this.rowArchivos[i] || []), ...nuevos];
             },
             modalIndex: -1,
+            showAjaxMsg: false,
+            ajaxMsgText: '',
+            ajaxMsgType: 'success',
+            flashAjaxMsg(type, msg) {
+                this.ajaxMsgType = type;
+                this.ajaxMsgText = msg;
+                this.showAjaxMsg = true;
+                setTimeout(() => { this.showAjaxMsg = false; }, 2500);
+            },
             eliminarArchivoRow(i, fi) {
                 const archivos = this.rowArchivos[i] || [];
                 const removed = archivos[fi];
                 if (removed && removed.id) {
-                    fetch('{{ url('pedidos/archivo-producto') }}/' + removed.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }).catch(() => {});
+                    fetch('{{ url('pedidos/archivo-producto') }}/' + removed.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
+                        .then(r => r.json()).then(() => { this.flashAjaxMsg('success', 'Archivo de diseno eliminado.'); })
+                        .catch(() => { this.flashAjaxMsg('error', 'Error al eliminar archivo.'); });
                 }
                 archivos.splice(fi, 1);
                 this.rowArchivos[i] = [...archivos];
+                if (!removed || !removed.id) this.flashAjaxMsg('success', 'Archivo removido.');
             },
             abrirVistaPrevia(archivo) {
                 if (archivo.url) { window.open(archivo.url, '_blank'); return; }
@@ -95,7 +107,11 @@
                     if (this.ordenViewerIndex >= this.ordenArchivos.length && this.ordenViewerIndex > 0) {
                         this.ordenViewerIndex--;
                     }
+                    this.flashAjaxMsg('success', 'Archivo de orden eliminado.');
+                } else {
+                    this.flashAjaxMsg('error', 'Error al eliminar archivo.');
                 }
+            }).catch(() => { this.flashAjaxMsg('error', 'Error de conexion.'); });
             }).catch(() => {});
         },
         consultandoDocumento: false,
@@ -834,5 +850,14 @@
             @error('observaciones') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         </div>
     </section>
+
+    {{-- Toast feedback AJAX --}}
+    <div x-show="showAjaxMsg" x-cloak x-transition
+         :class="ajaxMsgType === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
+         class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg">
+        <img x-show="ajaxMsgType === 'success'" src="{{ asset('icons/Valido-Verde.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none" />
+        <img x-show="ajaxMsgType === 'error'" src="{{ asset('icons/Alerta-Rojo.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none" />
+        <span x-text="ajaxMsgText"></span>
+    </div>
 
 </div>
