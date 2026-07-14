@@ -382,6 +382,8 @@
                         </div>
                     </header>
 
+                    @include('components.feedback-modals')
+
                     <main class="custom-scroll min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6" style="scrollbar-gutter: stable;">
                         {{ $slot }}
                     </main>
