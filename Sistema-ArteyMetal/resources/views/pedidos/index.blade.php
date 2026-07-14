@@ -39,7 +39,7 @@
         }
     </style>
 
-    <div x-data="{ modalPedido: false, pedidoVista: null, modalCobro: false, cobroData: null, modalDerivar: false, derivarData: null, metodoPago: 'efectivo', montoRecibido: 0, filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? collect())->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }}, showSuccess: {{ session()->has('ok') ? 'true' : 'false' }}, showErrors: {{ $errors->any() ? 'true' : 'false' }}, errorMessages: @js($errors->any() ? $errors->all() : []) }" class="space-y-3">
+    <div x-data="{ modalPedido: false, pedidoVista: null, modalCobro: false, cobroData: null, modalDerivar: false, derivarData: null, metodoPago: 'efectivo', montoRecibido: 0, filtrosAbiertos: false, selectorCajaAbierto: {{ ($cajasAbiertas ?? collect())->isNotEmpty() ? 'true' : 'false' }}, sinCajaAbierto: {{ ($sinCaja ?? false) ? 'true' : 'false' }} }" class="space-y-3">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-4 shadow-sm">
             <div class="flex items-center gap-2">
                 <div class="flex min-w-0 flex-1 items-center gap-3">
@@ -632,43 +632,5 @@
             </div>
         </template>
 
-        {{-- Modal pedido registrado correctamente --}}
-        <template x-teleport="body">
-            <div x-show="showSuccess" style="display: none;">
-                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
-                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
-                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900">{{ session('ok') }}</h3>
-                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
-                    </div>
-                </div>
-            </div>
-        </template>
-
-        {{-- Modal errores validacion --}}
-        <template x-teleport="body">
-            <div x-show="showErrors" style="display: none;">
-                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showErrors = false"></div>
-                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-8 pt-10 pb-10 shadow-xl">
-                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                            <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900 text-center">Se encontraron errores</h3>
-                        <ul class="mt-4 space-y-2 text-sm text-red-700">
-                            <template x-for="(msg, idx) in errorMessages" :key="idx">
-                                <li x-text="msg"></li>
-                            </template>
-                        </ul>
-                        <div class="text-center">
-                            <button type="button" @click="showErrors = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
     </div>
 </x-app-layout>

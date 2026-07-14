@@ -92,7 +92,6 @@
         productos: @js($productosFrontend),
         lineas: @js($lineasIniciales),
         modalProductoAbierto: false,
-        showErrors: {{ $errors->any() ? 'true' : 'false' }},
         productoVista: null,
         fotoIndex: 0,
         consultandoDocumentoCliente: false,
@@ -248,24 +247,6 @@
             setTimeout(() => { if (this.lineas[i]) this.lineas[i].abierto = false; }, 120);
         }
     }" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div x-show="showErrors" style="display: none;">
-            <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showErrors = false"></div>
-            <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
-                    <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                        <img src="{{ asset('icons/Alerta-Rojo.png') }}" alt="Alerta" class="h-8 w-8 object-contain pointer-events-none" />
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900">Revisa los datos ingresados</h3>
-                    <ul class="mt-3 space-y-2 text-left">
-                        @foreach ($errors->all() as $error)
-                            <li class="text-sm text-rose-600">- {{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" @click="showErrors = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
-                </div>
-            </div>
-        </div>
-
         <form method="POST" action="{{ route('ventas.store') }}" class="space-y-5">
             @csrf
             <div class="space-y-4">

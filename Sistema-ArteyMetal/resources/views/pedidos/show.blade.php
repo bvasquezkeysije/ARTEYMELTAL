@@ -24,10 +24,6 @@
     </style>
 
     <div x-data="{ modalPersonalizacion: @js($errors->any()), modalDerivar: false, derivarData: null }" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        @if (session('ok'))
-            <div class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('ok') }}</div>
-        @endif
-
         <div class="grid gap-4 md:grid-cols-2">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Codigo</p>
@@ -441,12 +437,6 @@
                         <label for="observaciones_personalizacion" class="mb-2 block text-sm font-medium text-gray-700">Observaciones personalizacion</label>
                         <textarea id="observaciones_personalizacion" name="observaciones_personalizacion" rows="3" class="block w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-900">{{ old('observaciones_personalizacion', $pedido->observaciones_personalizacion) }}</textarea>
                     </div>
-
-                    @if($errors->any())
-                        <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                            Revisa los campos del formulario de personalizacion.
-                        </div>
-                    @endif
 
                     <div class="flex gap-2">
                         <button type="submit" class="rounded-xl bg-[#111] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#262626]">Guardar personalizacion</button>

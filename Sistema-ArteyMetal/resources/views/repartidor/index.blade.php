@@ -33,8 +33,8 @@
     </style>
 
     <div x-data="{
-        showSuccess: {{ session()->has('ok') ? 'true' : 'false' }},
-        successMessage: @js(session('ok', '')),
+        showSuccess: false,
+        successMessage: '',
         showError: false,
         errorMessage: ''
     }" class="space-y-5">
