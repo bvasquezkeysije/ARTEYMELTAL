@@ -11,6 +11,52 @@
             totalProd() { let t=0; for(let p of this.productos) t+=(Number(p.precio_unitario)||0)*(Number(p.cantidad)||0); return t; },
             tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
             metodoPago: '{{ old('metodo_pago', 'efectivo') }}',
+            fotosPago: [],
+            modalFotosPago: false,
+            fotoPagoIndex: 0,
+            comprobantesExistentes: {{ Js::from(isset($pedido) && $pedido->comprobante_pago ? $pedido->comprobante_pago : []) }},
+            eliminarComprobanteExistente(index) {
+                const existentes = this.comprobantesExistentes;
+                const removed = existentes[index];
+                if (removed && removed.path) {
+                    fetch('{{ url("pedidos") }}/{{ $pedido->id ?? 0 }}/comprobante-pago', {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ index: index })
+                    }).then(r => r.json()).then(data => {
+                        if (data.ok) {
+                            existentes.splice(index, 1);
+                            this.comprobantesExistentes = [...existentes];
+                            if (this.fotoPagoIndex >= this.totalComprobantes && this.fotoPagoIndex > 0) this.fotoPagoIndex--;
+                            this.flashAjaxMsg('success', 'Comprobante eliminado.');
+                        } else {
+                            this.flashAjaxMsg('error', 'Error al eliminar comprobante.');
+                        }
+                    }).catch(() => { this.flashAjaxMsg('error', 'Error de conexion.'); });
+                } else {
+                    existentes.splice(index, 1);
+                    this.comprobantesExistentes = [...existentes];
+                    if (this.fotoPagoIndex >= this.totalComprobantes && this.fotoPagoIndex > 0) this.fotoPagoIndex--;
+                    this.flashAjaxMsg('success', 'Comprobante removido.');
+                }
+            },
+            get totalComprobantes() {
+                return this.comprobantesExistentes.length + this.fotosPago.length;
+            },
+            get comprobanteActual() {
+                const idx = this.fotoPagoIndex;
+                if (idx < this.comprobantesExistentes.length) return { tipo: 'existente', data: this.comprobantesExistentes[idx] };
+                const nuevoIdx = idx - this.comprobantesExistentes.length;
+                return { tipo: 'nuevo', data: this.fotosPago[nuevoIdx] || null };
+            },
+            onFotosPagoChange(e) {
+                const files = Array.from(e.target.files || []);
+                this.fotosPago = files.slice(0, 5);
+            },
+            abrirModalFotosPago() {
+                this.fotoPagoIndex = 0;
+                if (this.fotosPago.length > 0 || this.comprobantesExistentes.length > 0) this.modalFotosPago = true;
+            },
             productos: window._prodData,
             rowArchivos: window._archData,
             agregar() {
@@ -567,6 +613,19 @@
                                 <span class="text-sm text-gray-700">Transferencia</span>
                             </label>
                         </div>
+                        <div x-show="metodoPago !== 'efectivo'" x-cloak class="mt-3">
+                            <label class="mb-2 block text-sm font-medium text-gray-600">Comprobante de pago <span class="text-xs text-gray-400">(Opcional)</span></label>
+                            <div class="flex gap-2">
+                                <label class="flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-white px-4 py-3 text-sm text-gray-500 hover:border-amber-400 hover:text-amber-600 transition-colors">
+                                    <img src="{{ asset('icons/Subir-Blanco.png') }}" alt="" class="h-5 w-5 object-contain pointer-events-none">
+                                    <span x-text="fotosPago.length ? fotosPago.length + ' foto(s) seleccionada(s)' : 'Subir foto(s)'"></span>
+                                    <input name="comprobante_pago_fotos[]" type="file" accept="image/*" multiple @change="onFotosPagoChange($event)" class="hidden" />
+                                </label>
+                                <button type="button" @click="fotoPagoIndex = 0; abrirModalFotosPago()" :disabled="fotosPago.length === 0 && comprobantesExistentes.length === 0" class="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-xl bg-[#111] hover:bg-[#262626] disabled:opacity-40" title="Ver fotos">
+                                    <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver fotos" class="h-5 w-5 object-contain pointer-events-none brightness-0 invert" />
+                                </button>
+                            </div>
+                        </div>
                         <div id="vuelto-section" style="display: none;" class="mt-2 grid grid-cols-2 gap-3">
                             <div>
                                 <label for="monto-recibido" class="mb-1 block text-sm font-medium text-gray-600">Monto recibido</label>
@@ -943,6 +1002,75 @@
             @error('observaciones') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
         </div>
     </section>
+
+    {{-- Modal fotos comprobante de pago --}}
+    <div x-show="modalFotosPago"
+         x-on:keydown.escape.window="modalFotosPago = false"
+         x-cloak
+         @click.self="modalFotosPago = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+            <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white/80">Comprobantes de pago</h3>
+                <button type="button" @click="modalFotosPago = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                </button>
+            </div>
+
+            <template x-if="totalComprobantes === 0">
+                <div class="flex h-64 items-center justify-center text-white/50">No hay comprobantes seleccionados.</div>
+            </template>
+
+            <template x-if="totalComprobantes > 0">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" x-show="fotoPagoIndex > 0" @click="fotoPagoIndex--"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
+                            <template x-if="comprobanteActual?.tipo === 'existente'">
+                                <img :src="'{{ asset('storage/') }}/' + comprobanteActual.data.path" :alt="comprobanteActual.data.nombre" class="max-h-full max-w-full object-contain">
+                            </template>
+                            <template x-if="comprobanteActual?.tipo === 'nuevo'">
+                                <img :src="URL.createObjectURL(comprobanteActual.data)" :alt="comprobanteActual.data?.name" class="max-h-full max-w-full object-contain">
+                            </template>
+                        </div>
+                        <button type="button" x-show="fotoPagoIndex < totalComprobantes - 1" @click="fotoPagoIndex++"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <div class="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
+                        <span x-text="`${fotoPagoIndex + 1} de ${totalComprobantes}`"></span>
+                        <span class="text-white/30">|</span>
+                        <span x-text="comprobanteActual?.tipo === 'existente' ? comprobanteActual.data.nombre : (comprobanteActual?.data?.name || '')" class="max-w-[250px] truncate"></span>
+                    </div>
+                    <div class="mt-2 flex justify-center gap-1">
+                        <template x-for="(_, i) in Array(totalComprobantes).fill(0)" :key="i">
+                            <button type="button" @click="fotoPagoIndex = i"
+                                    :class="i === fotoPagoIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
+                                    class="h-1.5 w-6 rounded-full transition-colors"></button>
+                        </template>
+                    </div>
+                    <div class="mt-3 flex justify-center">
+                        <button type="button" @click="
+                                if (comprobanteActual?.tipo === 'existente') {
+                                    eliminarComprobanteExistente(fotoPagoIndex);
+                                } else {
+                                    const nuevoIdx = fotoPagoIndex - comprobantesExistentes.length;
+                                    fotosPago.splice(nuevoIdx, 1);
+                                    if (fotoPagoIndex >= totalComprobantes && fotoPagoIndex > 0) fotoPagoIndex--;
+                                }"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition">
+                            <img src="{{ asset('icons/Eliminar-Blanco.ico') }}" alt="" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                            Quitar comprobante
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
 
     {{-- Toast feedback AJAX --}}
     <div x-show="showAjaxMsg" x-cloak x-transition

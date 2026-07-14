@@ -125,6 +125,7 @@ class PedidoController extends Controller
             $pedido = Pedido::create($datos);
             $this->guardarArchivosOrden($request, $pedido);
             $this->guardarProductos($request, $pedido);
+            $this->guardarComprobantePago($request, $pedido);
 
             $venta = Venta::create([
                 'codigo' => $this->generarCodigoVenta(),
@@ -230,6 +231,7 @@ class PedidoController extends Controller
         $pedido->update($datos);
         $this->guardarArchivosOrden($request, $pedido);
         $this->guardarProductos($request, $pedido);
+        $this->guardarComprobantePago($request, $pedido);
 
         return redirect()->route('pedidos.index')->with('ok', 'Pedido actualizado correctamente.');
     }
@@ -397,6 +399,8 @@ class PedidoController extends Controller
         $request->validate([
             'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
             'vuelto' => ['nullable', 'numeric', 'min:0'],
+            'comprobante_pago_fotos' => ['nullable', 'array'],
+            'comprobante_pago_fotos.*' => ['file', 'max:5120', 'mimes:jpg,jpeg,png,gif,webp,pdf'],
         ]);
 
         DB::transaction(function () use ($pedido, $request) {
@@ -478,6 +482,8 @@ class PedidoController extends Controller
         $request->validate([
             'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
             'vuelto' => ['nullable', 'numeric', 'min:0'],
+            'comprobante_pago_fotos' => ['nullable', 'array'],
+            'comprobante_pago_fotos.*' => ['file', 'max:5120', 'mimes:jpg,jpeg,png,gif,webp,pdf'],
         ]);
 
         DB::transaction(function () use ($pedido, $request) {
@@ -634,6 +640,8 @@ class PedidoController extends Controller
             'tipo_pago' => ['required', 'string', 'in:contado,dos_partes'],
             'metodo_pago' => ['required', 'string', 'in:efectivo,yape,plin,tarjeta,transferencia'],
             'vuelto' => ['nullable', 'numeric', 'min:0'],
+            'comprobante_pago_fotos' => ['nullable', 'array'],
+            'comprobante_pago_fotos.*' => ['file', 'max:5120', 'mimes:jpg,jpeg,png,gif,webp,pdf'],
         ]);
     }
 
@@ -726,6 +734,32 @@ class PedidoController extends Controller
         }
     }
 
+    private function guardarComprobantePago(Request $request, Pedido $pedido): void
+    {
+        if (! $request->hasFile('comprobante_pago_fotos')) {
+            return;
+        }
+
+        $archivos = $pedido->comprobante_pago ?? [];
+
+        foreach ($request->file('comprobante_pago_fotos') as $archivo) {
+            if (! $archivo->isValid()) {
+                continue;
+            }
+
+            $path = $archivo->store('comprobantes_pago_pedido', 'public');
+
+            $archivos[] = [
+                'path' => $path,
+                'nombre' => $archivo->getClientOriginalName(),
+                'mime' => $archivo->getMimeType(),
+                'tamano' => $archivo->getSize(),
+            ];
+        }
+
+        $pedido->update(['comprobante_pago' => $archivos]);
+    }
+
     public function eliminarArchivoProducto(PedidoProductoArchivo $pedidoProductoArchivo): \Illuminate\Http\JsonResponse
     {
         $pedidoProductoArchivo->delete();
@@ -739,6 +773,29 @@ class PedidoController extends Controller
             unlink($path);
         }
         $archivo->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    public function eliminarComprobantePago(Request $request, Pedido $pedido): \Illuminate\Http\JsonResponse
+    {
+        $index = (int) $request->input('index');
+        $archivos = $pedido->comprobante_pago ?? [];
+
+        if (! isset($archivos[$index])) {
+            return response()->json(['ok' => false, 'error' => 'Indice invalido']);
+        }
+
+        $removed = array_splice($archivos, $index, 1)[0];
+
+        if (! empty($removed['path'])) {
+            $path = storage_path('app/public/' . $removed['path']);
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+
+        $pedido->update(['comprobante_pago' => $archivos]);
+
         return response()->json(['ok' => true]);
     }
 

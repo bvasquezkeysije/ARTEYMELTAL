@@ -53,6 +53,7 @@ class Pedido extends Model
         'costo_delivery' => 'decimal:2',
         'monto_adelanto' => 'decimal:2',
         'monto_saldo' => 'decimal:2',
+        'comprobante_pago' => 'array',
     ];
 
     public function usuario(): BelongsTo
