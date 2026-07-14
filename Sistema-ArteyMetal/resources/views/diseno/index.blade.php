@@ -423,14 +423,13 @@
             {{-- Viewer dentro del detalle --}}
             <div x-show="viewerOpen"
                  x-on:keydown.escape.window="viewerOpen = false"
-                 x-on:keydown.left.window="viewerOpen && prevFile()"
-                 x-on:keydown.right.window="viewerOpen && nextFile()"
                  x-cloak
+                 @click.self="viewerOpen = false"
                  class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
-                <div @@click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+                <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                     <div class="mb-3 flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-white/80">Modelos de referencia</h3>
-                        <button type="button" @@click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                        <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                             <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                         </button>
                     </div>
@@ -439,9 +438,9 @@
                     </template>
                     <template x-if="viewerTotal > 0">
                         <div>
-                            <div class="relative flex items-center">
-                                <button x-show="viewerIndex > 0" @@click="prevFile()"
-                                        class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <div class="flex items-center gap-2">
+                                <button type="button" x-show="viewerIndex > 0" @click="prevFile()"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
                                 <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -456,8 +455,8 @@
                                         </div>
                                     </template>
                                 </div>
-                                <button x-show="viewerIndex < viewerTotal - 1" @@click="nextFile()"
-                                        class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                <button type="button" x-show="viewerIndex < viewerTotal - 1" @click="nextFile()"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
                             </div>
@@ -470,7 +469,7 @@
                             </div>
                             <div class="mt-2 flex justify-center gap-1">
                                 <template x-for="(_, i) in viewerFiles" :key="i">
-                                    <button @@click="viewerIndex = i"
+                                    <button type="button" @click="viewerIndex = i"
                                             :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                             class="h-1.5 w-6 rounded-full transition-colors"></button>
                                 </template>

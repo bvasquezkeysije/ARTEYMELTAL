@@ -38,6 +38,7 @@
         get viewerDis() {
             return {{Js::from(
                 $pedido->productos->flatMap(fn($p) => $p->archivosDiseno->map(fn($a) => [
+                    'id' => $a->id,
                     'url' => asset('storage/' . $a->archivo_path),
                     'nombre' => $a->nombre_original,
                     'mime' => $a->mime_type,
@@ -54,7 +55,21 @@
         },
         switchViewerTab(t) { this.viewerTab = t; this.viewerIndex = 0; },
         prevFile() { if (this.viewerIndex > 0) this.viewerIndex-- },
-        nextFile() { if (this.viewerIndex < this.viewerTotal - 1) this.viewerIndex++ }
+        nextFile() { if (this.viewerIndex < this.viewerTotal - 1) this.viewerIndex++ },
+        eliminarArchivoDiseno(id, index) {
+            if (!confirm('Eliminar este archivo?')) return;
+            fetch('{{ url("diseno/archivo") }}/' + id, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    this.viewerDis.splice(index, 1);
+                    if (this.viewerTab === 'dis' && this.viewerIndex >= this.viewerDis.length && this.viewerIndex > 0) {
+                        this.viewerIndex--;
+                    }
+                }
+            });
+        }
     }">
         <div class="rounded-2xl border border-[#e5dec8] bg-white p-6 shadow-sm">
             <div class="grid gap-4 md:grid-cols-2">
@@ -163,27 +178,26 @@
             </div>
         </div>
 
-        <div x-show="viewerOpen"
-             x-on:keydown.escape.window="viewerOpen = false"
-             x-on:keydown.left.window="viewerOpen && prevFile()"
-             x-on:keydown.right.window="viewerOpen && nextFile()"
-             x-cloak
-             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <div @@click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+         <div x-show="viewerOpen"
+              x-on:keydown.escape.window="viewerOpen = false"
+              x-cloak
+              @click.self="viewerOpen = false"
+              class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                 <div class="mb-3 flex items-center justify-between">
                     <h3 class="text-sm font-semibold text-white/80">{{ $pedido->codigo }}</h3>
-                    <button type="button" @@click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
                         <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
                     </button>
                 </div>
 
                 <div class="mb-3 flex justify-center gap-2">
-                    <button type="button" @@click="switchViewerTab('ref')"
+                    <button type="button" @click="switchViewerTab('ref')"
                         :class="viewerTab === 'ref' ? 'bg-amber-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
                         class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
                         Referencia <span x-show="viewerRef.length > 0" x-text="'(' + viewerRef.length + ')'" class="ml-1 opacity-70"></span>
                     </button>
-                    <button type="button" @@click="switchViewerTab('dis')"
+                    <button type="button" @click="switchViewerTab('dis')"
                         :class="viewerTab === 'dis' ? 'bg-sky-500 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'"
                         class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors">
                         Diseno <span x-show="viewerDis.length > 0" x-text="'(' + viewerDis.length + ')'" class="ml-1 opacity-70"></span>
@@ -196,9 +210,9 @@
 
                 <template x-if="viewerTotal > 0">
                     <div>
-                        <div class="relative flex items-center">
-                            <button x-show="viewerIndex > 0" @@click="prevFile()"
-                                    class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <div class="flex items-center gap-2">
+                            <button type="button" x-show="viewerIndex > 0" @click="prevFile()"
+                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
                             <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -214,8 +228,8 @@
                                     </div>
                                 </template>
                             </div>
-                            <button x-show="viewerIndex < viewerTotal - 1" @@click="nextFile()"
-                                    class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <button type="button" x-show="viewerIndex < viewerTotal - 1" @click="nextFile()"
+                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
@@ -228,10 +242,22 @@
                         </div>
                         <div class="mt-2 flex justify-center gap-1">
                             <template x-for="(_, i) in viewerFiles" :key="i">
-                                <button @@click="viewerIndex = i"
+                                <button type="button" @click="viewerIndex = i"
                                         :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                         class="h-1.5 w-6 rounded-full transition-colors"></button>
                             </template>
+                        </div>
+                        <div x-show="viewerTab === 'dis' && currentFile?.id" class="mt-3 flex justify-center gap-2">
+                            <a :href="currentFile?.url" target="_blank"
+                               class="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/30 transition">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Descargar
+                            </a>
+                            <button type="button" @click="eliminarArchivoDiseno(currentFile.id, viewerIndex)"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                <img src="{{ asset('icons/Eliminar-Blanco.ico') }}" alt="" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                                Eliminar
+                            </button>
                         </div>
                     </div>
                 </template>

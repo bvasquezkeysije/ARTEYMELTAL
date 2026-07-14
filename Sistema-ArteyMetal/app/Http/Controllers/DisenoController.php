@@ -54,7 +54,7 @@ class DisenoController extends Controller
         }
 
         $request->validate([
-            'pedido_producto_id' => ['required', 'exists:pedido_productos,id'],
+            'pedido_producto_id' => ['nullable', 'exists:pedido_productos,id'],
             'estado_personalizacion' => ['required', 'string', 'in:en_diseno,en_revision'],
             'archivos_diseno' => ['required', 'array', 'min:1'],
             'archivos_diseno.*' => ['file', 'max:10240', 'mimes:cdr,pdf,png,jpg,jpeg,svg,ai,eps,psd,webp'],
@@ -64,7 +64,7 @@ class DisenoController extends Controller
             'estado_personalizacion' => $request->input('estado_personalizacion'),
         ]);
 
-        $productoId = $request->input('pedido_producto_id');
+        $productoId = $request->input('pedido_producto_id') ?? $pedido->productos->first()?->id;
 
         foreach ($request->file('archivos_diseno') as $archivo) {
             $path = $archivo->store('disenos_pedido', 'public');
@@ -72,6 +72,7 @@ class DisenoController extends Controller
             PedidoDisenoArchivo::create([
                 'pedido_id' => $pedido->id,
                 'pedido_producto_id' => $productoId,
+                'tipo' => 'diseno',
                 'archivo_path' => $path,
                 'nombre_original' => $archivo->getClientOriginalName(),
                 'mime_type' => $archivo->getMimeType(),
@@ -87,6 +88,9 @@ class DisenoController extends Controller
         $rol = request()->user()->rol->nombre;
 
         if (! in_array($rol, ['administrador', 'disenador'], true)) {
+            if (request()->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Sin permiso.'], 403);
+            }
             abort(403, 'No tienes permiso para eliminar archivos.');
         }
 
@@ -96,6 +100,10 @@ class DisenoController extends Controller
 
         $pedido = $archivo->pedido;
         $archivo->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
 
         return redirect()->route('diseno.show', $pedido)->with('ok', 'Archivo eliminado correctamente.');
     }

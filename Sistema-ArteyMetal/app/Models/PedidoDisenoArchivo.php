@@ -12,6 +12,7 @@ class PedidoDisenoArchivo extends Model
     protected $fillable = [
         'pedido_id',
         'pedido_producto_id',
+        'tipo',
         'archivo_path',
         'nombre_original',
         'mime_type',
