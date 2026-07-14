@@ -9,7 +9,6 @@
     <div
         x-data="{
             totalProd() { let t=0; for(let p of this.productos) t+=(Number(p.precio_unitario)||0)*(Number(p.cantidad)||0); return t; },
-            tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
             metodoPago: '{{ old('metodo_pago', $pedido->metodo_pago ?? 'efectivo') }}',
             fotosPago: [],
             modalFotosPago: false,
@@ -249,15 +248,6 @@
                 if (this.$refs.documentoCliente && data.cliente.documento) this.$refs.documentoCliente.value = data.cliente.documento;
                 if (this.$refs.telefonoCliente && data.cliente.telefono) this.$refs.telefonoCliente.value = data.cliente.telefono;
                 if (this.$refs.correoCliente && data.cliente.correo) this.$refs.correoCliente.value = data.cliente.correo;
-
-                if (this.tipoEntrega !== 'local') {
-                    if (this.$refs.direccionEntrega && data.cliente.direccion && !this.$refs.direccionEntrega.value) {
-                        this.$refs.direccionEntrega.value = data.cliente.direccion;
-                    }
-                    if (this.$refs.distritoEntrega && data.cliente.distrito && !this.$refs.distritoEntrega.value) {
-                        this.$refs.distritoEntrega.value = data.cliente.distrito;
-                    }
-                }
 
                 if (this.$refs.observaciones && data.cliente.estado && data.cliente.condicion) {
                     const nota = 'SUNAT: Estado ' + data.cliente.estado + ' / Condicion ' + data.cliente.condicion;
@@ -694,64 +684,16 @@
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Datos de Entrega</h3>
+        <input type="hidden" name="tipo_entrega" value="local">
         <div class="grid gap-4 md:grid-cols-2">
             <div>
-                <label for="tipo_entrega" class="mb-2 block text-sm font-medium text-gray-700">Tipo entrega</label>
-                <select id="tipo_entrega" name="tipo_entrega" x-model="tipoEntrega" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">
-                    <option value="local" @selected(old('tipo_entrega', $pedido->tipo_entrega ?? 'local') === 'local')>Local</option>
-                    <option value="delivery" @selected(old('tipo_entrega', $pedido->tipo_entrega ?? 'local') === 'delivery')>Delivery</option>
-                    <option value="agencia" @selected(old('tipo_entrega', $pedido->tipo_entrega ?? 'local') === 'agencia')>Agencia</option>
-                </select>
-                @error('tipo_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
+                <label class="mb-2 block text-sm font-medium text-gray-700">Tipo entrega</label>
+                <p class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900">Local (recojo en almacen)</p>
             </div>
             <div>
                 <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
                 <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
                 @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-        </div>
-
-        <div x-show="tipoEntrega !== 'local'" x-transition class="mt-4 grid gap-4 md:grid-cols-2" style="display: none;">
-            <div class="md:col-span-2">
-                <label for="direccion_entrega" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Direccion destino / sede agencia' : 'Direccion entrega'"></label>
-                <input x-ref="direccionEntrega" id="direccion_entrega" name="direccion_entrega" type="text" value="{{ old('direccion_entrega', $pedido->direccion_entrega ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Direccion de destino o agencia' : 'Direccion completa de entrega'" />
-                @error('direccion_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="distrito_entrega" class="mb-2 block text-sm font-medium text-gray-700">Distrito entrega</label>
-                <input x-ref="distritoEntrega" id="distrito_entrega" name="distrito_entrega" type="text" value="{{ old('distrito_entrega', $pedido->distrito_entrega ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Distrito" />
-                @error('distrito_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="codigo_postal_entrega" class="mb-2 block text-sm font-medium text-gray-700">Codigo postal</label>
-                <input id="codigo_postal_entrega" name="codigo_postal_entrega" type="text" value="{{ old('codigo_postal_entrega', $pedido->codigo_postal_entrega ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Ejemplo: 14001" />
-                @error('codigo_postal_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="referencia_entrega" class="mb-2 block text-sm font-medium text-gray-700">Referencia</label>
-                <input id="referencia_entrega" name="referencia_entrega" type="text" value="{{ old('referencia_entrega', $pedido->referencia_entrega ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Frente a... / Cerca de..." />
-                @error('referencia_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="nombre_recibe" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Contacto de agencia / receptor' : 'Nombre quien recibe'"></label>
-                <input id="nombre_recibe" name="nombre_recibe" type="text" value="{{ old('nombre_recibe', $pedido->nombre_recibe ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Nombre del contacto en agencia o receptor' : 'Persona que recibe el pedido'" />
-                @error('nombre_recibe') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="telefono_recibe" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Telefono contacto agencia/receptor' : 'Telefono quien recibe'"></label>
-                <input id="telefono_recibe" name="telefono_recibe" type="text" value="{{ old('telefono_recibe', $pedido->telefono_recibe ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="999999999" />
-                @error('telefono_recibe') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-                <label for="costo_delivery" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Costo agencia' : 'Costo delivery'"></label>
-                <input id="costo_delivery" name="costo_delivery" type="number" step="0.01" min="0" value="{{ old('costo_delivery', $pedido->costo_delivery ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="0.00" />
-                @error('costo_delivery') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
     </section>

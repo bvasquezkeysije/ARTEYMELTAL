@@ -102,15 +102,7 @@
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tipo entrega</p>
-                <p class="mt-1 text-gray-900">
-                    @if($pedido->tipo_entrega === 'delivery')
-                        Delivery
-                    @elseif($pedido->tipo_entrega === 'agencia')
-                        Agencia
-                    @else
-                        Local
-                    @endif
-                </p>
+                <p class="mt-1 text-gray-900">Local (recojo en almacen)</p>
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Cantidad</p>
@@ -175,39 +167,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-        @endif
-
-        @if($pedido->tipo_entrega !== 'local')
-            <div class="mt-5 grid gap-4 md:grid-cols-2">
-                <div class="md:col-span-2">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $pedido->tipo_entrega === 'agencia' ? 'Direccion destino / sede agencia' : 'Direccion entrega' }}</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->direccion_entrega ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Distrito</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->distrito_entrega ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Codigo postal</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->codigo_postal_entrega ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Referencia</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->referencia_entrega ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $pedido->tipo_entrega === 'agencia' ? 'Contacto agencia / receptor' : 'Nombre quien recibe' }}</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->nombre_recibe ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $pedido->tipo_entrega === 'agencia' ? 'Telefono contacto agencia/receptor' : 'Telefono quien recibe' }}</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->telefono_recibe ?: '-' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $pedido->tipo_entrega === 'agencia' ? 'Costo agencia' : 'Costo delivery' }}</p>
-                    <p class="mt-1 text-gray-900">{{ $pedido->costo_delivery !== null ? 'S/ ' . number_format((float) $pedido->costo_delivery, 2) : '-' }}</p>
-                </div>
             </div>
         @endif
 
