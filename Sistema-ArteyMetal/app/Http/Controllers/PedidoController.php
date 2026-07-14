@@ -732,6 +732,16 @@ class PedidoController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function eliminarArchivoOrden(PedidoOrdenArchivo $archivo): \Illuminate\Http\JsonResponse
+    {
+        $path = storage_path('app/public/' . $archivo->archivo_path);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+        $archivo->delete();
+        return response()->json(['ok' => true]);
+    }
+
     private function completarDatosCliente(array $datos): array
     {
         if (! empty($datos['cliente_id'])) {

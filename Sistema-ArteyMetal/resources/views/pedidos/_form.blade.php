@@ -42,6 +42,40 @@
                 if (archivo.file) { const url = URL.createObjectURL(archivo.file); window.open(url, '_blank'); setTimeout(() => URL.revokeObjectURL(url), 60000); }
             },
 
+        ordenViewerOpen: false,
+        ordenViewerIndex: 0,
+        ordenArchivos: {{ Js::from(
+            isset($pedido) && $pedido->exists
+                ? $pedido->archivosOrden->map(fn($a) => [
+                    'id' => $a->id,
+                    'url' => asset('storage/' . $a->archivo_path),
+                    'nombre' => $a->nombre_original,
+                    'mime' => $a->mime_type,
+                    'tamano' => round($a->tamano_bytes / 1024),
+                ])->toArray()
+                : []
+        ) }},
+        get ordenTotal() { return this.ordenArchivos.length },
+        get ordenCurrent() { return this.ordenArchivos[this.ordenViewerIndex] || null },
+        get ordenEsImagen() {
+            if (!this.ordenCurrent) return false;
+            return ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml','image/webp'].includes(this.ordenCurrent.mime);
+        },
+        prevOrden() { if (this.ordenViewerIndex > 0) this.ordenViewerIndex-- },
+        nextOrden() { if (this.ordenViewerIndex < this.ordenTotal - 1) this.ordenViewerIndex++ },
+        eliminarArchivoOrden(id, index) {
+            fetch('{{ url("pedidos/archivo-orden") }}/' + id, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    this.ordenArchivos.splice(index, 1);
+                    if (this.ordenViewerIndex >= this.ordenArchivos.length && this.ordenViewerIndex > 0) {
+                        this.ordenViewerIndex--;
+                    }
+                }
+            }).catch(() => {});
+        },
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
         archivosSeleccionados: null,
@@ -547,50 +581,138 @@
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Orden de Compra (Opcional)</h3>
         <div class="space-y-4">
             <div>
-                <label for="archivos_orden" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar PDF o Word de orden de compra</label>
+                <label for="archivos_orden" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar archivos de orden de compra</label>
                 <label for="archivos_orden" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
                     <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
                     </svg>
                     <p class="text-sm font-medium">Haz clic para seleccionar archivos</p>
-                    <p class="mt-1 text-xs" x-text="archivosSeleccionados ? archivosSeleccionados.length + ' archivo(s) seleccionado(s)' : 'PDF o Word'"></p>
+                    <p class="mt-1 text-xs" x-text="archivosSeleccionados ? archivosSeleccionados.length + ' archivo(s) seleccionado(s)' : 'PDF, Word, Excel, Imagenes'"></p>
                 </label>
                 <input
                     id="archivos_orden"
                     name="archivos_orden[]"
                     type="file"
                     multiple
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.svg,.webp"
                     @change="archivosSeleccionados = $event.target.files"
                     class="hidden"
                 />
-                <p class="mt-2 text-xs text-gray-500">Solo para pedidos que lo requieran (ejemplo: entidades del gobierno). Puedes subir varios archivos.</p>
+                <p class="mt-2 text-xs text-gray-500">PDF, Word (.doc/.docx), Excel (.xls/.xlsx), imagenes (png, jpg, gif, svg, webp). Max 15MB c/u.</p>
                 @error('archivos_orden') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 @error('archivos_orden.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
-            @if(isset($pedido) && $pedido->exists)
+            @if(isset($pedido) && $pedido->exists && $pedido->archivosOrden->isNotEmpty())
                 <div>
                     <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos registrados</p>
-                    @if($pedido->archivosOrden->isNotEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($pedido->archivosOrden as $archivoOrden)
-                                <a
-                                    href="{{ asset('storage/' . $archivoOrden->archivo_path) }}"
-                                    target="_blank"
-                                    class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100"
-                                >
-                                    {{ $archivoOrden->nombre_original }}
-                                </a>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-500">Sin archivos de orden de compra.</p>
-                    @endif
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                        @foreach($pedido->archivosOrden as $idx => $archivoOrden)
+                            @php
+                                $esImg = in_array($archivoOrden->mime_type, ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml','image/webp']);
+                            @endphp
+                            <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                                @if($esImg)
+                                    <div class="flex h-28 items-center justify-center bg-gray-100">
+                                        <img src="{{ asset('storage/' . $archivoOrden->archivo_path) }}" alt="{{ $archivoOrden->nombre_original }}" class="max-h-full max-w-full object-contain p-1">
+                                    </div>
+                                @else
+                                    <div class="flex h-28 items-center justify-center bg-gray-50">
+                                        @if($archivoOrden->mime_type === 'application/pdf')
+                                            <svg class="h-10 w-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        @elseif(str_contains($archivoOrden->mime_type, 'word') || str_contains($archivoOrden->mime_type, 'document'))
+                                            <svg class="h-10 w-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        @elseif(str_contains($archivoOrden->mime_type, 'excel') || str_contains($archivoOrden->mime_type, 'sheet'))
+                                            <svg class="h-10 w-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        @else
+                                            <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        @endif
+                                    </div>
+                                @endif
+                                <div class="px-2 py-1.5">
+                                    <p class="truncate text-xs font-medium text-gray-700" title="{{ $archivoOrden->nombre_original }}">{{ $archivoOrden->nombre_original }}</p>
+                                    <p class="text-[10px] text-gray-400">{{ round($archivoOrden->tamano_bytes / 1024) }} KB</p>
+                                </div>
+                                <div class="absolute top-1 right-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
+                                    <button type="button" @@click="ordenViewerIndex = {{ $idx }}; ordenViewerOpen = true"
+                                            class="btn-icon-sm bg-blue-600 hover:bg-blue-700" title="Ver">
+                                        <img src="{{ asset('icons/ver-detalle.ico') }}" alt="Ver" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                                    </button>
+                                    <button type="button" @@click="eliminarArchivoOrden({{ $archivoOrden->id }}, {{ $idx }})"
+                                            class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Quitar">
+                                        <img src="{{ asset('icons/Eliminar-Blanco.ico') }}" alt="Quitar" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
         </div>
     </section>
+
+    {{-- Modal visor de archivos de orden de compra --}}
+    <div x-show="ordenViewerOpen"
+         x-on:keydown.escape.window="ordenViewerOpen = false"
+         x-on:keydown.left.window="ordenViewerOpen && prevOrden()"
+         x-on:keydown.right.window="ordenViewerOpen && nextOrden()"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div @@click.outside="ordenViewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+            <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white/80">Orden de Compra</h3>
+                <button type="button" @@click="ordenViewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                </button>
+            </div>
+
+            <template x-if="ordenTotal === 0">
+                <div class="flex h-64 items-center justify-center text-white/50">No hay archivos en esta seccion.</div>
+            </template>
+
+            <template x-if="ordenTotal > 0">
+                <div>
+                    <div class="relative flex items-center">
+                        <button x-show="ordenViewerIndex > 0" @@click="prevOrden()"
+                                class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
+                            <template x-if="ordenEsImagen">
+                                <img :src="ordenCurrent?.url" :alt="ordenCurrent?.nombre" class="max-h-full max-w-full object-contain">
+                            </template>
+                            <template x-if="!ordenEsImagen">
+                                <div class="flex flex-col items-center gap-3 text-center text-white/70">
+                                    <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <p class="text-sm" x-text="ordenCurrent?.nombre"></p>
+                                    <a :href="ordenCurrent?.url" target="_blank"
+                                       class="inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30">Descargar archivo</a>
+                                </div>
+                            </template>
+                        </div>
+                        <button x-show="ordenViewerIndex < ordenTotal - 1" @@click="nextOrden()"
+                                class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <div class="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
+                        <span x-text="`${ordenViewerIndex + 1} de ${ordenTotal}`"></span>
+                        <span class="text-white/30">|</span>
+                        <span x-text="ordenCurrent?.nombre || ''" class="max-w-[250px] truncate"></span>
+                        <span class="text-white/30">|</span>
+                        <span x-text="ordenCurrent?.tamano ? ordenCurrent.tamano + ' KB' : ''"></span>
+                    </div>
+                    <div class="mt-2 flex justify-center gap-1">
+                        <template x-for="(_, i) in ordenArchivos" :key="i">
+                            <button @@click="ordenViewerIndex = i"
+                                    :class="i === ordenViewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
+                                    class="h-1.5 w-6 rounded-full transition-colors"></button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
 
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Observaciones</h3>

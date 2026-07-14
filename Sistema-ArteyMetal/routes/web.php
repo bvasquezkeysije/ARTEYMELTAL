@@ -45,6 +45,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::put('pedidos/{pedido}', [PedidoController::class, 'update'])->whereNumber('pedido')->name('pedidos.update');
         Route::delete('pedidos/{pedido}', [PedidoController::class, 'destroy'])->whereNumber('pedido')->name('pedidos.destroy');
         Route::delete('pedidos/archivo-producto/{pedidoProductoArchivo}', [PedidoController::class, 'eliminarArchivoProducto'])->name('pedidos.eliminar_archivo_producto');
+        Route::delete('pedidos/archivo-orden/{archivo}', [PedidoController::class, 'eliminarArchivoOrden'])->name('pedidos.eliminar_archivo_orden');
         Route::put('pedidos/{pedido}/personalizacion', [PedidoController::class, 'actualizarPersonalizacion'])->whereNumber('pedido')->name('pedidos.personalizacion');
         Route::post('pedidos/{pedido}/confirmar-pago-final', [PedidoController::class, 'confirmarPagoFinal'])->whereNumber('pedido')->name('pedidos.confirmar_pago_final');
         Route::post('pedidos/{pedido}/autorizar-recoger', [PedidoController::class, 'autorizarRecoger'])->whereNumber('pedido')->name('pedidos.autorizar_recoger');
