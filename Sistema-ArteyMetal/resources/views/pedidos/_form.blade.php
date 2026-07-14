@@ -44,6 +44,7 @@
 
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
+        archivosSeleccionados: null,
         mensajeDocumento: '',
         consultaDocumentoOk: false,
         fuenteDocumento: '',
@@ -153,13 +154,13 @@
 
             <div>
                 <label for="telefono_cliente" class="mb-2 block text-sm font-medium text-gray-700">Telefono cliente</label>
-                <input x-ref="telefonoCliente" id="telefono_cliente" name="telefono_cliente" type="text" value="{{ old('telefono_cliente', $pedido->telefono_cliente ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="999999999" />
+                <input x-ref="telefonoCliente" id="telefono_cliente" name="telefono_cliente" type="text" value="{{ old('telefono_cliente', $pedido->telefono_cliente ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="999999999" />
                 @error('telefono_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label for="correo_cliente" class="mb-2 block text-sm font-medium text-gray-700">Correo cliente</label>
-                <input x-ref="correoCliente" id="correo_cliente" name="correo_cliente" type="email" value="{{ old('correo_cliente', $pedido->correo_cliente ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="cliente@correo.com" />
+                <input x-ref="correoCliente" id="correo_cliente" name="correo_cliente" type="email" value="{{ old('correo_cliente', $pedido->correo_cliente ?? '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="cliente@correo.com" />
                 @error('correo_cliente') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -428,7 +429,7 @@
             </div>
             <div>
                 <label for="fecha_entrega_compromiso" class="mb-2 block text-sm font-medium text-gray-700">Fecha entrega compromiso</label>
-                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
+                <input id="fecha_entrega_compromiso" name="fecha_entrega_compromiso" type="date" value="{{ old('fecha_entrega_compromiso', isset($pedido) && $pedido->fecha_entrega_compromiso ? $pedido->fecha_entrega_compromiso->format('Y-m-d') : '') }}" required class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" />
                 @error('fecha_entrega_compromiso') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -436,13 +437,13 @@
         <div x-show="tipoEntrega !== 'local'" x-transition class="mt-4 grid gap-4 md:grid-cols-2" style="display: none;">
             <div class="md:col-span-2">
                 <label for="direccion_entrega" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Direccion destino / sede agencia' : 'Direccion entrega'"></label>
-                <input x-ref="direccionEntrega" id="direccion_entrega" name="direccion_entrega" type="text" value="{{ old('direccion_entrega', $pedido->direccion_entrega ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Direccion de destino o agencia' : 'Direccion completa de entrega'" />
+                <input x-ref="direccionEntrega" id="direccion_entrega" name="direccion_entrega" type="text" value="{{ old('direccion_entrega', $pedido->direccion_entrega ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Direccion de destino o agencia' : 'Direccion completa de entrega'" />
                 @error('direccion_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label for="distrito_entrega" class="mb-2 block text-sm font-medium text-gray-700">Distrito entrega</label>
-                <input x-ref="distritoEntrega" id="distrito_entrega" name="distrito_entrega" type="text" value="{{ old('distrito_entrega', $pedido->distrito_entrega ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Distrito" />
+                <input x-ref="distritoEntrega" id="distrito_entrega" name="distrito_entrega" type="text" value="{{ old('distrito_entrega', $pedido->distrito_entrega ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="Distrito" />
                 @error('distrito_entrega') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
@@ -460,13 +461,13 @@
 
             <div>
                 <label for="nombre_recibe" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Contacto de agencia / receptor' : 'Nombre quien recibe'"></label>
-                <input id="nombre_recibe" name="nombre_recibe" type="text" value="{{ old('nombre_recibe', $pedido->nombre_recibe ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Nombre del contacto en agencia o receptor' : 'Persona que recibe el pedido'" />
+                <input id="nombre_recibe" name="nombre_recibe" type="text" value="{{ old('nombre_recibe', $pedido->nombre_recibe ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" :placeholder="tipoEntrega === 'agencia' ? 'Nombre del contacto en agencia o receptor' : 'Persona que recibe el pedido'" />
                 @error('nombre_recibe') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
                 <label for="telefono_recibe" class="mb-2 block text-sm font-medium text-gray-700" x-text="tipoEntrega === 'agencia' ? 'Telefono contacto agencia/receptor' : 'Telefono quien recibe'"></label>
-                <input id="telefono_recibe" name="telefono_recibe" type="text" value="{{ old('telefono_recibe', $pedido->telefono_recibe ?? '') }}" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="999999999" />
+                <input id="telefono_recibe" name="telefono_recibe" type="text" value="{{ old('telefono_recibe', $pedido->telefono_recibe ?? '') }}" :required="tipoEntrega !== 'local'" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900" placeholder="999999999" />
                 @error('telefono_recibe') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
 
@@ -481,7 +482,7 @@
     <section class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-6">
         <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">Orden de Compra (Opcional)</h3>
         <div class="space-y-4">
-            <div x-data="{ archivosSeleccionados: null }">
+            <div>
                 <label for="archivos_orden" class="mb-2 block text-sm font-medium text-gray-700">Adjuntar PDF o Word de orden de compra</label>
                 <label for="archivos_orden" class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-6 text-gray-500 transition hover:border-[#d1be8a] hover:bg-[#fffdf5]">
                     <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -497,7 +498,7 @@
                     multiple
                     accept=".pdf,.doc,.docx"
                     @change="archivosSeleccionados = $event.target.files"
-                    class="sr-only"
+                    class="hidden"
                 />
                 <p class="mt-2 text-xs text-gray-500">Solo para pedidos que lo requieran (ejemplo: entidades del gobierno). Puedes subir varios archivos.</p>
                 @error('archivos_orden') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror

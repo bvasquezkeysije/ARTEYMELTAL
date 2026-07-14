@@ -210,7 +210,7 @@ class PedidoController extends Controller
 
     public function edit(Pedido $pedido)
     {
-        $pedido->load('productos.archivos');
+        $pedido->load('productos.archivos', 'archivosOrden', 'cliente');
         $clientes = Cliente::orderBy('nombre_completo')->get();
         $categorias = CategoriaProducto::where('activo', true)->orderBy('nombre')->get();
 
@@ -608,9 +608,9 @@ class PedidoController extends Controller
         return $request->validate([
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'nombre_cliente' => ['required', 'string', 'max:120'],
-            'telefono_cliente' => ['nullable', 'string', 'max:20'],
+            'telefono_cliente' => ['required', 'string', 'max:20'],
             'documento_cliente' => ['nullable', 'string', 'max:25'],
-            'correo_cliente' => ['nullable', 'string', 'email', 'max:120'],
+            'correo_cliente' => ['required', 'string', 'email', 'max:120'],
             'nombre_producto' => ['nullable', 'string', 'max:255'],
             'detalle_trabajo' => ['nullable', 'string'],
             'tipo_producto' => ['nullable', 'string', 'exists:categorias_producto,slug'],
@@ -622,7 +622,7 @@ class PedidoController extends Controller
             'nombre_recibe' => ['nullable', 'string', 'max:120', 'required_unless:tipo_entrega,local'],
             'telefono_recibe' => ['nullable', 'string', 'max:20', 'required_unless:tipo_entrega,local'],
             'costo_delivery' => ['nullable', 'numeric', 'min:0', 'required_unless:tipo_entrega,local'],
-            'fecha_entrega_compromiso' => ['nullable', 'date'],
+            'fecha_entrega_compromiso' => ['required', 'date'],
             'observaciones' => ['nullable', 'string'],
             'archivos_orden' => ['nullable', 'array'],
             'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
