@@ -291,7 +291,7 @@ class PedidoController extends Controller
         ];
 
         if (in_array($rol, ['administrador', 'vendedor'], true)) {
-            $rules['estado'] = ['required', 'string', 'in:registrado,en_produccion,listo_entrega,en_transporte,en_almacen,listo_recoger,entregado,cancelado'];
+            $rules['estado'] = ['required', 'string', 'in:registrado,en_produccion,produciendo,listo_entrega,en_transporte,en_almacen,listo_recoger,entregado,cancelado'];
             $rules['estado_pago'] = ['required', 'string', 'in:pendiente_adelanto,adelanto_pagado,pagado_completo'];
         }
 

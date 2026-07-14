@@ -31,15 +31,51 @@
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Estado pedido</p>
-                <p class="mt-1 text-gray-900">{{ str_replace('_', ' ', $pedido->estado) }}</p>
+                @php
+                    $estadoColores = [
+                        'registrado' => ['bg-gray-100', 'text-gray-700'],
+                        'en_produccion' => ['bg-amber-100', 'text-amber-700'],
+                        'produciendo' => ['bg-sky-100', 'text-sky-700'],
+                        'listo_entrega' => ['bg-emerald-100', 'text-emerald-700'],
+                        'en_transporte' => ['bg-blue-100', 'text-blue-700'],
+                        'en_almacen' => ['bg-indigo-100', 'text-indigo-700'],
+                        'listo_recoger' => ['bg-purple-100', 'text-purple-700'],
+                        'entregado' => ['bg-emerald-100', 'text-emerald-700'],
+                        'cancelado' => ['bg-red-100', 'text-red-700'],
+                    ];
+                    $color = $estadoColores[$pedido->estado] ?? ['bg-gray-100', 'text-gray-700'];
+                @endphp
+                <span class="mt-1 inline-block rounded-lg px-2.5 py-1 text-xs font-medium {{ $color[0] }} {{ $color[1] }}">{{ str_replace('_', ' ', $pedido->estado) }}</span>
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Estado personalizacion</p>
-                <p class="mt-1 text-gray-900">{{ str_replace('_', ' ', $pedido->estado_personalizacion ?? 'sin_iniciar') }}</p>
+                @php
+                    $persoColores = [
+                        'sin_iniciar' => ['bg-gray-100', 'text-gray-700'],
+                        'en_diseno' => ['bg-amber-100', 'text-amber-700'],
+                        'en_revision' => ['bg-sky-100', 'text-sky-700'],
+                        'aprobado' => ['bg-emerald-100', 'text-emerald-700'],
+                        'en_produccion' => ['bg-amber-100', 'text-amber-700'],
+                        'listo_entrega' => ['bg-emerald-100', 'text-emerald-700'],
+                        'entregado' => ['bg-emerald-100', 'text-emerald-700'],
+                    ];
+                    $persoEstado = $pedido->estado_personalizacion ?? 'sin_iniciar';
+                    $persoColor = $persoColores[$persoEstado] ?? ['bg-gray-100', 'text-gray-700'];
+                @endphp
+                <span class="mt-1 inline-block rounded-lg px-2.5 py-1 text-xs font-medium {{ $persoColor[0] }} {{ $persoColor[1] }}">{{ str_replace('_', ' ', $persoEstado) }}</span>
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Estado pago</p>
-                <p class="mt-1 text-gray-900">{{ str_replace('_', ' ', $pedido->estado_pago ?? 'pendiente_adelanto') }}</p>
+                @php
+                    $pagoColores = [
+                        'pendiente_adelanto' => ['bg-red-100', 'text-red-700'],
+                        'adelanto_pagado' => ['bg-amber-100', 'text-amber-700'],
+                        'pagado_completo' => ['bg-emerald-100', 'text-emerald-700'],
+                    ];
+                    $pagoEstado = $pedido->estado_pago ?? 'pendiente_adelanto';
+                    $pagoColor = $pagoColores[$pagoEstado] ?? ['bg-gray-100', 'text-gray-700'];
+                @endphp
+                <span class="mt-1 inline-block rounded-lg px-2.5 py-1 text-xs font-medium {{ $pagoColor[0] }} {{ $pagoColor[1] }}">{{ str_replace('_', ' ', $pagoEstado) }}</span>
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre cliente</p>
@@ -250,7 +286,7 @@
                     </div>
                 </form>
             @endif
-            @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'en_tienda', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
+            @if(in_array($rol, ['administrador', 'vendedor'], true) && in_array($pedido->estado, ['listo_entrega', 'listo_recoger', 'entregado'], true) && $pedido->estado_pago === 'adelanto_pagado' && (float) ($pedido->monto_saldo ?? 0) > 0)
                 <form method="POST" action="{{ route('pedidos.confirmar_pago_final', $pedido) }}" onsubmit="return confirm('Confirmar pago final y cerrar este pedido? Se registrara automaticamente en ventas.')">
                     @csrf
                     <button type="submit" class="rounded-xl border border-emerald-300 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Cobrar saldo y cerrar pedido</button>
@@ -285,12 +321,6 @@
                 <form method="POST" action="{{ route('pedidos.recibir_almacen', $pedido) }}" onsubmit="return confirm('Registrar entrada de este pedido en el almacen?')">
                     @csrf
                     <button type="submit" class="rounded-xl border border-sky-400 px-4 py-2.5 text-sm font-medium text-sky-700 hover:bg-sky-50">Registrar entrada en almacen</button>
-                </form>
-            @endif
-            @if(in_array($rol, ['administrador', 'vendedor'], true) && $pedido->estado === 'en_tienda')
-                <form method="POST" action="{{ route('pedidos.llegada_tienda', $pedido) }}" onsubmit="return confirm('Confirmar llegada del pedido a tienda?')">
-                    @csrf
-                    <button type="submit" class="rounded-xl border border-emerald-400 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Registrar llegada a tienda</button>
                 </form>
             @endif
             <a href="{{ route('pedidos.index') }}" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">Volver</a>
@@ -362,12 +392,15 @@
                                         <option value="registrado" @selected(old('estado', $pedido->estado) === 'registrado')>Registrado</option>
                                     @endif
                                     <option value="en_produccion" @selected(old('estado', $pedido->estado) === 'en_produccion')>En produccion</option>
-                                        <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
-                                        @if(in_array($rol, ['administrador', 'vendedor'], true))
-                                            <option value="listo_recoger" @selected(old('estado', $pedido->estado) === 'listo_recoger')>Listo recoger</option>
-                                            <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
-                                            <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
-                                        @endif
+                                    <option value="produciendo" @selected(old('estado', $pedido->estado) === 'produciendo')>Produciendo</option>
+                                    <option value="listo_entrega" @selected(old('estado', $pedido->estado) === 'listo_entrega')>Listo entrega</option>
+                                    <option value="en_transporte" @selected(old('estado', $pedido->estado) === 'en_transporte')>En transporte</option>
+                                    <option value="en_almacen" @selected(old('estado', $pedido->estado) === 'en_almacen')>En almacen</option>
+                                    @if(in_array($rol, ['administrador', 'vendedor'], true))
+                                        <option value="listo_recoger" @selected(old('estado', $pedido->estado) === 'listo_recoger')>Listo recoger</option>
+                                        <option value="entregado" @selected(old('estado', $pedido->estado) === 'entregado')>Entregado</option>
+                                        <option value="cancelado" @selected(old('estado', $pedido->estado) === 'cancelado')>Cancelado</option>
+                                    @endif
                                 </select>
                             </div>
                         @endif

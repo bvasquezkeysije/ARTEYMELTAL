@@ -93,6 +93,7 @@
                         <option value="">Todos</option>
                         <option value="registrado" @selected($filtroEstado === 'registrado')>Registrado</option>
                         <option value="en_produccion" @selected($filtroEstado === 'en_produccion')>En produccion</option>
+                        <option value="produciendo" @selected($filtroEstado === 'produciendo')>Produciendo</option>
                         <option value="listo_entrega" @selected($filtroEstado === 'listo_entrega')>Listo para entrega</option>
                         <option value="en_transporte" @selected($filtroEstado === 'en_transporte')>En transporte</option>
                         <option value="en_almacen" @selected($filtroEstado === 'en_almacen')>En almacen</option>
