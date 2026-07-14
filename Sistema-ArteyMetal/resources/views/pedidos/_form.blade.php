@@ -10,7 +10,7 @@
         x-data="{
             totalProd() { let t=0; for(let p of this.productos) t+=(Number(p.precio_unitario)||0)*(Number(p.cantidad)||0); return t; },
             tipoEntrega: '{{ old('tipo_entrega', $pedido->tipo_entrega ?? 'local') }}',
-            metodoPago: '{{ old('metodo_pago', 'efectivo') }}',
+            metodoPago: '{{ old('metodo_pago', $pedido->metodo_pago ?? 'efectivo') }}',
             fotosPago: [],
             modalFotosPago: false,
             fotoPagoIndex: 0,
