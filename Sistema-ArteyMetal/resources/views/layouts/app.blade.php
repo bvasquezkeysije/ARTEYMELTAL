@@ -241,7 +241,7 @@
                                             <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white" x-text="count > 99 ? '99+' : count"></span>
                                         </template>
                                     </button>
-                                    <div x-show="notifOpen" x-transition @click.outside="notifOpen = false" class="absolute right-0 z-50 mt-2 w-[500px] overflow-hidden rounded-2xl border border-[#e3d7bb] bg-white shadow-xl" style="display: none;">
+                                    <div x-show="notifOpen" x-transition @click.outside="notifOpen = false" class="absolute right-0 z-50 mt-2 overflow-hidden rounded-2xl border border-[#e3d7bb] bg-white shadow-xl" style="display: none; width: 500px;">
                                         <div class="border-b border-[#efe7d1] bg-[#fff9ec] px-4 py-3">
                                             <div class="flex items-center justify-between">
                                                 <p class="text-sm font-semibold text-[#3b2e11]">Notificaciones</p>
@@ -253,7 +253,7 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <div class="notif-scroll max-h-80 overflow-y-auto">
+                                        <div class="notif-scroll overflow-y-auto" style="max-height: 70vh;">
                                             <template x-for="item in items" :key="item.id">
                                                 <div :class="item.is_read ? 'bg-white' : 'bg-[#fffbf5]'" class="flex items-start gap-3 border-b border-[#f0ede3] px-4 py-3">
                                                     <span class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full" :class="item.is_read ? 'bg-gray-100 text-gray-400' : 'bg-[#b9943d]/20 text-[#7a5b25]'">
