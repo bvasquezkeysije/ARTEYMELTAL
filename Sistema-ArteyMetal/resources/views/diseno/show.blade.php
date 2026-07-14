@@ -20,6 +20,7 @@
     </style>
 
     <div x-data="{
+        showSuccess: {{ session()->has('ok') ? 'true' : 'false' }},
         uploadModal: false,
         viewerOpen: false,
         viewerIndex: 0,
@@ -210,8 +211,8 @@
                 <template x-if="viewerTotal > 0">
                     <div>
                         <div class="flex items-center gap-2">
-                            <button type="button" x-show="viewerIndex > 0" @click="prevFile()"
-                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <button type="button" @click="prevFile()" :disabled="viewerIndex === 0"
+                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
                             <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -227,8 +228,8 @@
                                     </div>
                                 </template>
                             </div>
-                            <button type="button" x-show="viewerIndex < viewerTotal - 1" @click="nextFile()"
-                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <button type="button" @click="nextFile()" :disabled="viewerIndex === viewerTotal - 1"
+                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
                         </div>
@@ -314,5 +315,20 @@
             </div>
         </div>
 
+        {{-- Modal exito --}}
+        <template x-teleport="body">
+            <div x-show="showSuccess" style="display: none;">
+                <div x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="showSuccess = false"></div>
+                <div x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-16 pt-12 pb-12 text-center shadow-xl">
+                        <div class="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                            <img src="{{ asset('icons/Valido-Verde.png') }}" alt="Valido" class="h-8 w-8 object-contain pointer-events-none" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ session('ok') }}</h3>
+                        <button type="button" @click="showSuccess = false" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111] py-3 text-sm font-semibold text-white hover:bg-[#262626]" style="padding-left:48px;padding-right:48px">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </x-app-layout>

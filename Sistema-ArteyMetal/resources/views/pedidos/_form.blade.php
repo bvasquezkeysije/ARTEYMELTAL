@@ -431,8 +431,8 @@
                     <template x-if="viewerTotal > 0">
                         <div>
                             <div class="flex items-center gap-2">
-                                <button type="button" x-show="viewerIndex > 0" @click="prevViewer()"
-                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                <button type="button" @click="prevViewer()" :disabled="viewerIndex === 0"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
                                 <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -448,8 +448,8 @@
                                         </div>
                                     </template>
                                 </div>
-                                <button type="button" x-show="viewerIndex < viewerTotal - 1" @click="nextViewer()"
-                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                <button type="button" @click="nextViewer()" :disabled="viewerIndex === viewerTotal - 1"
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
                             </div>
@@ -886,8 +886,8 @@
             <template x-if="ordenTotal > 0">
                 <div>
                     <div class="flex items-center gap-2">
-                        <button type="button" x-show="ordenViewerIndex > 0" @@click="prevOrden()"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="prevOrden()" :disabled="ordenViewerIndex === 0"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -903,8 +903,8 @@
                                 </div>
                             </template>
                         </div>
-                        <button type="button" x-show="ordenViewerIndex < ordenTotal - 1" @@click="nextOrden()"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="nextOrden()" :disabled="ordenViewerIndex === ordenTotal - 1"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
@@ -1024,8 +1024,8 @@
             <template x-if="totalComprobantes > 0">
                 <div>
                     <div class="flex items-center gap-2">
-                        <button type="button" x-show="fotoPagoIndex > 0" @click="fotoPagoIndex--"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="fotoPagoIndex--" :disabled="fotoPagoIndex === 0"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -1036,8 +1036,8 @@
                                 <img :src="URL.createObjectURL(comprobanteActual.data)" :alt="comprobanteActual.data?.name" class="max-h-full max-w-full object-contain">
                             </template>
                         </div>
-                        <button type="button" x-show="fotoPagoIndex < totalComprobantes - 1" @click="fotoPagoIndex++"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="fotoPagoIndex++" :disabled="fotoPagoIndex === totalComprobantes - 1"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
