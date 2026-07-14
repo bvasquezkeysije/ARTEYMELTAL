@@ -241,7 +241,7 @@
                                             <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white" x-text="count > 99 ? '99+' : count"></span>
                                         </template>
                                     </button>
-                                    <div x-show="notifOpen" x-transition @click.outside="notifOpen = false" class="absolute right-0 z-50 mt-2 w-[28rem] overflow-hidden rounded-2xl border border-[#e3d7bb] bg-white shadow-xl" style="display: none;">
+                                    <div x-show="notifOpen" x-transition @click.outside="notifOpen = false" class="absolute right-0 z-50 mt-2 w-[500px] overflow-hidden rounded-2xl border border-[#e3d7bb] bg-white shadow-xl" style="display: none;">
                                         <div class="border-b border-[#efe7d1] bg-[#fff9ec] px-4 py-3">
                                             <div class="flex items-center justify-between">
                                                 <p class="text-sm font-semibold text-[#3b2e11]">Notificaciones</p>
