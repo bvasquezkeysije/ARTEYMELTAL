@@ -330,11 +330,10 @@
 
             <div x-show="viewerOpen"
                  x-on:keydown.escape.window="viewerOpen = false"
-                 x-on:keydown.left.window="viewerOpen && prevViewer()"
-                 x-on:keydown.right.window="viewerOpen && nextViewer()"
                  x-cloak
+                 @click.self="viewerOpen = false"
                  class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                <div @click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+                <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
                     <div class="mb-3 flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-white/80">Producto <span x-text="modalIndex + 1"></span> — <span x-text="productos[modalIndex]?.nombre || 'Sin nombre'"></span></h3>
                         <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
@@ -348,9 +347,9 @@
 
                     <template x-if="viewerTotal > 0">
                         <div>
-                            <div class="relative flex items-center">
+                            <div class="flex items-center gap-2">
                                 <button x-show="viewerIndex > 0" @click="prevViewer()"
-                                        class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
                                 <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -367,7 +366,7 @@
                                     </template>
                                 </div>
                                 <button x-show="viewerIndex < viewerTotal - 1" @click="nextViewer()"
-                                        class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
                             </div>
@@ -768,11 +767,10 @@
     {{-- Modal visor de archivos de orden de compra --}}
     <div x-show="ordenViewerOpen"
          x-on:keydown.escape.window="ordenViewerOpen = false"
-         x-on:keydown.left.window="ordenViewerOpen && prevOrden()"
-         x-on:keydown.right.window="ordenViewerOpen && nextOrden()"
          x-cloak
+         @click.self="ordenViewerOpen = false"
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-        <div @@click.outside="ordenViewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+        <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
             <div class="mb-3 flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-white/80">Orden de Compra</h3>
                 <button type="button" @@click="ordenViewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
@@ -786,9 +784,9 @@
 
             <template x-if="ordenTotal > 0">
                 <div>
-                    <div class="relative flex items-center">
+                    <div class="flex items-center gap-2">
                         <button x-show="ordenViewerIndex > 0" @@click="prevOrden()"
-                                class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -805,7 +803,7 @@
                             </template>
                         </div>
                         <button x-show="ordenViewerIndex < ordenTotal - 1" @@click="nextOrden()"
-                                class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
