@@ -112,7 +112,6 @@
                     this.flashAjaxMsg('error', 'Error al eliminar archivo.');
                 }
             }).catch(() => { this.flashAjaxMsg('error', 'Error de conexion.'); });
-            }).catch(() => {});
         },
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
