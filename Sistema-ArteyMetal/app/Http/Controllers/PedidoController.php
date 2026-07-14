@@ -327,6 +327,7 @@ class PedidoController extends Controller
 
                 PedidoDisenoArchivo::create([
                     'pedido_id' => $pedido->id,
+                    'tipo' => 'diseno',
                     'archivo_path' => $path,
                     'nombre_original' => $archivo->getClientOriginalName(),
                     'mime_type' => $archivo->getMimeType(),
