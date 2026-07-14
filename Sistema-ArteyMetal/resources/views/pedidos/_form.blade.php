@@ -281,90 +281,154 @@
 
         <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-4">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Resumen de Montos</h3>
-            <div class="grid gap-4 md:grid-cols-2">
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
-                    <span class="text-amber-800" id="monto-total-val">S/ 0.00</span>
+            @if(isset($pedido) && $pedido->exists)
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-500">Monto total</label>
+                        <p class="text-lg font-bold text-gray-800">S/ {{ number_format($pedido->monto_total, 2) }}</p>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-500">Adelanto pagado</label>
+                        <p class="text-lg font-bold text-emerald-700">S/ {{ number_format($pedido->monto_adelanto, 2) }}</p>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-500">Saldo pendiente</label>
+                        <p class="text-lg font-bold {{ $pedido->monto_saldo > 0 ? 'text-amber-700' : 'text-emerald-700' }}">S/ {{ number_format($pedido->monto_saldo, 2) }}</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
-                    <span class="text-amber-800" id="adelanto-val">S/ 0.00</span>
-                    <p class="mt-2 text-xs text-gray-500">Saldo pendiente: S/ <span class="font-semibold" id="saldo-val">0.00</span></p>
+            @else
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-gray-700">Monto total</label>
+                        <span class="text-amber-800" id="monto-total-val">S/ 0.00</span>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-gray-700">Adelanto</label>
+                        <span class="text-amber-800" id="adelanto-val">S/ 0.00</span>
+                        <p class="mt-2 text-xs text-gray-500">Saldo pendiente: S/ <span class="font-semibold" id="saldo-val">0.00</span></p>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
 
         <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 mt-4">
             <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">Forma de Pago</h3>
-            <div class="space-y-3">
-                <div class="flex gap-6">
-                    <label class="flex cursor-pointer items-center gap-2">
-                        <input type="radio" name="tipo_pago" value="dos_partes"
-                               class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                               @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'dos_partes')>
-                        <span class="text-sm text-gray-700">En 2 Partes (50% + 50%)</span>
-                    </label>
-                    <label class="flex cursor-pointer items-center gap-2">
-                        <input type="radio" name="tipo_pago" value="contado"
-                               class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                               @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'contado')>
-                        <span class="text-sm text-gray-700">Contado (100%)</span>
-                    </label>
+            @if(isset($pedido) && $pedido->exists)
+                @php
+                    $ventasPedido = $pedido->ventas ?? collect();
+                    $primerPago = $ventasPedido->first();
+                    $metodoPagoInfo = $primerPago ? $primerPago->metodo_pago : ($pedido->metodo_pago ?? '');
+                    $metodosLabels = ['efectivo' => 'Efectivo', 'yape' => 'Yape', 'plin' => 'Plin', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia'];
+                @endphp
+                <input type="hidden" name="tipo_pago" value="{{ $pedido->tipo_pago }}">
+                <input type="hidden" name="metodo_pago" value="{{ $metodoPagoInfo }}">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-medium text-gray-500">Tipo:</span>
+                        <span class="rounded-lg bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-700">
+                            {{ $pedido->tipo_pago === 'contado' ? 'Contado (100%)' : 'En 2 Partes (50% + 50%)' }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-medium text-gray-500">Metodo pago inicial:</span>
+                        <span class="rounded-lg bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-700">
+                            {{ $metodosLabels[$metodoPagoInfo] ?? ucfirst($metodoPagoInfo) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-medium text-gray-500">Estado del pago:</span>
+                        @if($pedido->estado_pago === 'pagado_completo')
+                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Pagado completo
+                            </span>
+                        @elseif($pedido->estado_pago === 'adelanto_pagado')
+                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Adelanto pagado — pendiente saldo
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Sin pago registrado
+                            </span>
+                        @endif
+                    </div>
+                    @if($pedido->estado_pago === 'adelanto_pagado' && $pedido->monto_saldo > 0)
+                        <p class="text-xs text-gray-500 mt-1">El saldo pendiente de S/ {{ number_format($pedido->monto_saldo, 2) }} se cobra desde la vista del pedido ( boton cobrar ).</p>
+                    @endif
                 </div>
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-600">Metodo de pago</label>
-                    <div class="flex flex-wrap gap-3">
+            @else
+                <div class="space-y-3">
+                    <div class="flex gap-6">
                         <label class="flex cursor-pointer items-center gap-2">
-                            <input type="radio" name="metodo_pago" value="efectivo"
+                            <input type="radio" name="tipo_pago" value="dos_partes"
                                    class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                                   @change="metodoPago = 'efectivo'"
-                                   @checked(old('metodo_pago', 'efectivo') === 'efectivo')>
-                            <span class="text-sm text-gray-700">Efectivo</span>
+                                   @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'dos_partes')>
+                            <span class="text-sm text-gray-700">En 2 Partes (50% + 50%)</span>
                         </label>
                         <label class="flex cursor-pointer items-center gap-2">
-                            <input type="radio" name="metodo_pago" value="yape"
+                            <input type="radio" name="tipo_pago" value="contado"
                                    class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                                   @change="metodoPago = 'yape'"
-                                   @checked(old('metodo_pago', 'efectivo') === 'yape')>
-                            <span class="text-sm text-gray-700">Yape</span>
-                        </label>
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input type="radio" name="metodo_pago" value="plin"
-                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                                   @change="metodoPago = 'plin'"
-                                   @checked(old('metodo_pago', 'efectivo') === 'plin')>
-                            <span class="text-sm text-gray-700">Plin</span>
-                        </label>
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input type="radio" name="metodo_pago" value="tarjeta"
-                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                                   @change="metodoPago = 'tarjeta'"
-                                   @checked(old('metodo_pago', 'efectivo') === 'tarjeta')>
-                            <span class="text-sm text-gray-700">Tarjeta</span>
-                        </label>
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input type="radio" name="metodo_pago" value="transferencia"
-                                   class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
-                                   @change="metodoPago = 'transferencia'"
-                                   @checked(old('metodo_pago', 'efectivo') === 'transferencia')>
-                            <span class="text-sm text-gray-700">Transferencia</span>
+                                   @checked(old('tipo_pago', $pedido->tipo_pago ?? 'dos_partes') === 'contado')>
+                            <span class="text-sm text-gray-700">Contado (100%)</span>
                         </label>
                     </div>
-                    <div id="vuelto-section" style="display: none;" class="mt-2 grid grid-cols-2 gap-3">
-                        <div>
-                            <label for="monto-recibido" class="mb-1 block text-sm font-medium text-gray-600">Monto recibido</label>
-                            <input type="number" step="0.01" min="0" name="monto_recibido" id="monto-recibido"
-                                   class="block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900"
-                                   placeholder="0.00">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-600">Metodo de pago</label>
+                        <div class="flex flex-wrap gap-3">
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input type="radio" name="metodo_pago" value="efectivo"
+                                       class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                       @change="metodoPago = 'efectivo'"
+                                       @checked(old('metodo_pago', 'efectivo') === 'efectivo')>
+                                <span class="text-sm text-gray-700">Efectivo</span>
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input type="radio" name="metodo_pago" value="yape"
+                                       class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                       @change="metodoPago = 'yape'"
+                                       @checked(old('metodo_pago', 'efectivo') === 'yape')>
+                                <span class="text-sm text-gray-700">Yape</span>
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input type="radio" name="metodo_pago" value="plin"
+                                       class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                       @change="metodoPago = 'plin'"
+                                       @checked(old('metodo_pago', 'efectivo') === 'plin')>
+                                <span class="text-sm text-gray-700">Plin</span>
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input type="radio" name="metodo_pago" value="tarjeta"
+                                       class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                       @change="metodoPago = 'tarjeta'"
+                                       @checked(old('metodo_pago', 'efectivo') === 'tarjeta')>
+                                <span class="text-sm text-gray-700">Tarjeta</span>
+                            </label>
+                            <label class="flex cursor-pointer items-center gap-2">
+                                <input type="radio" name="metodo_pago" value="transferencia"
+                                       class="rounded-full border-gray-300 text-amber-600 focus:ring-amber-500"
+                                       @change="metodoPago = 'transferencia'"
+                                       @checked(old('metodo_pago', 'efectivo') === 'transferencia')>
+                                <span class="text-sm text-gray-700">Transferencia</span>
+                            </label>
                         </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-600">Vuelto</label>
-                            <p class="mt-2 text-lg font-bold text-emerald-700" id="vuelto-val">S/ 0.00</p>
-                            <input type="hidden" name="vuelto" id="vuelto-input" value="0">
+                        <div id="vuelto-section" style="display: none;" class="mt-2 grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="monto-recibido" class="mb-1 block text-sm font-medium text-gray-600">Monto recibido</label>
+                                <input type="number" step="0.01" min="0" name="monto_recibido" id="monto-recibido"
+                                       class="block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900"
+                                       placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-600">Vuelto</label>
+                                <p class="mt-2 text-lg font-bold text-emerald-700" id="vuelto-val">S/ 0.00</p>
+                                <input type="hidden" name="vuelto" id="vuelto-input" value="0">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
 
         <script>
