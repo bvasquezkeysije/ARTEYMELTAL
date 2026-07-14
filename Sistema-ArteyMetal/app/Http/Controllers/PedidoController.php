@@ -631,7 +631,7 @@ class PedidoController extends Controller
             'fecha_entrega_compromiso' => ['required', 'date'],
             'observaciones' => ['nullable', 'string'],
             'archivos_orden' => ['nullable', 'array'],
-            'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx'],
+            'archivos_orden.*' => ['file', 'max:15360', 'mimes:pdf,doc,docx,jpg,jpeg,png,gif,webp'],
             'productos' => ['nullable', 'array'],
             'productos.*.nombre' => ['required', 'string', 'max:255'],
             'productos.*.descripcion' => ['nullable', 'string', 'max:255'],
