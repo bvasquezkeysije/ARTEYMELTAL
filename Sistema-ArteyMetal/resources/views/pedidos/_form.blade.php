@@ -948,8 +948,8 @@
             <template x-if="nuevosTotal > 0">
                 <div>
                     <div class="flex items-center gap-2">
-                        <button type="button" x-show="nuevosViewerIndex > 0" @click="prevNuevos()"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="prevNuevos()" :disabled="nuevosViewerIndex === 0"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
@@ -965,8 +965,8 @@
                                 </div>
                             </template>
                         </div>
-                        <button type="button" x-show="nuevosViewerIndex < nuevosTotal - 1" @click="nextNuevos()"
-                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                        <button type="button" @click="nextNuevos()" :disabled="nuevosViewerIndex === nuevosTotal - 1"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
