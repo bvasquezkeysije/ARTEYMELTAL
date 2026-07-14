@@ -115,10 +115,28 @@
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Inicio</span>
                                 </a>
                             @endif
+                            @if(auth()->user()->tienePermiso('productos.ver') && !in_array(auth()->user()->rol?->nombre, ['disenador', 'orfebre', 'repartidor'], true))
+                                <a href="{{ route('productos.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Productos" class="{{ request()->routeIs('productos.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4 7h16M4 12h16M4 17h16"/></svg>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Productos</span>
+                                </a>
+                            @endif
                             @if(auth()->user()->tienePermiso('caja.ver'))
-                                <a href="{{ route('cajas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Caja" class="{{ request()->routeIs('cajas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                <a href="{{ route('cajas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Cajas" class="{{ request()->routeIs('cajas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <img src="{{ asset('icons/Caja-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Caja</span>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Cajas</span>
+                                </a>
+                            @endif
+                            @if(auth()->user()->tienePermiso('ventas.ver'))
+                                <a href="{{ route('ventas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Ventas" class="{{ request()->routeIs('ventas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                    <img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Ventas</span>
+                                </a>
+                            @endif
+                            @if(auth()->user()->tienePermiso('pedidos.ver') && !in_array(auth()->user()->rol?->nombre, ['almacenero', 'disenador', 'orfebre', 'repartidor'], true))
+                                <a href="{{ route('pedidos.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Pedidos" class="{{ request()->routeIs('pedidos.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Pedidos</span>
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('diseno.ver'))
@@ -139,34 +157,16 @@
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Repartos</span>
                                 </a>
                             @endif
-                            @if(auth()->user()->tienePermiso('ventas.ver'))
-                                <a href="{{ route('ventas.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Ventas" class="{{ request()->routeIs('ventas.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                    <img src="{{ asset('icons/Ventas-Blanco.png') }}" alt="" class="h-4 w-4 object-contain pointer-events-none" />
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Ventas</span>
-                                </a>
-                            @endif
-                            @if(auth()->user()->tienePermiso('pedidos.ver') && !in_array(auth()->user()->rol?->nombre, ['almacenero', 'disenador', 'orfebre', 'repartidor'], true))
-                                <a href="{{ route('pedidos.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Pedidos" class="{{ request()->routeIs('pedidos.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                            @if(auth()->user()->tienePermiso('almacen.ver'))
+                                <a href="{{ route('almacen.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Almacen" class="{{ request()->routeIs('almacen.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Pedidos</span>
-                                </a>
-                            @endif
-                            @if(auth()->user()->tienePermiso('productos.ver') && !in_array(auth()->user()->rol?->nombre, ['disenador', 'orfebre', 'repartidor'], true))
-                                <a href="{{ route('productos.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Productos" class="{{ request()->routeIs('productos.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M4 7h16M4 12h16M4 17h16"/></svg>
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Productos</span>
+                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Almacen</span>
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('clientes.ver') && !in_array(auth()->user()->rol?->nombre, ['disenador', 'orfebre', 'repartidor'], true))
                                 <a href="{{ route('clientes.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Clientes" class="{{ request()->routeIs('clientes.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M12 11a3 3 0 100-6 3 3 0 000 6zM5.5 13.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 13.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM3 20a5 5 0 019.5-2M21 20a5 5 0 00-9.5-2"/></svg>
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Clientes</span>
-                                </a>
-                            @endif
-                            @if(auth()->user()->tienePermiso('almacen.ver'))
-                                <a href="{{ route('almacen.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Almacen" class="{{ request()->routeIs('almacen.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m-8-4v10l8 4m0-10v10"/></svg>
-                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Almacen</span>
                                 </a>
                             @endif
                             @if(auth()->user()->tienePermiso('usuarios.ver'))
@@ -181,10 +181,10 @@
                                     <span x-show="openSidebar || !esDesktop" style="display: none;">Reportes</span>
                                 </a>
                             @endif
-                                                <a href="{{ route('notificaciones.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Notificaciones" class="{{ request()->routeIs('notificaciones.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
-                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                                    <span x-show="openSidebar || !esDesktop" style="display: none;">Notificaciones</span>
-                                                </a>
+                            <a href="{{ route('notificaciones.index') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Notificaciones" class="{{ request()->routeIs('notificaciones.*') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                <span x-show="openSidebar || !esDesktop" style="display: none;">Notificaciones</span>
+                            </a>
                         </nav>
 
                         @if(auth()->user()->tienePermiso('configuracion.ver'))
