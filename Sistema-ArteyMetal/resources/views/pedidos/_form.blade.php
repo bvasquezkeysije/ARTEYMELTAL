@@ -100,7 +100,24 @@
         },
         consultandoDocumento: false,
         clienteId: '{{ old('cliente_id', $pedido->cliente_id ?? '') }}',
-        archivosSeleccionados: null,
+        archivosOrdenNuevos: [],
+        onOrdenArchivosChange(e) {
+            const files = Array.from(e.target.files || []);
+            this.archivosOrdenNuevos = [...this.archivosOrdenNuevos, ...files.map(f => ({file: f, name: f.name}))];
+            e.target.value = '';
+            this.$nextTick(() => this._syncOrdenInput());
+        },
+        removeOrdenArchivo(index) {
+            this.archivosOrdenNuevos.splice(index, 1);
+            this.$nextTick(() => this._syncOrdenInput());
+        },
+        _syncOrdenInput() {
+            const dt = new DataTransfer();
+            this.archivosOrdenNuevos.forEach(item => dt.items.add(item.file));
+            const input = document.getElementById('archivos_orden');
+            if (input) input.files = dt.files;
+        },
+        get ordenNuevosTotal() { return this.archivosOrdenNuevos.length; },
         mensajeDocumento: '',
         consultaDocumentoOk: false,
         fuenteDocumento: '',
@@ -653,8 +670,8 @@
                     <svg class="mb-2 h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
                     </svg>
-                    <p class="text-sm font-medium">Haz clic para seleccionar archivos</p>
-                    <p class="mt-1 text-xs" x-text="archivosSeleccionados ? archivosSeleccionados.length + ' archivo(s) seleccionado(s)' : 'PDF, Word, Excel, Imagenes'"></p>
+                    <p class="text-sm font-medium">Haz clic para agregar archivos</p>
+                    <p class="mt-1 text-xs text-gray-400">PDF, Word, Excel, Imagenes — Max 15MB c/u</p>
                 </label>
                 <input
                     id="archivos_orden"
@@ -662,10 +679,9 @@
                     type="file"
                     multiple
                     accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.svg,.webp"
-                    @change="archivosSeleccionados = $event.target.files"
+                    @change="onOrdenArchivosChange($event)"
                     class="hidden"
                 />
-                <p class="mt-2 text-xs text-gray-500">PDF, Word (.doc/.docx), Excel (.xls/.xlsx), imagenes (png, jpg, gif, svg, webp). Max 15MB c/u.</p>
                 @error('archivos_orden') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
                 @error('archivos_orden.*') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
             </div>
@@ -715,6 +731,37 @@
                     </div>
                 </div>
             @endif
+
+            <div x-show="archivosOrdenNuevos.length > 0" x-cloak>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Archivos a subir <span class="text-amber-600" x-text="'(' + ordenNuevosTotal + ')'"></span></p>
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                    <template x-for="(item, idx) in archivosOrdenNuevos" :key="idx">
+                        <div class="group relative overflow-hidden rounded-xl border border-amber-200 bg-amber-50 shadow-sm">
+                            <div class="flex h-28 items-center justify-center bg-amber-100/50">
+                                <template x-if="item.file.type && item.file.type.startsWith('image/')">
+                                    <img :src="URL.createObjectURL(item.file)" :alt="item.name" class="max-h-full max-w-full object-contain p-1">
+                                </template>
+                                <template x-if="!item.file.type || !item.file.type.startsWith('image/')">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <svg class="h-10 w-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        <span class="text-[10px] font-medium text-amber-600 uppercase" x-text="item.name.split('.').pop()"></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="px-2 py-1.5">
+                                <p class="truncate text-xs font-medium text-amber-800" :title="item.name" x-text="item.name"></p>
+                                <p class="text-[10px] text-amber-500" x-text="(item.file.size / 1024).toFixed(0) + ' KB'"></p>
+                            </div>
+                            <div class="absolute top-1 right-1 opacity-0 transition group-hover:opacity-100">
+                                <button type="button" @click="removeOrdenArchivo(idx)"
+                                        class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Quitar">
+                                    <img src="{{ asset('icons/Eliminar-Blanco.ico') }}" alt="Quitar" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
     </section>
 
