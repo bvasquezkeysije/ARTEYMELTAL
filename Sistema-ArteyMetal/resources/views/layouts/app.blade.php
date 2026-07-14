@@ -33,6 +33,11 @@
             .notif-scroll::-webkit-scrollbar { width: 5px; }
             .notif-scroll::-webkit-scrollbar-track { background: transparent; }
             .notif-scroll::-webkit-scrollbar-thumb { background: #d1be8a; border-radius: 10px; }
+            .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+            .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+            .custom-scroll::-webkit-scrollbar-thumb { background: #d1be8a; border-radius: 10px; }
+            .custom-scroll::-webkit-scrollbar-thumb:hover { background: #b9943d; }
+            .custom-scroll { scrollbar-width: thin; scrollbar-color: #d1be8a transparent; }
         </style>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -108,7 +113,7 @@
                             <div class="h-[25px]"></div>
                         </div>
 
-                        <nav class="flex-1 space-y-1 overflow-y-auto px-4 py-5 text-sm">
+                        <nav class="custom-scroll flex-1 space-y-1 overflow-y-auto px-4 py-5 text-sm">
                             @if(auth()->user()->tienePermiso('dashboard.ver'))
                                 <a href="{{ route('dashboard') }}" :class="{ 'justify-center px-0': esDesktop && !openSidebar }" title="Inicio" class="{{ request()->routeIs('dashboard') ? 'bg-[#b9943d]/25 text-[#f2d791]' : 'text-[#d0d0d6] hover:bg-[#1d1d27]' }} flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-medium cursor-pointer">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M3 11.5L12 4l9 7.5M5 10.5V20h14v-9.5"/></svg>
@@ -377,7 +382,7 @@
                         </div>
                     </header>
 
-                    <main class="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6" style="scrollbar-gutter: stable;">
+                    <main class="custom-scroll min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6" style="scrollbar-gutter: stable;">
                         {{ $slot }}
                     </main>
                 </div>
