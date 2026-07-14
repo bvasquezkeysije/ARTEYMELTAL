@@ -348,7 +348,7 @@
                     <template x-if="viewerTotal > 0">
                         <div>
                             <div class="flex items-center gap-2">
-                                <button x-show="viewerIndex > 0" @click="prevViewer()"
+                                <button type="button" x-show="viewerIndex > 0" @click="prevViewer()"
                                         class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
@@ -365,7 +365,7 @@
                                         </div>
                                     </template>
                                 </div>
-                                <button x-show="viewerIndex < viewerTotal - 1" @click="nextViewer()"
+                                <button type="button" x-show="viewerIndex < viewerTotal - 1" @click="nextViewer()"
                                         class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
@@ -377,7 +377,7 @@
                             </div>
                             <div class="mt-2 flex justify-center gap-1">
                                 <template x-for="(_, i) in viewerArchivos" :key="i">
-                                    <button @click="viewerIndex = i"
+                                    <button type="button" @click="viewerIndex = i"
                                             :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                             class="h-1.5 w-6 rounded-full transition-colors"></button>
                                 </template>
@@ -785,7 +785,7 @@
             <template x-if="ordenTotal > 0">
                 <div>
                     <div class="flex items-center gap-2">
-                        <button x-show="ordenViewerIndex > 0" @@click="prevOrden()"
+                        <button type="button" x-show="ordenViewerIndex > 0" @@click="prevOrden()"
                                 class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
@@ -802,7 +802,7 @@
                                 </div>
                             </template>
                         </div>
-                        <button x-show="ordenViewerIndex < ordenTotal - 1" @@click="nextOrden()"
+                        <button type="button" x-show="ordenViewerIndex < ordenTotal - 1" @@click="nextOrden()"
                                 class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
@@ -816,7 +816,7 @@
                     </div>
                     <div class="mt-2 flex justify-center gap-1">
                         <template x-for="(_, i) in ordenArchivos" :key="i">
-                            <button @@click="ordenViewerIndex = i"
+                            <button type="button" @@click="ordenViewerIndex = i"
                                     :class="i === ordenViewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                     class="h-1.5 w-6 rounded-full transition-colors"></button>
                         </template>
