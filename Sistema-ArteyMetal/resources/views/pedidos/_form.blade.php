@@ -133,6 +133,28 @@
             if (input) input.files = dt.files;
         },
         get ordenNuevosTotal() { return this.archivosOrdenNuevos.length; },
+        nuevosViewerOpen: false,
+        nuevosViewerIndex: 0,
+        get nuevosCurrent() { return this.archivosOrdenNuevos[this.nuevosViewerIndex] || null; },
+        get nuevosTotal() { return this.archivosOrdenNuevos.length; },
+        get nuevosEsImagen() {
+            const f = this.nuevosCurrent;
+            if (!f || !f.file) return false;
+            return f.file.type && f.file.type.startsWith('image/');
+        },
+        get nuevosFileUrl() {
+            const f = this.nuevosCurrent;
+            if (!f || !f.file) return '';
+            return URL.createObjectURL(f.file);
+        },
+        prevNuevos() { if (this.nuevosViewerIndex > 0) this.nuevosViewerIndex-- },
+        nextNuevos() { if (this.nuevosViewerIndex < this.nuevosTotal - 1) this.nuevosViewerIndex++ },
+        eliminarNuevousArchivo(index) {
+            this.removeOrdenArchivo(index);
+            if (this.nuevosViewerIndex >= this.archivosOrdenNuevos.length && this.nuevosViewerIndex > 0) {
+                this.nuevosViewerIndex--;
+            }
+        },
         mensajeDocumento: '',
         consultaDocumentoOk: false,
         fuenteDocumento: '',
@@ -557,8 +579,8 @@
                                 <p class="mt-2 text-lg font-bold text-emerald-700" id="vuelto-val">S/ 0.00</p>
                                 <input type="hidden" name="vuelto" id="vuelto-input" value="0">
                             </div>
-                        </div>
-                    </div>
+                </div>
+            </div>
                 </div>
             @endif
         </div>
@@ -775,6 +797,11 @@
                         </div>
                     </template>
                 </div>
+                <button type="button" @click="nuevosViewerIndex = 0; nuevosViewerOpen = true"
+                        class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-blue-700 transition">
+                    <img src="{{ asset('icons/ver-detalle.ico') }}" alt="" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                    Ver archivos
+                </button>
             </div>
         </div>
     </section>
@@ -835,6 +862,73 @@
                                     :class="i === ordenViewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
                                     class="h-1.5 w-6 rounded-full transition-colors"></button>
                         </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    {{-- Modal visor de archivos nuevos a subir --}}
+    <div x-show="nuevosViewerOpen"
+         x-on:keydown.escape.window="nuevosViewerOpen = false"
+         x-cloak
+         @click.self="nuevosViewerOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+            <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white/80">Archivos a subir</h3>
+                <button type="button" @click="nuevosViewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                    <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                </button>
+            </div>
+
+            <template x-if="nuevosTotal === 0">
+                <div class="flex h-64 items-center justify-center text-white/50">No hay archivos nuevos.</div>
+            </template>
+
+            <template x-if="nuevosTotal > 0">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" x-show="nuevosViewerIndex > 0" @click="prevNuevos()"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
+                            <template x-if="nuevosEsImagen">
+                                <img :src="nuevosFileUrl" :alt="nuevosCurrent?.name" class="max-h-full max-w-full object-contain">
+                            </template>
+                            <template x-if="!nuevosEsImagen">
+                                <div class="flex flex-col items-center gap-3 text-center text-white/70">
+                                    <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <p class="text-sm" x-text="nuevosCurrent?.name"></p>
+                                    <a :href="nuevosFileUrl" target="_blank"
+                                       class="inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30">Descargar archivo</a>
+                                </div>
+                            </template>
+                        </div>
+                        <button type="button" x-show="nuevosViewerIndex < nuevosTotal - 1" @click="nextNuevos()"
+                                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <div class="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
+                        <span x-text="`${nuevosViewerIndex + 1} de ${nuevosTotal}`"></span>
+                        <span class="text-white/30">|</span>
+                        <span x-text="nuevosCurrent?.name || ''" class="max-w-[250px] truncate"></span>
+                    </div>
+                    <div class="mt-2 flex justify-center gap-1">
+                        <template x-for="(_, i) in archivosOrdenNuevos" :key="i">
+                            <button type="button" @click="nuevosViewerIndex = i"
+                                    :class="i === nuevosViewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
+                                    class="h-1.5 w-6 rounded-full transition-colors"></button>
+                        </template>
+                    </div>
+                    <div class="mt-3 flex justify-center">
+                        <button type="button" @click="eliminarNuevousArchivo(nuevosViewerIndex)"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition">
+                            <img src="{{ asset('icons/Eliminar-Blanco.ico') }}" alt="" class="h-3.5 w-3.5 object-contain pointer-events-none">
+                            Quitar archivo
+                        </button>
                     </div>
                 </div>
             </template>
