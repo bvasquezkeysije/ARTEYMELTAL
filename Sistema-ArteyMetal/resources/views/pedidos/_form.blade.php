@@ -42,6 +42,28 @@
                 if (archivo.file) { const url = URL.createObjectURL(archivo.file); window.open(url, '_blank'); setTimeout(() => URL.revokeObjectURL(url), 60000); }
             },
 
+            viewerOpen: false,
+            viewerIndex: 0,
+            get viewerArchivos() { return this.rowArchivos[this.modalIndex] || []; },
+            get viewerCurrent() { return this.viewerArchivos[this.viewerIndex] || null; },
+            get viewerTotal() { return this.viewerArchivos.length; },
+            get viewerEsImagen() {
+                if (!this.viewerCurrent) return false;
+                const f = this.viewerCurrent;
+                if (f.file) return f.file.type && f.file.type.startsWith('image/');
+                if (f.mime) return ['image/png','image/jpeg','image/jpg','image/gif','image/svg+xml','image/webp'].includes(f.mime);
+                return false;
+            },
+            get viewerFileUrl() {
+                const f = this.viewerCurrent;
+                if (!f) return '';
+                if (f.url) return f.url;
+                if (f.file) return URL.createObjectURL(f.file);
+                return '';
+            },
+            prevViewer() { if (this.viewerIndex > 0) this.viewerIndex-- },
+            nextViewer() { if (this.viewerIndex < this.viewerTotal - 1) this.viewerIndex++ },
+
         ordenViewerOpen: false,
         ordenViewerIndex: 0,
         ordenArchivos: {{ Js::from(
@@ -262,7 +284,7 @@
                                         <label :for="'pp_archivos_'+i" class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-2 py-1.5 text-white hover:bg-blue-700" title="Subir diseño">
                                             <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                         </label>
-                                        <button type="button" @click="modalIndex = i" class="inline-flex items-center justify-center rounded-lg px-2 py-1.5 text-white hover:opacity-80" style="background-color:#0891B2" title="Ver diseño">
+                                        <button type="button" @click="modalIndex = i; viewerOpen = true; viewerIndex = 0" class="inline-flex items-center justify-center rounded-lg px-2 py-1.5 text-white hover:opacity-80" style="background-color:#0891B2" title="Ver diseño">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                     </div>
@@ -289,31 +311,70 @@
             </div>
             @error('productos') <p class="mt-1 text-sm text-rose-600">{{ $message }}</p> @enderror
 
-            <div x-show="modalIndex >= 0" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @click.self="modalIndex = -1">
-                    <div class="mx-4 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-                        <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-sm font-semibold text-gray-700">Disenos - Producto <span x-text="modalIndex + 1"></span></h3>
-                            <button type="button" @click="modalIndex = -1" class="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">&times;</button>
-                        </div>
-                        <div class="max-h-80 space-y-2 overflow-y-auto">
-                            <template x-for="(archivo, fi) in (rowArchivos[modalIndex] || [])" :key="fi">
-                                <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50">
-                                    <div class="flex min-w-0 flex-1 items-center gap-2">
-                                        <svg class="h-5 w-5 flex-shrink-0 text-amber-600" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                        <span class="cursor-pointer truncate text-sm text-amber-800 hover:text-amber-950" x-text="archivo.name" @click="abrirVistaPrevia(archivo)" title="Vista previa"></span>
-                                    </div>
-                                    <div class="flex flex-shrink-0 gap-1">
-                                        <button type="button" @click="abrirVistaPrevia(archivo)" class="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-amber-700" title="Vista previa">
-                                            <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                        <button type="button" @click="eliminarArchivoRow(modalIndex, fi)" class="flex h-7 w-7 items-center justify-center rounded-md text-red-400 hover:bg-red-50 hover:text-red-600" title="Eliminar">
-                                            <svg class="h-4 w-4" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-                            <p x-show="!(rowArchivos[modalIndex] || []).length" class="py-6 text-center text-sm text-gray-400">No hay archivos subidos para este producto.</p>
+            <div x-show="viewerOpen"
+                 x-on:keydown.escape.window="viewerOpen = false"
+                 x-on:keydown.left.window="viewerOpen && prevViewer()"
+                 x-on:keydown.right.window="viewerOpen && nextViewer()"
+                 x-cloak
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                <div @click.outside="viewerOpen = false" class="relative mx-4 w-full max-w-3xl rounded-2xl bg-[#1a1a1a] p-4 shadow-xl">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-white/80">Producto <span x-text="modalIndex + 1"></span> — <span x-text="productos[modalIndex]?.nombre || 'Sin nombre'"></span></h3>
+                        <button type="button" @click="viewerOpen = false" class="btn-icon-sm bg-red-600 hover:bg-red-700" title="Cerrar">
+                            <img src="{{ asset('icons/cerrar.ico') }}" alt="Cerrar" class="h-4 w-4 object-contain pointer-events-none">
+                        </button>
                     </div>
+
+                    <template x-if="viewerTotal === 0">
+                        <div class="flex h-64 items-center justify-center text-white/50">No hay archivos de diseno para este producto.</div>
+                    </template>
+
+                    <template x-if="viewerTotal > 0">
+                        <div>
+                            <div class="relative flex items-center">
+                                <button x-show="viewerIndex > 0" @click="prevViewer()"
+                                        class="absolute left-0 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <div class="mx-auto flex h-80 w-full items-center justify-center overflow-hidden rounded-xl bg-black/40">
+                                    <template x-if="viewerEsImagen">
+                                        <img :src="viewerFileUrl" :alt="viewerCurrent?.name || viewerCurrent?.nombre || ''" class="max-h-full max-w-full object-contain">
+                                    </template>
+                                    <template x-if="!viewerEsImagen">
+                                        <div class="flex flex-col items-center gap-3 text-center text-white/70">
+                                            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            <p class="text-sm" x-text="viewerCurrent?.name || viewerCurrent?.nombre || ''"></p>
+                                            <a :href="viewerFileUrl" target="_blank"
+                                               class="inline-flex items-center gap-1 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30">Descargar archivo</a>
+                                        </div>
+                                    </template>
+                                </div>
+                                <button x-show="viewerIndex < viewerTotal - 1" @click="nextViewer()"
+                                        class="absolute right-0 z-10 flex h-10 w-10 translate-x-1/2 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/40">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                            <div class="mt-3 flex items-center justify-center gap-3 text-xs text-white/60">
+                                <span x-text="`${viewerIndex + 1} de ${viewerTotal}`"></span>
+                                <span class="text-white/30">|</span>
+                                <span x-text="viewerCurrent?.name || viewerCurrent?.nombre || ''" class="max-w-[250px] truncate"></span>
+                            </div>
+                            <div class="mt-2 flex justify-center gap-1">
+                                <template x-for="(_, i) in viewerArchivos" :key="i">
+                                    <button @click="viewerIndex = i"
+                                            :class="i === viewerIndex ? 'bg-amber-500' : 'bg-white/20 hover:bg-white/40'"
+                                            class="h-1.5 w-6 rounded-full transition-colors"></button>
+                                </template>
+                            </div>
+                            <div class="mt-3 flex justify-center">
+                                <button type="button" @click="eliminarArchivoRow(modalIndex, viewerIndex); if(viewerIndex >= viewerTotal && viewerIndex > 0) viewerIndex--"
+                                        class="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Quitar archivo
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
