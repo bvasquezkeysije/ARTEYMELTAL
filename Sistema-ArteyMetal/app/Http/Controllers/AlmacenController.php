@@ -336,6 +336,14 @@ class AlmacenController extends Controller
             $pedido->update(['estado' => 'entregado']);
         });
 
+        NotificationController::create(
+            userId: $pedido->usuario_id,
+            type: 'almacen',
+            title: 'Pedido entregado al cliente',
+            body: "El pedido #{$pedido->codigo} de {$pedido->nombre_cliente} ha sido entregado al cliente.",
+            actionUrl: route('pedidos.show', $pedido, false),
+        );
+
         if ($request->expectsJson()) {
             return response()->json(['ok' => true, 'message' => 'Pedido entregado al cliente correctamente.']);
         }
