@@ -19,7 +19,7 @@ class PasswordResetCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Codigo de recuperacion de contrasena - ARTE Y METALES',
+            subject: 'Codigo de recuperacion de contrasena - ARTE Y METAL',
         );
     }
 

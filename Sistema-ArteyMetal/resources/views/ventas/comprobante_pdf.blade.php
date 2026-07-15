@@ -38,7 +38,7 @@
             <table>
                 <tr>
                     <td style="width: 62%;">
-                        <div class="empresa">ARTE Y METALES</div>
+                        <div class="empresa">ARTE Y METAL</div>
                         <div class="muted">Alfredo Lapoint 1074 - Chiclayo</div>
                         <div class="muted">RUC 20608082329</div>
                     </td>

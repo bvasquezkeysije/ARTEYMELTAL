@@ -1,10 +1,10 @@
 <x-guest-layout>
     <div class="mb-7">
         <div class="mb-5 flex items-center gap-4 rounded-xl border border-[#d7c08a] bg-[#fff9ec] px-4 py-3">
-            <img src="{{ asset('images/ARTE-Y-METALES.png') }}" alt="Logo Arte y Metales" class="h-14 w-14 rounded-lg border border-[#d4af55]/50 object-cover p-1" />
+            <img src="{{ asset('images/ARTE-Y-METALES.png') }}" alt="Logo Arte y Metal" class="h-14 w-14 rounded-lg border border-[#d4af55]/50 object-cover p-1" />
             <div>
                 <p class="text-xs uppercase tracking-[0.28em] text-[#9e7321]">Sistema de Gestion</p>
-                <h1 class="text-xl text-[#241c0f]" style="font-family:'Cinzel',serif;">ARTE Y METALES</h1>
+                <h1 class="text-xl text-[#241c0f]" style="font-family:'Cinzel',serif;">ARTE Y METAL</h1>
             </div>
         </div>
 
