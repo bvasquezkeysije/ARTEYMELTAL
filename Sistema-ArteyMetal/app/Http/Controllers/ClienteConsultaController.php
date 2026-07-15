@@ -95,9 +95,8 @@ class ClienteConsultaController extends Controller
         }
 
         $data = $response->json();
-        $nombre = trim((string) ($data['nombre_completo']
-            ?? $data['full_name']
-            ?? (($data['nombres'] ?? '') . ' ' . ($data['apellido_paterno'] ?? '') . ' ' . ($data['apellido_materno'] ?? ''))));
+        $nombre = trim((string) ($data['full_name']
+            ?? (($data['first_last_name'] ?? '') . ' ' . ($data['second_last_name'] ?? '') . ' ' . ($data['first_name'] ?? ''))));
         $nombreLimpio = $nombre !== '' ? preg_replace('/\s+/', ' ', $nombre) : null;
 
         return response()->json([
