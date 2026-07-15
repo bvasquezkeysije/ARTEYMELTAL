@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'ARTE EN METALES') }}</title>
+        <title>{{ config('app.name', 'ARTE Y METAL') }}</title>
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -23,5 +23,7 @@
                 </main>
             </div>
         </div>
+
+        <x-feedback-modals />
     </body>
 </html>

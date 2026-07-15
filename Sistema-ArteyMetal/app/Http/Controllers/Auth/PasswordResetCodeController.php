@@ -59,7 +59,7 @@ class PasswordResetCodeController extends Controller
 
         PasswordResetCode::where('email', $email)->delete();
 
-        return redirect()->route('login')->with('status', 'Tu contrasena ha sido restablecida. Inicia sesion.');
+        return redirect()->route('login')->with('success', 'Tu contrasena ha sido restablecida. Inicia sesion.');
     }
 
     public function resend(Request $request): RedirectResponse
@@ -69,6 +69,6 @@ class PasswordResetCodeController extends Controller
         ]);
 
         return redirect()->route('password.request', ['email' => $request->input('email')])
-            ->with('status', 'Solicita un nuevo codigo desde el formulario anterior.');
+            ->with('success', 'Solicita un nuevo codigo desde el formulario anterior.');
     }
 }

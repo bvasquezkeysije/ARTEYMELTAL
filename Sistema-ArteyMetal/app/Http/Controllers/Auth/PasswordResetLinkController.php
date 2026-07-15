@@ -46,6 +46,6 @@ class PasswordResetLinkController extends Controller
         Mail::to($email)->send(new PasswordResetCodeMail($code));
 
         return redirect()->route('password.code.form', ['email' => $email])
-            ->with('status', 'Te hemos enviado un codigo de 6 digitos a tu correo.');
+            ->with('success', 'Te hemos enviado un codigo de 6 digitos a tu correo.');
     }
 }
