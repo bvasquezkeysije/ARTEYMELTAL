@@ -102,7 +102,7 @@
                             <div class="border-y border-[#09090f] py-5">
                                 <div class="mx-auto flex w-full items-center justify-center">
                                     <div class="grid w-max items-center justify-center" :class="esDesktop && !openSidebar ? 'grid-cols-1 gap-y-2' : 'grid-cols-[auto_auto] gap-x-3'">
-                                        <img src="{{ asset('images/ARTE-Y-METALES.png') }}" alt="Logo Arte y Metal" class="h-12 w-12 rounded-lg border border-[#b9943d] object-cover p-1" />
+                                        <img src="{{ asset('images/ARTE-Y-METAL.png') }}" alt="Logo Arte y Metal" class="h-12 w-12 rounded-lg border border-[#b9943d] object-cover p-1" />
                                         <div class="text-left" x-show="openSidebar || !esDesktop" style="display: none;">
                                             <p class="text-xs uppercase tracking-[0.25em] text-[#b9943d]">Sistema</p>
                                             <p class="text-sm font-semibold text-white" style="font-family:'Cinzel',serif;">Arte y Metal</p>

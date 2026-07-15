@@ -16,8 +16,8 @@ class VentaInicialSeeder extends Seeder
     public function run(): void
     {
         $usuarioAdmin = User::query()
-            ->where('email', 'bvasquezkeysije@arteymetales.online')
-            ->orWhere('email', 'pfernandezadeli@arteymetales.online')
+            ->where('email', 'bvasquezkeysije@arteymetal.online')
+            ->orWhere('email', 'pfernandezadeli@arteymetal.online')
             ->orderBy('id')
             ->first();
 

@@ -170,7 +170,7 @@ class SecuritySeeder extends Seeder
         foreach ($usuariosSistema as $usuario) {
             $username = $usuario['username'];
             $gmail = $username . '@gmail.com';
-            $legacy = $username . '@arteymetales.online';
+            $legacy = $username . '@arteymetal.online';
 
             $actual = User::query()
                 ->where('name', $username)
