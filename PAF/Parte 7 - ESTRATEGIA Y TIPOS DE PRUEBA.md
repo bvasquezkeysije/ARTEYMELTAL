@@ -1,12 +1,14 @@
 **
 
-7. # ESTRATEGIA Y TIPOS DE PRUEBA
+1. # ESTRATEGIA Y TIPOS DE PRUEBA
     
 
 ## 7.1. Cuadro de estrategia:
 
+  
 
-| Ambientes de prueba | - Desarrollo: pruebas preliminares realizadas por el equipo de desarrollo del sistema.<br><br>- QA (Calidad): ejecución controlada de pruebas a cargo del equipo responsable de calidad.<br><br>- Producción: pruebas finales previas a la puesta en marcha del sistema en la empresa "Arte y Metal".                                                                                      |
+
+| Ambientes de prueba | - Desarrollo: pruebas preliminares realizadas por el equipo de desarrollo del sistema.<br><br>- QA (Calidad): ejecución controlada de pruebas a cargo del equipo responsable de calidad. Las pruebas se ejecutan desde una laptop personal, pero su objetivo o "target" es el servidor en la nube donde está desplegado el sistema.<br><br>- Producción: pruebas finales previas a la puesta en marcha del sistema en la empresa "Arte y Metal".                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Datos de prueba     | - Se utilizarán datos simulados y controlados que representen casos reales de uso, tales como registros de clientes, pedidos personalizados, productos, ventas y usuarios.                                                                                                                                                                                                                 |
 | Cobertura de prueba | - Se cubrirán todos los criterios de aceptación de cada historia de usuario (HU01 a HU10).<br><br>- Se incluirán casos de éxito, error, validaciones de campos y flujos alternativos.<br><br>- El objetivo es alcanzar una cobertura del 100% de las funcionalidades definidas para los módulos de inicio de sesión, gestión de usuarios, clientes, productos, pedidos, ventas y reportes. |
