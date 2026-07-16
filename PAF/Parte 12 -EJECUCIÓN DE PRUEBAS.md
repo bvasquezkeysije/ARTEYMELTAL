@@ -8,9 +8,9 @@ Para la ejecución de las pruebas del sistema ARTE Y METAL se utilizarán las si
 
 | Tipo de prueba | Herramienta / Framework | Lenguaje | Justificación |
 | --- | --- | --- | --- |
-| Pruebas unitarias | PHPUnit | PHP | Framework estándar para aplicaciones Laravel; permite validar controladores, servicios y modelos. |
+| Pruebas unitarias | pytest + requests | Python | Se validan funciones y endpoints de forma aislada usando Python, siguiendo las preferencias del docente y aprovechando la claridad de pytest. |
 | Pruebas funcionales automatizadas | Playwright | Python | Framework moderno de automatización de navegadores con API estable, soporte activo y generación de traces/evidencias. |
-| Pruebas de API y utilidades | Requests / pytest | Python | Para validar endpoints REST y lógica auxiliar de forma rápida y legible. |
+| Pruebas de interfaz de usuario | Playwright | Python | Para validar flujos completos desde la perspectiva del usuario final. |
 | Pruebas manuales | Navegador web | - | Aplicadas a flujos que requieren validación visual o interacciones complejas de negocio. |
 
 > **Nota sobre Selenium:** No se utilizará Selenium para las pruebas automatizadas del proyecto. Aunque históricamente fue el estándar en automatización de navegadores, actualmente ha sido superado por herramientas más modernas como **Playwright**, las cuales ofrecen mejor estabilidad, ejecución más rápida, soporte nativo para múltiples navegadores, generación automática de capturas y traces, y una curva de aprendizaje más sencilla con Python.
@@ -42,17 +42,49 @@ playwright install
 
 ## 12.2. Ejecución de pruebas unitarias
 
-Las pruebas unitarias se ejecutan con PHPUnit para validar la lógica de negocio de forma aislada.
+Las pruebas unitarias se ejecutarán con **Python** utilizando `pytest` y `requests`, validando funciones, endpoints y reglas de negocio de forma aislada. Esto permite mantener un lenguaje de pruebas unificado con las pruebas funcionales y seguir las preferencias del docente.
+
+### 12.2.1. Ejemplo de prueba unitaria con Python
+
+```python
+# tests/unit/test_login_api.py
+import requests
+
+
+BASE_URL = "https://arteymetal.online"
+
+
+def test_login_con_credenciales_validas():
+    payload = {
+        "login": "bvasquezkeysije@gmail.com",
+        "password": "[contraseña válida]",
+    }
+    response = requests.post(f"{BASE_URL}/login", data=payload)
+    assert response.status_code == 200 or response.is_redirect
+    assert "dashboard" in response.text or response.status_code == 302
+
+
+def test_login_con_credenciales_invalidas():
+    payload = {
+        "login": "bvasquezkeysije@gmail.com",
+        "password": "contrasenaIncorrecta",
+    }
+    response = requests.post(f"{BASE_URL}/login", data=payload)
+    assert response.status_code in (200, 422)
+    assert "error" in response.text.lower() or "invalido" in response.text.lower()
+```
+
+### 12.2.2. Ejecución de pruebas unitarias
 
 ```bash
-php artisan test
+pytest tests/unit/ -v
 ```
 
 | Aspecto | Descripción |
 | --- | --- |
-| Alcance | Controladores, servicios, modelos y validaciones críticas. |
+| Alcance | Endpoints críticos, validaciones de formularios, cálculos de montos y reglas de negocio. |
 | Frecuencia | En cada cambio significativo del backend. |
-| Evidencia | Reporte de consola de PHPUnit. |
+| Evidencia | Reporte de consola de pytest. |
 
 ## 12.3. Ejecución de pruebas funcionales
 
