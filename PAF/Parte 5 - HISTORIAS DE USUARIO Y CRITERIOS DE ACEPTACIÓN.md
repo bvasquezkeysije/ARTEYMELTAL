@@ -19,9 +19,9 @@
     <tr>
       <td colspan="2" style="border: 1px solid #000; padding: 8px; height: 102px; vertical-align: top; line-height: 1.35;">
         <strong>Como:</strong> Usuario del sistema<br>
-        <strong>Quiero:</strong> Iniciar sesión ingresando mi correo y contraseña.<br>
-        <strong>Para:</strong> Acceder al sistema de manera segura a las<br>
-        funcionalidades de la plataforma.
+        <strong>Quiero:</strong> Iniciar sesión ingresando mi correo electrónico o nombre de usuario y contraseña.<br>
+        <strong>Para:</strong> Acceder de manera segura a las funcionalidades<br>
+        autorizadas según mi rol.
       </td>
       <td style="border: 1px solid #000; padding: 8px; vertical-align: top;"><strong>Estimación</strong></td>
       <td style="border: 1px solid #000; padding: 8px; vertical-align: top; white-space: nowrap;">8 puntos</td>
@@ -30,10 +30,10 @@
       <td colspan="2" style="border: 1px solid #000; padding: 8px; height: 152px; vertical-align: top; line-height: 1.35;">
         <div style="text-align: center; margin-bottom: 22px;"><strong>Criterios de Aceptación 1</strong></div>
         <strong>Dado:</strong> El usuario desea acceder al sistema.<br>
-        <strong>Cuando:</strong> Introduce su correo y contraseña<br>
+        <strong>Cuando:</strong> Introduce su correo electrónico o nombre de usuario y contraseña<br>
         correctamente.<br>
         <strong>Entonces:</strong> El sistema debe iniciar sesión exitosamente y<br>
-        redirigirlo al panel principal.
+        redirigirlo al panel principal correspondiente a su rol.
       </td>
       <td rowspan="3" style="border: 1px solid #000; padding: 8px; vertical-align: top;"><strong>Dependencias</strong></td>
       <td rowspan="3" style="border: 1px solid #000; padding: 8px; vertical-align: top;">Ninguno</td>
@@ -42,8 +42,8 @@
       <td colspan="2" style="border: 1px solid #000; padding: 8px; height: 108px; vertical-align: top; line-height: 1.35;">
         <div style="text-align: center; margin-bottom: 22px;"><strong>Criterios de Aceptación 2</strong></div>
         <strong>Dado:</strong> El usuario introduce datos inválidos.<br>
-        <strong>Cuando:</strong> El sistema detecta credenciales incorrectas.<br>
-        <strong>Entonces:</strong> Debe mostrar un mensaje claro de error.
+        <strong>Cuando:</strong> El sistema detecta credenciales incorrectas o una cuenta inactiva.<br>
+        <strong>Entonces:</strong> Debe mostrar un mensaje claro de error en un modal emergente.
       </td>
     </tr>
     <tr>
@@ -53,7 +53,7 @@
         requeridos.<br>
         <strong>Cuando:</strong> Intenta iniciar sesión.<br>
         <strong>Entonces:</strong> El sistema debe rechazar la acción y mostrar<br>
-        un aviso.
+        un aviso de validación en el formulario.
       </td>
     </tr>
   </tbody>
