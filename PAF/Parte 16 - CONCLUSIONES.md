@@ -44,54 +44,8 @@ El desarrollo y validación del sistema **ARTE Y METAL** permitió implementar u
 - **Git y GitHub** facilitaron el control de versiones, la colaboración y la sincronización entre el entorno local y el servidor en la nube.
 - **Python + Playwright** resultaron adecuados para la automatización de pruebas funcionales del sistema web.
 
-## 16.4. Recomendaciones
-
-1. **Automatización continua:** Integrar las pruebas automatizadas en un pipeline CI/CD para ejecutarlas en cada push a la rama principal.
-2. **Monitoreo en producción:** Implementar herramientas de monitoreo como Laravel Telescope o Sentry para detectar errores en tiempo real.
-3. **Optimización de rendimiento:** Aplicar las recomendaciones de la Parte 15 (cache, Gzip, ajuste de PHP-FPM) antes de escalar el tráfico.
-4. **Pruebas de seguridad:** Realizar auditorías de seguridad (pentesting) y análisis de vulnerabilidades OWASP Top 10.
-5. **Métricas de negocio:** Ampliar los reportes con métricas de productividad, rentabilidad por producto y tiempos de entrega.
-6. **Capacitación:** Capacitar a los usuarios finales del sistema para garantizar la adopción correcta de los flujos de trabajo.
-7. **Mejoras futuras:** Considerar la implementación de un panel de cliente, notificaciones push y una aplicación móvil para ampliar la accesibilidad.
-
-## 16.5. Trabajos futuros
-
-| Propuesta | Descripción | Prioridad |
-| --- | --- | --- |
-| Panel de cliente | Permitir a los clientes consultar el estado de sus pedidos sin acceder al panel administrativo. | Alta |
-| Aplicación móvil | Desarrollar una app complementaria para notificaciones y seguimiento de pedidos. | Media |
-| Inteligencia de negocio | Agregar dashboards con KPIs y análisis predictivo de ventas. | Media |
-| Integración con facturación electrónica | Conectar con SUNAT para emisión de comprobantes electrónicos. | Alta |
-| Chat interno | Habilitar mensajería entre clientes, diseñadores y producción. | Baja |
-
-## 16.6. Reflexión final
+## 16.4. Reflexión final
 
 El proyecto **ARTE Y METAL** cumplió con los objetivos planteados: se construyó un sistema funcional, se validó mediante pruebas estructuradas y se documentó un Plan de Aseguramiento de la Funcionalidad completo. La metodología aplicada, basada en historias de usuario, casos de prueba y seguimiento de defectos, aseguró que el producto final sea confiable y alineado con las necesidades del negocio.
-
-## 16.7. Referencias
-
-A continuación se presentan las referencias bibliográficas utilizadas para la elaboración de este documento, en formato IEEE.
-
-[1] R. S. Pressman and B. R. Maxim, *Software Engineering: A Practitioner's Approach*, 8th ed. New York, NY, USA: McGraw-Hill, 2015.
-
-[2] G. J. Myers, C. Sandler, and T. Badgett, *The Art of Software Testing*, 3rd ed. Hoboken, NJ, USA: John Wiley & Sons, 2011.
-
-[3] K. Beck, *Test Driven Development: By Example*. Boston, MA, USA: Addison-Wesley Professional, 2002.
-
-[4] J. A. Whittaker, "What is software testing? And why is it so hard?," *IEEE Software*, vol. 17, no. 1, pp. 70-79, Jan./Feb. 2000.
-
-[5] H. Zhu, P. A. V. Hall, and J. H. R. May, "Software unit test coverage and adequacy," *ACM Computing Surveys*, vol. 29, no. 4, pp. 366-427, Dec. 1997.
-
-[6] V. R. Basili and B. T. Perricone, "Software errors and complexity: An empirical investigation," *Commun. ACM*, vol. 27, no. 1, pp. 42-52, Jan. 1984.
-
-[7] B. Kitchenham, "Procedures for performing systematic reviews," Keele University, Staffordshire, U.K., Tech. Rep. TR/SE-0401, 2004. [Online]. Available: https://www.keele.ac.uk/cormack/spare.pdf
-
-[8] N. Nagappan, E. M. Maximilien, T. Bhat, and L. Williams, "Realizing quality improvement through test driven development: results and experiences of four industrial teams," *Empirical Software Engineering*, vol. 13, no. 3, pp. 289-302, 2008.
-
-[9] E. Daka and G. Fraser, "A survey on unit testing practices and problems," in *Proc. 2014 IEEE 25th Int. Symp. Software Reliability Engineering (ISSRE)*, Naples, Italy, 2014, pp. 201-211.
-
-[10] D. Hamlet and R. Taylor, "Partition testing does not inspire confidence," *IEEE Trans. Software Eng.*, vol. 16, no. 12, pp. 1402-1411, Dec. 1990.
-
-**Nota:** Las referencias [4], [5], [6], [8], [9] y [10] provienen de revistas y conferencias indexadas en Scopus, Web of Science e IEEE Xplore. Las referencias [1], [2] y [3] son obras de consulta clásicas en ingeniería de software. La referencia [7] es un informe técnico de acceso abierto disponible en línea.
 
 **
