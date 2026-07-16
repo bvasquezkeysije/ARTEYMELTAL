@@ -1,117 +1,149 @@
-
-**12.1. Ejecución de pruebas unitarias 
-
-  **
-
-12 # EJECUCIÓN DE PRUEBAS
-    
-
 **
 
-PRUEBA 1: INICIO DE SESIÓN (HU01) 
+12. # EJECUCIÓN DE PRUEBAS
 
-a) Captura del sistema
+## 12.1. Herramientas y frameworks de ejecución
 
-  
+Para la ejecución de las pruebas del sistema ARTE Y METAL se utilizarán las siguientes herramientas:
 
-b) Código
+| Tipo de prueba | Herramienta / Framework | Lenguaje | Justificación |
+| --- | --- | --- | --- |
+| Pruebas unitarias | PHPUnit | PHP | Framework estándar para aplicaciones Laravel; permite validar controladores, servicios y modelos. |
+| Pruebas funcionales automatizadas | Playwright | Python | Framework moderno de automatización de navegadores con API estable, soporte activo y generación de traces/evidencias. |
+| Pruebas de API y utilidades | Requests / pytest | Python | Para validar endpoints REST y lógica auxiliar de forma rápida y legible. |
+| Pruebas manuales | Navegador web | - | Aplicadas a flujos que requieren validación visual o interacciones complejas de negocio. |
 
-  
+> **Nota sobre Selenium:** No se utilizará Selenium para las pruebas automatizadas del proyecto. Aunque históricamente fue el estándar en automatización de navegadores, actualmente ha sido superado por herramientas más modernas como **Playwright**, las cuales ofrecen mejor estabilidad, ejecución más rápida, soporte nativo para múltiples navegadores, generación automática de capturas y traces, y una curva de aprendizaje más sencilla con Python.
 
-c) Resultados 
+### 12.1.1. Entorno de ejecución
 
-  
+- Las pruebas automatizadas con Playwright se ejecutarán desde una **laptop personal** con Python 3.10+ instalado.
+- El **target** de las pruebas será el **servidor en la nube** donde está desplegada la aplicación (`https://arteymetal.online`), siguiendo lo establecido en las Partes 7 y 8 del presente plan.
+- Se utilizará un entorno virtual de Python (`venv`) para aislar las dependencias de prueba.
 
-PRUEBA Nº: Nombre (codigo)
+### 12.1.2. Dependencias de ejemplo
 
-a) Captura del sistema
+```text
+pytest>=7.0.0
+pytest-playwright>=0.4.0
+playwright>=1.40.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+```
 
-  
+### 12.1.3. Instalación rápida
 
-b) Código
+```bash
+python3 -m venv venv-tests
+source venv-tests/bin/activate
+pip install -r requirements-tests.txt
+playwright install
+```
 
-  
+## 12.2. Ejecución de pruebas unitarias
 
-c) Resultados 
+Las pruebas unitarias se ejecutan con PHPUnit para validar la lógica de negocio de forma aislada.
 
-  
+```bash
+php artisan test
+```
 
-12.2. Ejecución de pruebas funcionales 
+| Aspecto | Descripción |
+| --- | --- |
+| Alcance | Controladores, servicios, modelos y validaciones críticas. |
+| Frecuencia | En cada cambio significativo del backend. |
+| Evidencia | Reporte de consola de PHPUnit. |
 
-12.2.1. Pruebas funcionales manuales
+## 12.3. Ejecución de pruebas funcionales
 
-PRUEBA Nº: Nombre (código)
+### 12.3.1. Pruebas funcionales manuales
 
-a) Captura del sistema
+Se ejecutarán de forma manual los casos de prueba que requieren validación visual o criterios subjetivos de usabilidad.
 
-  
+**PRUEBA N°: Nombre (código)**
 
-b) Código
+- **a) Captura del sistema:** [Adjuntar evidencia visual]
+- **b) Pasos ejecutados:** [Detallar pasos]
+- **c) Resultados:** [Satisfactorio / Fallido / Bloqueado]
 
-  
+### 12.3.2. Pruebas funcionales automatizadas con Playwright
 
-c) Resultados
+Se automatizarán los flujos críticos del sistema usando Playwright con Python. A continuación se presenta un ejemplo base para el caso de inicio de sesión.
 
-  
+**Ejemplo de código con Playwright:**
 
-12.2.2. Pruebas funcionales automatizadas con Playwright  
+```python
+# tests/test_login.py
+import re
+from playwright.sync_api import Page, expect
 
-PRUEBA Nº: Nombre (código)
 
-a) Captura del sistema
+def test_login_exitoso(page: Page):
+    page.goto("https://arteymetal.online/login")
+    page.fill("input[name='login']", "bvasquezkeysije@gmail.com")
+    page.fill("input[name='password']", "[contraseña válida]")
+    page.click("button[type='submit']")
 
-  
+    # Verifica redirección al dashboard
+    expect(page).to_have_url(re.compile(".*dashboard"))
+    expect(page.locator("text=Bienvenido")).to_be_visible()
+```
 
-b) Código
+**Ejecución:**
 
-  
+```bash
+pytest tests/test_login.py --headed --slowmo 500
+```
 
-c) Resultado
+**PRUEBA N°: Nombre (código)**
 
-  
+- **a) Captura del sistema:** [Adjuntar screenshot o trace]
+- **b) Código:** [Adjuntar script de Playwright]
+- **c) Resultado:** [Satisfactorio / Fallido / Bloqueado]
 
-12.3. Ejecución de pruebas de validación 
+## 12.4. Ejecución de pruebas de validación
 
-PRUEBA Nº: Nombre (codigo)
+Se verifican las reglas de validación de datos en formularios, campos obligatorios, formatos y límites.
 
-a) Captura del sistema
+**PRUEBA N°: Nombre (código)**
 
-  
+- **a) Captura del sistema:** [Adjuntar evidencia visual]
+- **b) Código:** [Adjuntar script de validación]
+- **c) Resultados:** [Satisfactorio / Fallido / Bloqueado]
 
-b) Código
+## 12.5. Ejecución de pruebas de integración
 
-  
+Se valida la interacción entre módulos: pedidos, producción, reparto, almacén, ventas y reportes.
 
-c) Resultados 
+**PRUEBA N°: Nombre (código)**
 
-  
+- **a) Captura del sistema:** [Adjuntar evidencia visual]
+- **b) Código:** [Adjuntar script de integración]
+- **c) Resultados:** [Satisfactorio / Fallido / Bloqueado]
 
-12.4. Ejecución de pruebas de integración 
+## 12.6. Ejecución de pruebas de regresión
 
-PRUEBA Nº: Nombre (codigo)
+Al finalizar cada sprint o corrección, se ejecutará un conjunto de pruebas de regresión para garantizar que los cambios no afecten funcionalidades previamente validadas.
 
-a) Captura del sistema
+```bash
+pytest tests/ --browser=chromium --tracing=on
+```
 
-  
+**PRUEBA N°: Nombre (código)**
 
-b) Código
+- **a) Captura del sistema:** [Adjuntar evidencia visual]
+- **b) Código:** [Adjuntar script de regresión]
+- **c) Resultados:** [Satisfctorio / Fallido / Bloqueado]
 
-  
+## 12.7. Gestión de evidencias
 
-c) Resultados 
+Todas las pruebas automatizadas generarán las siguientes evidencias:
 
-  
+| Evidencia | Descripción | Herramienta |
+| --- | --- | --- |
+| Screenshots | Capturas de pantalla en puntos clave del flujo. | Playwright `page.screenshot()` |
+| Traces | Registro detallado de interacciones para reproducción. | Playwright `--tracing=on` |
+| Videos | Grabación opcional de la ejecución completa. | Playwright `video: 'on'` |
+| Reportes de consola | Resultados de la ejecución de pytest. | pytest |
 
-12.5. Ejecución de pruebas de regresión 
-
-PRUEBA Nº: Nombre (codigo)
-
-a) Captura del sistema
-
-  
-
-b) Código
-
-  
-
-c) Resultados**
+**
