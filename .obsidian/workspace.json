@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
+                "file": "PAF/Parte 18 - REFERENCIAS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Regla 10 - Modulos por rol"
+              "title": "Parte 18 - REFERENCIAS"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "c3a8cd99a7ca9431",
@@ -185,6 +185,24 @@
   },
   "active": "a1662bd86682e791",
   "lastOpenFiles": [
+    "PAF/Parte 17 - RECOMENDACIONES.md",
+    "PAF/Parte 16 - CONCLUSIONES.md",
+    "PAF/Parte 15 - PRUEBAS DE RENDIMIENTO.md",
+    "PAF/Parte 14 - CRITERIOS DE FINALIZACIÓN Y SALIDA.md",
+    "PAF/Parte 13 - REGISTRO Y SEGUIMIENTO DE DEFECTOS.md",
+    "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
+    "PAF/Parte 11 - MÉTRICAS DE CALIDAD Y TRAZABILIDAD.md",
+    "PAF/Parte 10 - CASOS DE PRUEBA.md",
+    "PAF/Parte 9 - ESTIMACIÓN Y CRONOGRAMA DE PRUEBAS.md",
+    "PAF/Parte 8 - RECONOCIMIENTO DE RECURSOS Y ARQUITECTURA DE SOFTWARE.md",
+    "PAF/Parte 7 - ESTRATEGIA Y TIPOS DE PRUEBA.md",
+    "PAF/Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
+    "PAF/Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+    "PAF/Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
+    "PAF/Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
+    "PAF/Parte 2 - DATOS GENERALES DEL PROYECTO.md",
+    "PAF/Parte 1- INTRODUCCIÓN.md",
+    "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
     "REGLAS DEL SISTEMA/Regla 14 - Iconos y botones de accion.md",
     "REGLAS DEL SISTEMA/Regla 13 - Estructura UI estandar.md",
     "REGLAS DEL SISTEMA/Regla 12 - Modulo Disenos.md",
@@ -194,26 +212,8 @@
     "REGLAS DEL SISTEMA/Regla 11 - Tailwind JIT no genera clases en bindings dinamicos Alpine.md",
     "Sistema-ArteyMetal/app/Models/Caja.php",
     "Sistema-ArteyMetal/database/migrations/2026_07_12_010000_create_cajas_table.php",
-    "PAF/Parte 1- INTRODUCCIÓN.md",
     "REGLAS/Regla 9 - Punto de restauracion antes de commit.md",
     "REGLAS DEL SISTEMA/Regla 9 - Punto de restauracion antes de commit.md",
-    "REGLAS DEL SISTEMA/Regla 8 - Flujo completo de produccion.md",
-    "REGLAS DEL SISTEMA/Regla 7 - Filtrado de Ventas y Pedidos.md",
-    "REGLAS DEL SISTEMA/Regla 6 - Detalle de Venta.md",
-    "REGLAS DEL SISTEMA/Regla 5 - Sincronia de Pedidos con Caja.md",
-    "REGLAS DEL SISTEMA/Regla 4 - Sincronia de Ventas con Caja.md",
-    "REGLAS DEL SISTEMA/Regla 3 - Para la logica de caja.md",
-    "REGLAS DEL SISTEMA/Regla 2 - Para la logica de ventas.md",
-    "REGLAS DEL SISTEMA/Regla 10 - Modulos por rol.md",
-    "REGLAS DEL SISTEMA/Regla 1 - Para nodales emergentes.md",
-    "REGLAS DEL SISTEMA",
-    "PAF/Parte 2 - DATOS GENERALES DEL PROYECTO.md",
-    "PAF/Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
-    "PAF/Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
-    "PAF/Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
-    "PAF/Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
-    "PAF/Parte 7 - ESTRATEGIA Y TIPOS DE PRUEBA.md",
-    "PAF/Parte 8 - RECONOCIMIENTO DE RECURSOS Y ARQUITECTURA DE SOFTWARE.md",
-    "PAF/Parte 9 - ESTIMACIÓN Y CRONOGRAMA DE PRUEBAS.md"
+    "REGLAS DEL SISTEMA"
   ]
 }

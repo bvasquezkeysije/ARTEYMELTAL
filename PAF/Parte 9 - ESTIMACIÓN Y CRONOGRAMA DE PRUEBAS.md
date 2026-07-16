@@ -5,7 +5,8 @@
 
 ## 9.1. Desarrollo del Cronograma de Pruebas 
 
-  
+  **## 9.1. Desarrollo del Cronograma de Pruebas**
+
 | Actividad                                          | Semana 1                 | Semana 2     | Semana 3       | Semana 4        |
 | -------------------------------------------------- | ------------------------ | ------------ | -------------- | --------------- |
 | Planificación de pruebas                           | ✔ Definición del alcance |              |                |                 |
@@ -21,7 +22,11 @@
 | Cierre de pruebas                                  |                          |              |                | ✔ Aprobación    |
 
   
-  
+  **
+
+9.2. Estimación de pruebas
+
+**
 
 | Escenario de prueba                       | Criterio de aceptación                       | Responsable  | Fecha estimada |
 | ----------------------------------------- | -------------------------------------------- | ------------ | -------------- |
