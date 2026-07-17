@@ -70,7 +70,13 @@ El presente informe documenta las pruebas de rendimiento ejecutadas sobre el sis
 | `pytest` | Ejecución estructurada de pruebas. |
 | `htop` / `free` / `df` | Monitoreo de recursos del servidor. |
 
-**Código fuente:** Todos los scripts de rendimiento se encuentran en `PRUEBAS/performance/test_rendimiento.py`.
+**Código fuente:** Cada escenario de rendimiento tiene su propio script en la carpeta `PRUEBAS/performance/`:
+
+| Escenario | Archivo |
+| --- | --- |
+| Prueba de carga | `PRUEBAS/performance/test_carga.py` |
+| Prueba de estrés | `PRUEBAS/performance/test_estres.py` |
+| Prueba de picos | `PRUEBAS/performance/test_picos.py` |
 
 ### 15.5.5. Configuración
 
@@ -84,7 +90,7 @@ El presente informe documenta las pruebas de rendimiento ejecutadas sobre el sis
 
 ### 15.6.1. Prueba de carga
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de carga", 10, 50)`
+**Código:** `PRUEBAS/performance/test_carga.py`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |
@@ -98,7 +104,7 @@ El presente informe documenta las pruebas de rendimiento ejecutadas sobre el sis
 
 ### 15.6.2. Prueba de estrés
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de estrés", 30, 150)`
+**Código:** `PRUEBAS/performance/test_estres.py`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |
@@ -112,7 +118,7 @@ El presente informe documenta las pruebas de rendimiento ejecutadas sobre el sis
 
 ### 15.6.3. Prueba de picos
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de picos", 50, 100)`
+**Código:** `PRUEBAS/performance/test_picos.py`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |

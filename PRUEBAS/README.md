@@ -41,8 +41,10 @@ pytest integration/
 # Pruebas de regresión
 pytest regression/
 
-# Pruebas de rendimiento
-python performance/test_rendimiento.py
+# Pruebas de rendimiento (ejecutar cada script por separado)
+python performance/test_carga.py
+python performance/test_estres.py
+python performance/test_picos.py
 ```
 
 ## Configuración
