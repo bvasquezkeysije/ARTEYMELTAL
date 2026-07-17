@@ -22,14 +22,14 @@ El entorno de ejecución será una **laptop personal** con Python 3.10+, utiliza
 
 Todo el código de las pruebas se encuentra en la carpeta `PRUEBAS/` del repositorio, organizado por tipo de prueba:
 
-| Tipo | Archivo principal |
+| Tipo | Archivos |
 | --- | --- |
-| Unitarias | `PRUEBAS/unit/test_unitarios.py` |
+| Unitarias | `PRUEBAS/unit/test_01_login.py` a `test_10_exportar_reporte.py` |
 | Automatizadas con Playwright | `PRUEBAS/playwright/test_automatizados.py` |
 | Validación | `PRUEBAS/validation/test_validacion.py` |
 | Integración | `PRUEBAS/integration/test_integracion.py` |
 | Regresión | `PRUEBAS/regression/test_regresion.py` |
-| Rendimiento | `PRUEBAS/performance/test_rendimiento.py` |
+| Rendimiento | `PRUEBAS/performance/test_carga.py`, `test_estres.py`, `test_picos.py` |
 | Manuales | `PRUEBAS/manual/test_manuales.md` |
 
 A continuación se indica el código o archivo correspondiente a cada caso de prueba.
@@ -38,52 +38,52 @@ A continuación se indica el código o archivo correspondiente a cada caso de pr
 
 **PRUEBA N° 01: Inicio de sesión con credenciales válidas (CP01-HU01)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_login_valid_credentials`
+- **b) Código:** `PRUEBAS/unit/test_01_login.py::test_login_valid_credentials`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 02: Recuperación de contraseña por código (CP05-HU02)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_password_recovery_code_generation`
+- **b) Código:** `PRUEBAS/unit/test_02_password_recovery.py::test_password_recovery_code_generation`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 03: Crear pedido personalizado (CP08-HU03)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_create_pedido_personalizado`
+- **b) Código:** `PRUEBAS/unit/test_03_create_pedido.py::test_create_pedido_personalizado`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 04: Cambiar estado de pedido a producción (CP12-HU04)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_change_pedido_state_to_produccion`
+- **b) Código:** `PRUEBAS/unit/test_04_change_pedido_state.py::test_change_pedido_state_to_produccion`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 05: Registrar venta directa (CP15-HU05)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_registrar_venta_directa`
+- **b) Código:** `PRUEBAS/unit/test_05_registrar_venta.py::test_registrar_venta_directa`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 06: Crear producto (CP18-HU06)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_crear_producto`
+- **b) Código:** `PRUEBAS/unit/test_06_crear_producto.py::test_crear_producto`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 07: Consultar DNI por RENIEC (CP21-HU07)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_consultar_dni_reniec`
+- **b) Código:** `PRUEBAS/unit/test_07_consultar_reniec.py::test_consultar_dni_reniec`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 08: Apertura de caja (CP24-HU08)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_apertura_caja`
+- **b) Código:** `PRUEBAS/unit/test_08_apertura_caja.py::test_apertura_caja`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 09: Registrar entrada de almacén (CP27-HU09)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_registrar_entrada_almacen`
+- **b) Código:** `PRUEBAS/unit/test_09_entrada_almacen.py::test_registrar_entrada_almacen`
 - **c) Resultados:** Satisfactorio
 
 **PRUEBA N° 10: Exportar reporte de ventas a CSV (CP31-HU10)**
 - **a) Captura del sistema:** [Adjuntar evidencia visual]
-- **b) Código:** `PRUEBAS/unit/test_unitarios.py::test_exportar_reporte_ventas_csv`
+- **b) Código:** `PRUEBAS/unit/test_10_exportar_reporte.py::test_exportar_reporte_ventas_csv`
 - **c) Resultados:** Satisfactorio
 
 ## 12.4. Ejecución de pruebas funcionales manuales
