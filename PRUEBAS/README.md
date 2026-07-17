@@ -23,14 +23,19 @@ pip install -r requirements.txt
 playwright install
 ```
 
+## Configuración
+
+Copiar `PRUEBAS/.env.example` a `PRUEBAS/.env` y completar con las credenciales reales de prueba.
+
+```bash
+cp .env.example .env
+```
+
 ## Ejecución
 
 ```bash
 # Pruebas unitarias
 pytest unit/
-
-# Pruebas automatizadas con Playwright
-pytest playwright/
 
 # Pruebas de validación
 pytest validation/
@@ -41,15 +46,14 @@ pytest integration/
 # Pruebas de regresión
 pytest regression/
 
+# Pruebas automatizadas con Playwright
+pytest playwright/
+
 # Pruebas de rendimiento (ejecutar cada script por separado)
 python performance/test_carga.py
 python performance/test_estres.py
 python performance/test_picos.py
 ```
-
-## Configuración
-
-Editar `config.py` con la URL del sistema y credenciales de prueba.
 
 ## Nota
 

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "PAF/Parte 18 - REFERENCIAS.md",
+                "file": "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Parte 18 - REFERENCIAS"
+              "title": "Parte 12 -EJECUCIÓN DE PRUEBAS"
             }
           }
         ]
@@ -185,20 +185,33 @@
   },
   "active": "a1662bd86682e791",
   "lastOpenFiles": [
+    "PAF/Parte 10 - CASOS DE PRUEBA.md",
+    "PAF/Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
+    "PAF/Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
+    "PAF/Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
+    "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
+    "PRUEBAS/manual/test_manuales.md",
+    "PRUEBAS/performance/test_rendimiento.py",
+    "PRUEBAS/regression/test_regresion.py",
+    "PRUEBAS/integration/test_integracion.py",
+    "PRUEBAS/validation/test_validacion.py",
+    "PRUEBAS/playwright/test_automatizados.py",
+    "PRUEBAS/unit/test_unitarios.py",
+    "PRUEBAS/config.py",
+    "PRUEBAS/requirements.txt",
+    "PRUEBAS/README.md",
+    "PRUEBAS/validation",
+    "PRUEBAS/unit",
+    "PAF/Parte 18 - REFERENCIAS.md",
     "PAF/Parte 17 - RECOMENDACIONES.md",
     "PAF/Parte 16 - CONCLUSIONES.md",
     "PAF/Parte 15 - PRUEBAS DE RENDIMIENTO.md",
     "PAF/Parte 14 - CRITERIOS DE FINALIZACIÓN Y SALIDA.md",
     "PAF/Parte 13 - REGISTRO Y SEGUIMIENTO DE DEFECTOS.md",
-    "PAF/Parte 12 -EJECUCIÓN DE PRUEBAS.md",
     "PAF/Parte 11 - MÉTRICAS DE CALIDAD Y TRAZABILIDAD.md",
-    "PAF/Parte 10 - CASOS DE PRUEBA.md",
     "PAF/Parte 9 - ESTIMACIÓN Y CRONOGRAMA DE PRUEBAS.md",
     "PAF/Parte 8 - RECONOCIMIENTO DE RECURSOS Y ARQUITECTURA DE SOFTWARE.md",
     "PAF/Parte 7 - ESTRATEGIA Y TIPOS DE PRUEBA.md",
-    "PAF/Parte 6 -ESCENARIOS DE PRUEBA BDD-TDD.md",
-    "PAF/Parte 5 - HISTORIAS DE USUARIO Y CRITERIOS DE ACEPTACIÓN.md",
-    "PAF/Parte 4 - REQUERIMIENTOS DE SOFTWARE.md",
     "PAF/Parte 3 - OBJETIVO Y ALCANCE DEL PLAN DE PRUEBAS.md",
     "PAF/Parte 2 - DATOS GENERALES DEL PROYECTO.md",
     "PAF/Parte 1- INTRODUCCIÓN.md",
@@ -207,13 +220,6 @@
     "REGLAS DEL SISTEMA/Regla 13 - Estructura UI estandar.md",
     "REGLAS DEL SISTEMA/Regla 12 - Modulo Disenos.md",
     "REGLAS DEL SISTEMA/Regla 2 - Logica de ventas.md",
-    "REGLAS DEL SISTEMA/Regla 1 - Modales emergentes.md",
-    "Sistema-ArteyMetal/database/migrations/2026_07_13_000000_add_pedido_producto_id_to_pedido_diseno_archivos.php",
-    "REGLAS DEL SISTEMA/Regla 11 - Tailwind JIT no genera clases en bindings dinamicos Alpine.md",
-    "Sistema-ArteyMetal/app/Models/Caja.php",
-    "Sistema-ArteyMetal/database/migrations/2026_07_12_010000_create_cajas_table.php",
-    "REGLAS/Regla 9 - Punto de restauracion antes de commit.md",
-    "REGLAS DEL SISTEMA/Regla 9 - Punto de restauracion antes de commit.md",
-    "REGLAS DEL SISTEMA"
+    "REGLAS DEL SISTEMA/Regla 1 - Modales emergentes.md"
   ]
 }

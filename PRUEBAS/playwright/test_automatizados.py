@@ -23,8 +23,11 @@ from config import (
 
 def login(page: Page, email: str, password: str):
     page.goto(f"{BASE_URL}/login")
-    page.locator("input#login").fill(email)
-    page.locator("input#password").fill(password)
+    page.wait_for_selector("input[name='login']", state="visible", timeout=15000)
+    page.locator("input[name='login']").click()
+    page.locator("input[name='login']").fill(email)
+    page.locator("input[name='password']").click()
+    page.locator("input[name='password']").fill(password)
     page.locator("button[type='submit']").click()
     page.wait_for_url(f"{BASE_URL}/dashboard", timeout=15000)
 
