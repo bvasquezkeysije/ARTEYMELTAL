@@ -16,3 +16,8 @@ Sistema-ArteyMetal/.git_repo_backup/
 Documentacion/.git_repo_backup/
 Thumbs.db
 .DS_Store
+PRUEBAS/.env
+PRUEBAS/venv/
+PRUEBAS/__pycache__/
+PRUEBAS/*/__pycache__/
+PRUEBAS/.pytest_cache/

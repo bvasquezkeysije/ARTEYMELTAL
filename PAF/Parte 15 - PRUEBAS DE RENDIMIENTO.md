@@ -84,68 +84,63 @@ El presente informe documenta las pruebas de rendimiento ejecutadas sobre el sis
 
 ### 15.6.1. Prueba de carga
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de carga", 10, 100)`
+**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de carga", 10, 50)`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |
-| `/login` | 10 | 100 | 100 | 0 | 0.18 s | 0.95 s | 0.42 s |
-| `/dashboard` | 10 | 100 | 100 | 0 | 0.22 s | 1.10 s | 0.51 s |
-| `/api/reniec` | 10 | 100 | 100 | 0 | 0.35 s | 1.85 s | 0.78 s |
+| `/login` | 10 | 50 | 42 | 8 | 0.61 s | 8.11 s | 4.00 s |
 
-**Throughput:** 23.8 req/s  
-**Tasa de errores:** 0 %  
-**Uso de CPU:** 32 %  
-**Uso de memoria:** 41 %  
-**Estado:** Aprobado
+**Throughput:** 0.25 req/s  
+**Tasa de errores:** 16 %  
+**Uso de CPU:** observado ~40 %  
+**Uso de memoria:** observado ~45 %  
+**Estado:** No aprobado (tiempo promedio y tasa de errores superan los criterios)
 
 ### 15.6.2. Prueba de estrés
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de estrés", 50, 500)`
+**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de estrés", 30, 150)`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |
-| `/login` | 50 | 500 | 498 | 2 | 0.21 s | 4.20 s | 1.85 s |
-| `/dashboard` | 50 | 500 | 500 | 0 | 0.25 s | 4.55 s | 2.10 s |
-| `/api/reniec` | 50 | 500 | 500 | 0 | 0.40 s | 4.90 s | 2.45 s |
+| `/login` | 30 | 150 | 101 | 49 | 0.60 s | 10.97 s | 1.97 s |
 
-**Throughput:** 18.3 req/s  
-**Tasa de errores:** 0.13 %  
-**Uso de CPU:** 68 %  
-**Uso de memoria:** 58 %  
-**Estado:** Aprobado
+**Throughput:** 0.51 req/s  
+**Tasa de errores:** 32.67 %  
+**Uso de CPU:** observado ~55 %  
+**Uso de memoria:** observado ~50 %  
+**Estado:** No aprobado (alta tasa de errores por timeouts)
 
 ### 15.6.3. Prueba de picos
 
-**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de picos", 100, 300)`
+**Código:** `PRUEBAS/performance/test_rendimiento.py::run_scenario("Prueba de picos", 50, 100)`
 
 | Endpoint | Usuarios | Peticiones | Exitosas | Errores | Tiempo mínimo | Tiempo máximo | Tiempo promedio |
 | --- | :-: | :-: | :-: | :-: | --- | --- | --- |
-| `/login` | 100 | 300 | 295 | 5 | 0.24 s | 6.80 s | 3.20 s |
-| `/dashboard` | 100 | 300 | 298 | 2 | 0.28 s | 7.10 s | 3.55 s |
-| `/api/reniec` | 100 | 300 | 300 | 0 | 0.42 s | 5.95 s | 2.90 s |
+| `/login` | 50 | 100 | 80 | 20 | 0.61 s | 16.02 s | 6.32 s |
 
-**Throughput:** 14.7 req/s  
-**Tasa de errores:** 0.78 %  
-**Uso de CPU:** 79 %  
-**Uso de memoria:** 67 %  
-**Estado:** Aprobado con observación
+**Throughput:** 0.16 req/s  
+**Tasa de errores:** 20 %  
+**Uso de CPU:** observado ~70 %  
+**Uso de memoria:** observado ~60 %  
+**Estado:** No aprobado (tiempos y tasa de errores superan los criterios)
 
 ## 15.7. Errores de ejecución
 
 | Escenario | Errores detectados | Causa probable | Impacto |
 | --- | --- | --- | --- |
-| Prueba de estrés | 2 errores en `/login` | Tiempo de espera agotado por saturación momentánea de PHP-FPM. | Bajo |
-| Prueba de picos | 7 errores distribuidos en `/login` y `/dashboard` | Límite de conexiones concurrentes alcanzado brevemente. | Medio |
+| Prueba de carga | 8 errores en `/login` | Timeouts por latencia de red y respuesta lenta del servidor. | Medio |
+| Prueba de estrés | 49 errores en `/login` | Saturación de PHP-FPM y timeouts en conexiones concurrentes. | Alto |
+| Prueba de picos | 20 errores en `/login` | Límite de conexiones concurrentes alcanzado. | Medio |
 
 Ningún error causó caída del sistema ni pérdida de datos.
 
 ## 15.8. Conclusiones de pruebas de rendimiento
 
-- El sistema cumple con el criterio de tiempo de respuesta promedio menor a 2 segundos en condiciones normales y de carga moderada.
-- Bajo prueba de picos con 100 usuarios concurrentes, el tiempo máximo superó los 5 segundos en algunas peticiones, aunque la tasa de errores se mantuvo por debajo del 1 %.
-- No se detectaron cuellos de botella severos en la base de datos PostgreSQL.
-- El servidor mantiene estabilidad general con uso de CPU y memoria dentro de rangos aceptables.
-- El servicio externo de consulta RENIEC mostró mayor latencia, lo cual es dependiente del proveedor Decolecta.
+- Los resultados reales de las pruebas muestran que el servidor actual **no cumple** con los criterios de rendimiento definidos (tiempo promedio ≤ 2 s y tasa de errores ≤ 2 %).
+- La latencia de red y la configuración actual de PHP-FPM generan timeouts frecuentes bajo concurrencia moderada.
+- No se detectaron cuellos de botella severos en la base de datos PostgreSQL; los errores provienen principalmente de la capa de aplicación/web.
+- El servidor mantiene estabilidad general (no se cae), pero la experiencia de usuario se degrada significativamente bajo carga.
+- Se recomienda ejecutar nuevamente las pruebas tras aplicar las optimizaciones indicadas en la sección 15.9.
 
 ## 15.9. Recomendaciones de pruebas de rendimiento
 
